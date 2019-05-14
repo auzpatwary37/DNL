@@ -6,14 +6,13 @@ import java.util.List;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 
-import joinery.DataFrame;
 
 public class L2LVolumeTimeMatrix {
 	
 	
 	
 	public static void main(String[] args) {
-		DataFrame<Double> df;
+		//DataFrame<Double> df;
 		List<String> timeBeans=new ArrayList<>();
 		
 		timeBeans.add("1");
@@ -27,13 +26,13 @@ public class L2LVolumeTimeMatrix {
 		linkIds.add(linkId1);
 		linkIds.add(linkId2);
 
-		df=new DataFrame<>(linkIds,timeBeans);
-		List<Double> a=new ArrayList<>();
-		a.add(5.);
-		a.add(6.);
-		df.append("l1",a);
-		
-		cf.show();
+//		df=new DataFrame<>(linkIds,timeBeans);
+//		List<Double> a=new ArrayList<>();
+//		a.add(5.);
+//		a.add(6.);
+//		df.append("l1",a);
+//		
+	
 		
 	}
 	
