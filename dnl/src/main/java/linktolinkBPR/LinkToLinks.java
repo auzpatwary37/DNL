@@ -2,9 +2,12 @@ package linktolinkBPR;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -20,17 +23,25 @@ public class LinkToLinks {
 	private Map<Id<Link>,List<LinkToLink>>ToLinkToLinkMap=new HashMap<>();
 	private BiMap<Integer,Id<LinkToLink>> numToLinkToLink=HashBiMap.create();
 	private final Network network;
-	private final Map<String,Tuple<Double,Double>>timeBean;
+	private final Map<Integer,Tuple<Double,Double>>timeBean;
 	private int l2lCounter=0;
+	private Map<String,double[][]>weights=new HashMap<>();
 	/**
 	 * 
 	 * TODO:Add signal info in this constructor as well
 	 * @param network
 	 */
-	public LinkToLinks(Network network,Map<String,Tuple<Double,Double>>timeBean) {
+	public LinkToLinks(Network network,Map<Integer,Tuple<Double,Double>>timeBean,int kn,int kt) {
 		this.network=network;
+		//Time bean has to continuous, there cannot be any gap between. Should be homogeneous as well. Should we make it endogenous? and take the 
+		//number of time bean as input instead? What will happen to the input demand of link to link?
 		this.timeBean=timeBean;
 		this.generateLinkToLinkMap();
+		for(int n=0;n<this.linkToLinks.size();n++) {
+			for(int t=0;t<timeBean.size();t++) {
+				this.weights.put(Integer.toString(n)+"_"+Integer.toString(t), this.generateWeightMatrix(n, t, kn, kt));
+			}
+		}
 	}
 	
 	/**
@@ -66,7 +77,7 @@ public class LinkToLinks {
 		return network;
 	}
 
-	public Map<String, Tuple<Double, Double>> getTimeBean() {
+	public Map<Integer, Tuple<Double, Double>> getTimeBean() {
 		return timeBean;
 	}
 
@@ -96,16 +107,80 @@ public class LinkToLinks {
 		this.l2lCounter++;
 	}
 	
-//	public static void main(String[] args) {
-//		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
-////		/Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
-//		
-//		Map<String,Tuple<Double,Double>> timeBean=new HashMap<>();
-//		for(int i=0;i<24;i++) {
-//			timeBean.put(Integer.toString(i),new Tuple<Double,Double>(i*3600.,i*3600.+3600));
-//		}
-//		LinkToLinks l2ls=new LinkToLinks(network,timeBean);
-//		System.out.println("Done!!! Total LinkToLink = "+l2ls.getL2lCounter());
-//	}
+	
+	private double[][] generateWeightMatrix(int n,int t,int kn,int kt){
+		LinkToLink l2l=this.linkToLinks.get(n);
+		double weight[][]=new double[this.linkToLinks.size()][this.timeBean.size()];
+		Map<Integer,Set<LinkToLink>>linkToLinkMap=new HashMap<>();
+		linkToLinkMap.put(1, new HashSet<>());
+		this.fetchLinkToLinkWithFromLink(l2l.getToLink(), 1, kn, linkToLinkMap);
+		this.fetchLinkToLinkWithToLink(l2l.getFromLink(), 1, kn, linkToLinkMap);
+		for(Entry<Integer,Set<LinkToLink>> linkToLinks:linkToLinkMap.entrySet()) {
+			double wk=1+1/linkToLinks.getKey();
+			for(LinkToLink ll2ll:linkToLinks.getValue()) {
+				int l2lIndex=this.numToLinkToLink.inverse().get(ll2ll.getLinkToLinkId()); 
+				for(int tt=Math.max(t-kt,0);tt<=Math.min(this.timeBean.size()-1,t+kt);tt++) {
+					double wt=0;
+					if(tt-t==0) {
+						wt=3;
+					}else {
+						wt=1+1/Math.abs(tt-t);
+					}
+					weight[l2lIndex][tt]=wk*wt;
+				}
+			}
+		}
+		return weight;
+	}
+	
+	private Map<Integer,Set<LinkToLink>>fetchLinkToLinkWithFromLink(Link toLink,int k,int kn,Map<Integer,Set<LinkToLink>> linkToLinks){
+		if(this.fromLinkToLinkMap.get(toLink.getId())!=null) {
+		for(LinkToLink l2l:this.fromLinkToLinkMap.get(toLink.getId())) {
+			linkToLinks.get(k).add(l2l);
+			k=k+1;
+			if(k>kn) {
+				return linkToLinks;
+			}
+			if(!linkToLinks.containsKey(k)) {
+				linkToLinks.put(k, new HashSet<>());
+			}
+			fetchLinkToLinkWithFromLink(l2l.getToLink(),k,kn,linkToLinks);
+		}
+		}
+		return linkToLinks;
+	}
+	
+	private Map<Integer,Set<LinkToLink>>fetchLinkToLinkWithToLink(Link fromLink,int k,int kn,Map<Integer,Set<LinkToLink>> linkToLinks){
+		if(this.ToLinkToLinkMap.get(fromLink.getId())!=null) {
+		for(LinkToLink l2l:this.ToLinkToLinkMap.get(fromLink.getId())) {
+			linkToLinks.get(k).add(l2l);
+			k=k+1;
+			if(k>kn) {
+				return linkToLinks;
+			}
+			if(!linkToLinks.containsKey(k)) {
+				linkToLinks.put(k, new HashSet<>());
+			}
+			fetchLinkToLinkWithToLink(l2l.getFromLink(),k,kn,linkToLinks);
+		}
+		}
+		return linkToLinks;
+	}
+	
+	public double[][] getWeightMatrix(int n, int t){
+		return this.weights.get(Integer.toString(n)+"_"+Integer.toString(t));
+	}
+	
+	public static void main(String[] args) {
+		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
+		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
+		
+		Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
+		for(int i=0;i<24;i++) {
+			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
+		}
+		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3);
+		System.out.println("Done!!! Total LinkToLink = "+l2ls.getL2lCounter());
+	}
 	
 }

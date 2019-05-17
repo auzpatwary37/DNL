@@ -15,21 +15,21 @@ import org.matsim.core.utils.collections.Tuple;
  */
 public class LinkToLink {
 	
-	private final Map<String,Tuple<Double,Double>> timeBean;
+	private final Map<Integer,Tuple<Double,Double>> timeBean;
 	private final Link fromLink;
 	private final Link toLink;
-	private Map<String,Double> demand=new ConcurrentHashMap<>();
-	private Map<String,Double> supply=new ConcurrentHashMap<>();
+	private Map<Integer,Double> demand=new ConcurrentHashMap<>();
+	private Map<Integer,Double> supply=new ConcurrentHashMap<>();
 	private final Id<LinkToLink> linkToLinkId;
 	private double g_cRatio=1;
 	private double cycleTime=0;
 	
 	
-	public LinkToLink(Link fromLink, Link toLink,Map<String,Tuple<Double,Double>>timeBean) {
+	public LinkToLink(Link fromLink, Link toLink,Map<Integer, Tuple<Double, Double>> timeBean2) {
 		this.fromLink=fromLink;
 		this.toLink=toLink;
-		this.timeBean=timeBean;
-		for(String timeId:this.timeBean.keySet()) {
+		this.timeBean=timeBean2;
+		for(Integer timeId:this.timeBean.keySet()) {
 			this.demand.put(timeId, 0.);
 			this.supply.put(timeId, 1800.);
 		}
@@ -37,7 +37,7 @@ public class LinkToLink {
 		this.linkToLinkId=Id.create(this.fromLink.getId()+"_"+this.toLink.getId(), LinkToLink.class);
 	}
 	
-	public void addDemand(double demand,String timeBeanId) {
+	public void addDemand(double demand,Integer timeBeanId) {
 		if(this.timeBean.containsKey(timeBeanId)) {
 			this.demand.put(timeBeanId, this.demand.get(timeBeanId)+demand);
 		}else {
@@ -71,7 +71,7 @@ public class LinkToLink {
 		this.g_cRatio = g_cRatio;
 	}
 
-	public Map<String, Tuple<Double, Double>> getTimeBean() {
+	public Map<Integer, Tuple<Double, Double>> getTimeBean() {
 		return timeBean;
 	}
 
@@ -83,11 +83,11 @@ public class LinkToLink {
 		return toLink;
 	}
 
-	public Map<String, Double> getDemand() {
+	public Map<Integer, Double> getDemand() {
 		return demand;
 	}
 
-	public Map<String, Double> getSupply() {
+	public Map<Integer, Double> getSupply() {
 		return supply;
 	}
 

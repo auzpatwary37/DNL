@@ -11,15 +11,18 @@ public class Variogram {
 
 	/**
 	 * 
-	 * @param a first input 
-	 * @param b second input
-	 * @param l2ls holder for network info
-	 * Assuming first dimension is l2l and the second dimension is time
-	 * Will throw an error if a and b dimension mismatch
+	 * @param a first tensor
+	 * @param b second tensor
+	 * @param l2ls Network info
+	 * @param n link in calculation
+	 * @param t time in calculation
+	 * @param ka number of connected l2l to consider
+	 * @param kt number of connected time to consider
+	 * @param beta parameters for the variogram
 	 * @return
 	 */
-	public double calcDistance(double[][] a,double[][]b,LinkToLinks l2ls) {
-		
+	public double calcDistance(double[][] a,double[][]b,LinkToLinks l2ls,int n,int t,double[][]beta, int ka,int kt) {
+		double[][] weight= new double[a.length][a[0].length];
 		
 		return 0;
 	}

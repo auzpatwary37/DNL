@@ -51,6 +51,18 @@
     <artifactId>nd4j-api</artifactId>
     <version>1.0.0-beta3</version>
 </dependency>
+	<!-- https://mvnrepository.com/artifact/com.google.inject/guice -->
+<dependency>
+    <groupId>com.google.inject</groupId>
+    <artifactId>guice</artifactId>
+    <version>4.2.2</version>
+</dependency>
+	<!-- https://mvnrepository.com/artifact/javax.inject/javax.inject -->
+<dependency>
+    <groupId>javax.inject</groupId>
+    <artifactId>javax.inject</artifactId>
+    <version>1</version>
+</dependency>
 	
 	</dependencies>
 	
