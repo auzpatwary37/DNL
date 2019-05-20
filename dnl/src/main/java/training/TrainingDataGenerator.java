@@ -84,7 +84,7 @@ public class TrainingDataGenerator {
 			new ConfigWriter(config).write("Network/SiouxFalls/final_config.xml");
 			Scenario scenario = ScenarioUtils.loadScenario(config);
 			Controler controler = new Controler(scenario);
-			controler.addOverridingModule(new TravelTimeCalculatorModule());
+			//controler.addOverridingModule(new TravelTimeCalculatorModule());
 			controler.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 			controler.run();
 		}

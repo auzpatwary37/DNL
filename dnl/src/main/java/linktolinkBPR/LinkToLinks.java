@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.math3.linear.OpenMapRealMatrix;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -25,7 +27,7 @@ public class LinkToLinks {
 	private final Network network;
 	private final Map<Integer,Tuple<Double,Double>>timeBean;
 	private int l2lCounter=0;
-	private Map<String,double[][]>weights=new HashMap<>();
+	private Map<String,RealMatrix>weights=new HashMap<>();
 	/**
 	 * 
 	 * TODO:Add signal info in this constructor as well
@@ -108,15 +110,23 @@ public class LinkToLinks {
 	}
 	
 	
-	private double[][] generateWeightMatrix(int n,int t,int kn,int kt){
+	private RealMatrix generateWeightMatrix(int n,int t,int kn,int kt){
 		LinkToLink l2l=this.linkToLinks.get(n);
-		double weight[][]=new double[this.linkToLinks.size()][this.timeBean.size()];
+		RealMatrix we=new OpenMapRealMatrix(this.linkToLinks.size(), this.timeBean.size());
+		//double weight[][]=new double[this.linkToLinks.size()][this.timeBean.size()];
 		Map<Integer,Set<LinkToLink>>linkToLinkMap=new HashMap<>();
+		linkToLinkMap.put(0, new HashSet<>());
+		linkToLinkMap.get(0).add(l2l);
 		linkToLinkMap.put(1, new HashSet<>());
 		this.fetchLinkToLinkWithFromLink(l2l.getToLink(), 1, kn, linkToLinkMap);
 		this.fetchLinkToLinkWithToLink(l2l.getFromLink(), 1, kn, linkToLinkMap);
 		for(Entry<Integer,Set<LinkToLink>> linkToLinks:linkToLinkMap.entrySet()) {
-			double wk=1+1/linkToLinks.getKey();
+			double wk;
+			if(linkToLinks.getKey()==0) {
+				wk=3;
+			}else {
+				wk=1+1/linkToLinks.getKey();
+			}
 			for(LinkToLink ll2ll:linkToLinks.getValue()) {
 				int l2lIndex=this.numToLinkToLink.inverse().get(ll2ll.getLinkToLinkId()); 
 				for(int tt=Math.max(t-kt,0);tt<=Math.min(this.timeBean.size()-1,t+kt);tt++) {
@@ -126,16 +136,27 @@ public class LinkToLinks {
 					}else {
 						wt=1+1/Math.abs(tt-t);
 					}
-					weight[l2lIndex][tt]=wk*wt;
+					//weight[l2lIndex][tt]=wk*wt;
+					we.setEntry(l2lIndex, tt, wk*wt);
 				}
 			}
 		}
-		return weight;
+		//double[][] a =we.getData();
+		return we;
 	}
 	
 	private Map<Integer,Set<LinkToLink>>fetchLinkToLinkWithFromLink(Link toLink,int k,int kn,Map<Integer,Set<LinkToLink>> linkToLinks){
 		if(this.fromLinkToLinkMap.get(toLink.getId())!=null) {
 		for(LinkToLink l2l:this.fromLinkToLinkMap.get(toLink.getId())) {
+			boolean linkExist=false;
+			for(Set<LinkToLink> l2ls:linkToLinks.values()) {
+				if(l2ls.contains(l2l)) {
+					linkExist=true;
+				}
+			}
+			if(linkExist==true) {
+				continue;
+			}
 			linkToLinks.get(k).add(l2l);
 			k=k+1;
 			if(k>kn) {
@@ -153,6 +174,15 @@ public class LinkToLinks {
 	private Map<Integer,Set<LinkToLink>>fetchLinkToLinkWithToLink(Link fromLink,int k,int kn,Map<Integer,Set<LinkToLink>> linkToLinks){
 		if(this.ToLinkToLinkMap.get(fromLink.getId())!=null) {
 		for(LinkToLink l2l:this.ToLinkToLinkMap.get(fromLink.getId())) {
+			boolean linkExist=false;
+			for(Set<LinkToLink> l2ls:linkToLinks.values()) {
+				if(l2ls.contains(l2l)) {
+					linkExist=true;
+				}
+			}
+			if(linkExist==true) {
+				continue;
+			}
 			linkToLinks.get(k).add(l2l);
 			k=k+1;
 			if(k>kn) {
@@ -167,16 +197,16 @@ public class LinkToLinks {
 		return linkToLinks;
 	}
 	
-	public double[][] getWeightMatrix(int n, int t){
+	public RealMatrix getWeightMatrix(int n, int t){
 		return this.weights.get(Integer.toString(n)+"_"+Integer.toString(t));
 	}
 	
 	public static void main(String[] args) {
-		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
-		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
+		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
+		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
 		
 		Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
-		for(int i=0;i<24;i++) {
+		for(int i=15;i<18;i++) {
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3);
