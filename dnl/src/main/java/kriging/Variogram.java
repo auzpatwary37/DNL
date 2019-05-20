@@ -20,15 +20,23 @@ import linktolinkBPR.LinkToLinks;
  *
  */
 public class Variogram {
+	
 	private final Map<Integer,Tuple<RealMatrix,RealMatrix>> trainingDataSet;
-	private final LinkToLinks l2ls;
 	private final RealMatrix sigmaMatrix;
+	private final Map<String,RealMatrix> weights;
 	private RealMatrix beta;
 	private Map<String,RealMatrix> varianceMapAll;
 	
+	//TODO: Add a writer to save the trained model
+	
+	/**
+	 * This will initialize the beta matrix and calculate and store the IxI variance matrix by default
+	 * @param trainingDataSet
+	 * @param l2ls
+	 */
 	public Variogram(Map<Integer,Tuple<RealMatrix,RealMatrix>>trainingDataSet,LinkToLinks l2ls) {
 		this.trainingDataSet=trainingDataSet;
-		this.l2ls=l2ls;
+		this.weights=l2ls.getWeightMatrices();
 		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
 		//Initialize beta to a nxt matrix of one
 		this.beta=CheckUtil.convertToApacheMatrix((Nd4j.zeros(trainingDataSet.get(0).getFirst().getRowDimension(),trainingDataSet.get(0).getFirst().getColumnDimension()).addi(1)));
@@ -39,7 +47,6 @@ public class Variogram {
 	 * 
 	 * @param a first tensor
 	 * @param b second tensor
-	 * @param l2ls Network info
 	 * @param n link in calculation
 	 * @param t time in calculation
 	 * @param ka number of connected l2l to consider
@@ -63,8 +70,8 @@ public class Variogram {
 		return sd;
 	}
 	
-	public double calcDistance(RealMatrix a,RealMatrix b,LinkToLinks l2ls,int n,int t) {
-		return Nd4j.create(a.getData()).sub(Nd4j.create(b.getData())).mul(Nd4j.create(l2ls.getWeightMatrix(n, t).getData())).norm2Number().doubleValue();
+	public double calcDistance(RealMatrix a,RealMatrix b,int n,int t) {
+		return Nd4j.create(a.getData()).sub(Nd4j.create(b.getData())).mul(Nd4j.create(this.weights.get(Integer.toString(n)+"_"+Integer.toString(t)).getData())).norm2Number().doubleValue();
 		//return distance;
 	}
 	
@@ -90,7 +97,7 @@ public class Variogram {
 				if(i==j) {
 					K.setEntry(i, i, sigma);
 				}else {
-					double v=sigma*Math.exp(-1*this.calcDistance(dataPair1.getFirst(), dataPair2.getFirst(), this.l2ls, n, t)*beta.getEntry(n, t));
+					double v=sigma*Math.exp(-1*this.calcDistance(dataPair1.getFirst(), dataPair2.getFirst(), n, t)*beta.getEntry(n, t));
 					K.setEntry(i, j, v);
 					K.setEntry(j, i, v);
 				}
@@ -113,7 +120,7 @@ public class Variogram {
 		RealMatrix K=new Array2DRowRealMatrix(trainingDataSet.size(),1);
 		int i=0;
 		for(Tuple<RealMatrix,RealMatrix> dataPair:trainingDataSet.values()) {
-			double v=sigma*Math.exp(-1*this.calcDistance(X, dataPair.getFirst(), this.l2ls, n, t)*beta.getEntry(n, t));
+			double v=sigma*Math.exp(-1*this.calcDistance(X, dataPair.getFirst(), n, t)*beta.getEntry(n, t));
 			K.setEntry(i, 1, v);
 			i++;
 		}
@@ -159,4 +166,28 @@ public class Variogram {
 		this.beta=beta;
 		this.varianceMapAll=this.calculateVarianceMatrixAll(this.beta);
 	}
+	
+	//Getters and Setters
+
+	public Map<Integer, Tuple<RealMatrix, RealMatrix>> getTrainingDataSet() {
+		return trainingDataSet;
+	}
+
+
+	public RealMatrix getSigmaMatrix() {
+		return sigmaMatrix;
+	}
+
+	public RealMatrix getBeta() {
+		return beta;
+	}
+
+	public Map<String, RealMatrix> getVarianceMapAll() {
+		return varianceMapAll;
+	}
+
+	public Map<String, RealMatrix> getWeights() {
+		return weights;
+	}
+	
 }

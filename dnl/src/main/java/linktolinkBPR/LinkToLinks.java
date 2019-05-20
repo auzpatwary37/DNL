@@ -201,6 +201,10 @@ public class LinkToLinks {
 		return this.weights.get(Integer.toString(n)+"_"+Integer.toString(t));
 	}
 	
+	public Map<String,RealMatrix> getWeightMatrices(){
+		return this.weights;
+	}
+	
 	public static void main(String[] args) {
 		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
 		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
