@@ -57,6 +57,40 @@ public class KrigingInterpolator{
 		return baseFunction;
 	}
 	
+	public void updateVariogramParameter(RealMatrix theta) {
+		this.variogram.updatetheta(theta);
+	}
+	
+	public RealMatrix getY(RealMatrix X) {
+		return this.getY(X, this.beta, this.variogram.gettheta());
+	}
+	
+	//TODO: Fix this function
+	public RealMatrix getY(RealMatrix X,RealMatrix beta,RealMatrix theta) {
+		
+		return X;
+	}
+	
+	
+	
+	//TODO: Fix this function
+	public double calclogLikelihood(RealMatrix X, RealMatrix Y, RealMatrix theta, RealMatrix beta) {
+		
+		return 0;
+	}
+	
+	//Intentionally not made parallel
+	public double calcCombinedLogLikelihood(Map<Integer,Tuple<RealMatrix,RealMatrix>> trainingBatch,RealMatrix theta, RealMatrix beta) {
+		double logLikelihood=0;
+		for(Tuple<RealMatrix,RealMatrix> xyPair:trainingBatch.values()) {
+			logLikelihood+=this.calclogLikelihood(xyPair.getFirst(), xyPair.getSecond(), theta, beta);
+		}
+		return logLikelihood;
+	}
+	
+	public double calcCombinedLogLikelihood() {
+		return this.calcCombinedLogLikelihood(this.trainingDataSet,this.variogram.gettheta(),this.getBeta());
+	}
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		BaseFunction bf=new MeanBaseFunction();
 		String s=bf.getClass().getName().toString();
