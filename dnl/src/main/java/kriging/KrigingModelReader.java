@@ -1,6 +1,8 @@
 package kriging;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,6 +25,7 @@ public class KrigingModelReader extends DefaultHandler {
 	private int N;
 	private int T;
 	private int I;
+	private BaseFunction bf;
 	String dateAndTime;
 	@Override 
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
@@ -57,6 +60,26 @@ public class KrigingModelReader extends DefaultHandler {
 			
 		}
 		
+		if(qName.equalsIgnoreCase("baseFunction")) {
+			try {
+				Method parseBaseFunction=Class.forName(attributes.getValue("ClassName")).getMethod("parseBaseFunction", Attributes.class);
+				this.bf=(BaseFunction)parseBaseFunction.invoke(null, attributes);
+				
+			} catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		
 	}
 	
@@ -79,7 +102,7 @@ public class KrigingModelReader extends DefaultHandler {
 		
 		Variogram v=new Variogram(trainingDataSet, this.weights,this.theta);
 		
-		return new KrigingInterpolator(v,beta);
+		return new KrigingInterpolator(v,beta,this.bf);
 	}
 
 	

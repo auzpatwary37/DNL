@@ -1,46 +1,16 @@
 package kriging;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
-import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.OpenMapRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealMatrixFormat;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
-import org.matsim.api.core.v01.Coord;
-import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.network.Link;
 import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.factory.Nd4j;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
 import linktolinkBPR.LinkToLinks;
 
 
@@ -230,64 +200,7 @@ public class Variogram {
 		return weights;
 	}
 	
-	public void writeModel(RealMatrix beta,String fileLoc) {
-		try {
-			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-
-			Document document = documentBuilder.newDocument();
-
-			Element rootEle = document.createElement("Kriging_DNL");
-			
-			//Store the metaData here 
-			Element metaData=document.createElement("meataData");
-			metaData.setAttribute("N", Integer.toString(this.trainingDataSet.get(0).getFirst().getRowDimension()));
-			metaData.setAttribute("T", Integer.toString(this.trainingDataSet.get(0).getFirst().getColumnDimension()));
-			metaData.setAttribute("I", Integer.toString(this.trainingDataSet.size()));
-			metaData.setAttribute("DateAndTime", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance()));
-			rootEle.appendChild(metaData);
-			
-			Element trainingDataSet=document.createElement("trainingDataSet");
-			
-			for(int i=0;i<this.trainingDataSet.size();i++) {
-				Element trainingData=document.createElement("trainingData");
-				trainingData.setAttribute("Id", Integer.toString(i));
-				trainingData.setAttribute("X",this.trainingDataSet.get(i).getFirst().toString());
-				trainingData.setAttribute("Y",this.trainingDataSet.get(i).getSecond().toString());
-				trainingDataSet.appendChild(trainingData);
-			}
-			rootEle.appendChild(trainingDataSet);
-			
-			Element weights=document.createElement("Weights");
-			for(Entry<String,RealMatrix> weight:this.weights.entrySet()) {
-				weights.setAttribute(weight.getKey(), weight.getValue().toString());
-			}
-			rootEle.appendChild(weights);
-			
-			Element theta=document.createElement("theta");
-			theta.setAttribute("theta", this.theta.toString());
-			
-			rootEle.appendChild(theta);
-			
-			Element betaEle=document.createElement("beta");
-			betaEle.setAttribute("beta", beta.toString());
-		
-			rootEle.appendChild(betaEle);
-			document.appendChild(rootEle);
-			
-
-			Transformer tr = TransformerFactory.newInstance().newTransformer();
-			tr.setOutputProperty(OutputKeys.INDENT, "yes");
-			tr.setOutputProperty(OutputKeys.METHOD, "xml");
-			tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-			tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-			tr.transform(new DOMSource(document), new StreamResult(new FileOutputStream(fileLoc)));
-
-
-		}catch(Exception e) {
-			
-		}
-	}
+	
 	
 }
 

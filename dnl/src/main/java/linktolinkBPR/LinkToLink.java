@@ -19,7 +19,7 @@ public class LinkToLink {
 	private final Link fromLink;
 	private final Link toLink;
 	private Map<Integer,Double> demand=new ConcurrentHashMap<>();
-	private Map<Integer,Double> supply=new ConcurrentHashMap<>();
+	private double supply=1800;
 	private final Id<LinkToLink> linkToLinkId;
 	private double g_cRatio=1;
 	private double cycleTime=60;
@@ -31,7 +31,6 @@ public class LinkToLink {
 		this.timeBean=timeBean2;
 		for(Integer timeId:this.timeBean.keySet()) {
 			this.demand.put(timeId, 0.);
-			this.supply.put(timeId, 1800.);
 		}
 		
 		this.linkToLinkId=Id.create(this.fromLink.getId()+"_"+this.toLink.getId(), LinkToLink.class);
@@ -60,11 +59,11 @@ public class LinkToLink {
 	 * @return
 	 */
 	public double getLinkToLinkWebstarDelay(Integer timeBeanId) {
-		return this.fromLink.getLength()/this.fromLink.getFreespeed()+ cycleTime/2*(1-this.g_cRatio)*(1-this.g_cRatio)/(1-this.g_cRatio*(this.demand.get(timeBeanId)/this.supply.get(timeBeanId)));
+		return this.fromLink.getLength()/this.fromLink.getFreespeed()+ cycleTime/2*(1-this.g_cRatio)*(1-this.g_cRatio)/(1-this.g_cRatio*(this.demand.get(timeBeanId)/this.supply));
 	}
 	
 	public double getLinkToLinkWebstarDelay(double demand,Integer timeBeanId) {
-		return this.fromLink.getLength()/this.fromLink.getFreespeed()+ cycleTime/2*(1-this.g_cRatio)*(1-this.g_cRatio)/(1-this.g_cRatio*(demand/this.supply.get(timeBeanId)));
+		return this.fromLink.getLength()/this.fromLink.getFreespeed()+ cycleTime/2*(1-this.g_cRatio)*(1-this.g_cRatio)/(1-this.g_cRatio*(demand/this.supply));
 	}
 
 	public double getG_cRatio() {
@@ -91,7 +90,7 @@ public class LinkToLink {
 		return demand;
 	}
 
-	public Map<Integer, Double> getSupply() {
+	public double getSupply() {
 		return supply;
 	}
 

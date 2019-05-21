@@ -30,16 +30,33 @@ public class KrigingInterpolator{
 	
 	
 	//Constructor for creating in the reader
-	public KrigingInterpolator(Variogram v, RealMatrix beta) {
+	public KrigingInterpolator(Variogram v, RealMatrix beta, BaseFunction bf) {
 		this.trainingDataSet=v.getTrainingDataSet();
 		this.variogram=v;
 		this.beta=beta;
 		this.variogram.getClass().toString();
+		this.baseFunction=bf;
 	}
 	
-	public void writeModel(String fileLoc) {
-		this.variogram.writeModel(beta, fileLoc);
+	public Map<Integer, Tuple<RealMatrix, RealMatrix>> getTrainingDataSet() {
+		return trainingDataSet;
 	}
+
+
+	public Variogram getVariogram() {
+		return variogram;
+	}
+
+
+	public RealMatrix getBeta() {
+		return beta;
+	}
+
+
+	public BaseFunction getBaseFunction() {
+		return baseFunction;
+	}
+	
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		BaseFunction bf=new MeanBaseFunction();
 		String s=bf.getClass().getName().toString();
@@ -48,6 +65,7 @@ public class KrigingInterpolator{
 		Method parse=Class.forName(s).getMethod("shout");
 		parse.invoke(null);
 	}
+	
 
 }
 
