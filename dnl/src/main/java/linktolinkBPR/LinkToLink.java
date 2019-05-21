@@ -22,7 +22,7 @@ public class LinkToLink {
 	private Map<Integer,Double> supply=new ConcurrentHashMap<>();
 	private final Id<LinkToLink> linkToLinkId;
 	private double g_cRatio=1;
-	private double cycleTime=0;
+	private double cycleTime=60;
 	
 	
 	public LinkToLink(Link fromLink, Link toLink,Map<Integer, Tuple<Double, Double>> timeBean2) {
@@ -59,8 +59,12 @@ public class LinkToLink {
 	 * @param timeBeanId
 	 * @return
 	 */
-	public double getLinkToLinkWebstarDelay(String timeBeanId) {
+	public double getLinkToLinkWebstarDelay(Integer timeBeanId) {
 		return this.fromLink.getLength()/this.fromLink.getFreespeed()+ cycleTime/2*(1-this.g_cRatio)*(1-this.g_cRatio)/(1-this.g_cRatio*(this.demand.get(timeBeanId)/this.supply.get(timeBeanId)));
+	}
+	
+	public double getLinkToLinkWebstarDelay(double demand,Integer timeBeanId) {
+		return this.fromLink.getLength()/this.fromLink.getFreespeed()+ cycleTime/2*(1-this.g_cRatio)*(1-this.g_cRatio)/(1-this.g_cRatio*(demand/this.supply.get(timeBeanId)));
 	}
 
 	public double getG_cRatio() {
