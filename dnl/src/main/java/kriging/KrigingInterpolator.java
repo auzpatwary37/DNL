@@ -145,12 +145,21 @@ public class KrigingInterpolator{
 		return this.calcCombinedLogLikelihood(this.variogram.gettheta(),this.getBeta());
 	}
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		BaseFunction bf=new MeanBaseFunction();
-		String s=bf.getClass().getName().toString();
-		System.out.println(s);
-		Class.forName(s);
-		Method parse=Class.forName(s).getMethod("shout");
-		parse.invoke(null);
+		INDArray a=Nd4j.create(3,2,2);
+		int n=0;
+		for(int i=0;i<3;i++) {
+			for(int j=1;j<2;j++) {
+				for(int k=0;k<2;k++) {
+					a.putScalar(new int[] {i,j,k},n);
+					n++;
+				}
+			}
+		}
+		System.out.println(a.toString());
+		a.reshape(new int[]{12,1});
+		System.out.println(a);
+		a.reshape(new int[] {3,2,2});
+		System.out.println(a);
 	}
 	
 
