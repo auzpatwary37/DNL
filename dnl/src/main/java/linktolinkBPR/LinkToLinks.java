@@ -15,6 +15,9 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.utils.collections.Tuple;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
@@ -27,7 +30,7 @@ public class LinkToLinks {
 	private final Network network;
 	private final Map<Integer,Tuple<Double,Double>>timeBean;
 	private int l2lCounter=0;
-	private Map<String,RealMatrix>weights=new HashMap<>();
+	private Map<String,INDArray>weights=new HashMap<>();
 	/**
 	 * 
 	 * TODO:Add signal info in this constructor as well
@@ -110,9 +113,9 @@ public class LinkToLinks {
 	}
 	
 	
-	private RealMatrix generateWeightMatrix(int n,int t,int kn,int kt){
+	private INDArray generateWeightMatrix(int n,int t,int kn,int kt){
 		LinkToLink l2l=this.linkToLinks.get(n);
-		RealMatrix we=new OpenMapRealMatrix(this.linkToLinks.size(), this.timeBean.size());
+		INDArray we=Nd4j.create(this.linkToLinks.size(), this.timeBean.size());
 		//double weight[][]=new double[this.linkToLinks.size()][this.timeBean.size()];
 		Map<Integer,Set<LinkToLink>>linkToLinkMap=new HashMap<>();
 		linkToLinkMap.put(0, new HashSet<>());
@@ -130,14 +133,14 @@ public class LinkToLinks {
 			for(LinkToLink ll2ll:linkToLinks.getValue()) {
 				int l2lIndex=this.numToLinkToLink.inverse().get(ll2ll.getLinkToLinkId()); 
 				for(int tt=Math.max(t-kt,0);tt<=Math.min(this.timeBean.size()-1,t+kt);tt++) {
-					double wt=0;
+					float wt=0;
 					if(tt-t==0) {
 						wt=3;
 					}else {
 						wt=1+1/Math.abs(tt-t);
 					}
 					//weight[l2lIndex][tt]=wk*wt;
-					we.setEntry(l2lIndex, tt, wk*wt);
+					we.putScalar(l2lIndex, tt, wk*wt);
 				}
 			}
 		}
@@ -197,11 +200,11 @@ public class LinkToLinks {
 		return linkToLinks;
 	}
 	
-	public RealMatrix getWeightMatrix(int n, int t){
+	public INDArray getWeightMatrix(int n, int t){
 		return this.weights.get(Integer.toString(n)+"_"+Integer.toString(t));
 	}
 	
-	public Map<String,RealMatrix> getWeightMatrices(){
+	public Map<String,INDArray> getWeightMatrices(){
 		return this.weights;
 	}
 	

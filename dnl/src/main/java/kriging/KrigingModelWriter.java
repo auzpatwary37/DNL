@@ -14,16 +14,18 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.matsim.core.utils.collections.Tuple;
+import org.nd4j.linalg.api.ndarray.INDArray;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class KrigingModelWriter {
-	private final Map<Integer,Tuple<RealMatrix,RealMatrix>> trainingDataSet;
-	private final Map<String,RealMatrix> weights;
-	private final RealMatrix theta;
-	private final RealMatrix beta;
+	private final Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet;
+	private final Map<String,INDArray> weights;
+	private final INDArray theta;
+	private final INDArray beta;
 	private final BaseFunction baseFunction;
 	
 	public KrigingModelWriter(KrigingInterpolator model) {
@@ -45,8 +47,8 @@ public class KrigingModelWriter {
 			
 			//Store the metaData here 
 			Element metaData=document.createElement("meataData");
-			metaData.setAttribute("N", Integer.toString(this.trainingDataSet.get(0).getFirst().getRowDimension()));
-			metaData.setAttribute("T", Integer.toString(this.trainingDataSet.get(0).getFirst().getColumnDimension()));
+			metaData.setAttribute("N", Long.toString(this.trainingDataSet.get(0).getFirst().size(0)));
+			metaData.setAttribute("T", Long.toString(this.trainingDataSet.get(0).getFirst().size(1)));
 			metaData.setAttribute("I", Integer.toString(this.trainingDataSet.size()));
 			metaData.setAttribute("DateAndTime", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance()));
 			rootEle.appendChild(metaData);
@@ -56,25 +58,25 @@ public class KrigingModelWriter {
 			for(int i=0;i<this.trainingDataSet.size();i++) {
 				Element trainingData=document.createElement("trainingData");
 				trainingData.setAttribute("Id", Integer.toString(i));
-				trainingData.setAttribute("X",this.trainingDataSet.get(i).getFirst().toString());
-				trainingData.setAttribute("Y",this.trainingDataSet.get(i).getSecond().toString());
+				trainingData.setAttribute("X",MatrixUtils.createRealMatrix(this.trainingDataSet.get(i).getFirst().toDoubleMatrix()).toString());
+				trainingData.setAttribute("Y",MatrixUtils.createRealMatrix(this.trainingDataSet.get(i).getSecond().toDoubleMatrix()).toString());
 				trainingDataSet.appendChild(trainingData);
 			}
 			rootEle.appendChild(trainingDataSet);
 			
 			Element weights=document.createElement("Weights");
-			for(Entry<String,RealMatrix> weight:this.weights.entrySet()) {
-				weights.setAttribute(weight.getKey(), weight.getValue().toString());
+			for(Entry<String,INDArray> weight:this.weights.entrySet()) {
+				weights.setAttribute(weight.getKey(), MatrixUtils.createRealMatrix(weight.getValue().toDoubleMatrix()).toString());
 			}
 			rootEle.appendChild(weights);
 			
 			Element theta=document.createElement("theta");
-			theta.setAttribute("theta", this.theta.toString());
+			theta.setAttribute("theta", MatrixUtils.createRealMatrix(this.theta.toDoubleMatrix()).toString());
 			
 			rootEle.appendChild(theta);
 			
 			Element betaEle=document.createElement("beta");
-			betaEle.setAttribute("beta", beta.toString());
+			betaEle.setAttribute("beta", MatrixUtils.createRealMatrix(beta.toDoubleMatrix()).toString());
 		
 			rootEle.appendChild(betaEle);
 			

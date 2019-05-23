@@ -1,11 +1,11 @@
 package kriging;
 
-import org.apache.commons.math3.linear.RealMatrix;
+import org.nd4j.linalg.api.ndarray.INDArray;
 import org.w3c.dom.Element;
 
 interface BaseFunction{
 	
-	public RealMatrix getY(RealMatrix X);
+	public INDArray getY(INDArray X);
 	public void writeBaseFunctionInfo(Element baseFunction);
 	
 	

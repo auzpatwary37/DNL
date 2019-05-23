@@ -5,17 +5,20 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealMatrixFormat;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.utils.collections.Tuple;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
 
 import linktolinkBPR.LinkToLink;
 
 public class MeanBaseFunction implements BaseFunction{
-	private RealMatrix mean;
+	private INDArray mean;
 	public MeanBaseFunction() {
 		
 	}
@@ -24,36 +27,38 @@ public class MeanBaseFunction implements BaseFunction{
 	}
 	
 	
-	public MeanBaseFunction( Map<Integer,Tuple<RealMatrix,RealMatrix>> trainingDataSet) {
-		this.mean=new Array2DRowRealMatrix();
-		IntStream.rangeClosed(0,trainingDataSet.get(0).getSecond().getRowDimension()-1).forEach((n)->
+	public MeanBaseFunction( Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet) {
+		int N=Math.toIntExact(trainingDataSet.get(0).getFirst().size(0));
+		int T=Math.toIntExact(trainingDataSet.get(0).getFirst().size(1));
+		this.mean=Nd4j.create(N,T);
+		IntStream.rangeClosed(0,N-1).forEach((n)->
 		{
-			IntStream.rangeClosed(0,trainingDataSet.get(0).getSecond().getColumnDimension()-1).forEach((t)->{
+			IntStream.rangeClosed(0,T-1).forEach((t)->{
 				double[] data=new double[trainingDataSet.size()];
 				for(int i=0;i<trainingDataSet.size();i++) {
-					data[i]=trainingDataSet.get(i).getSecond().getEntry(n, t);
+					data[i]=trainingDataSet.get(i).getSecond().getDouble(n, t);
 				}
-				mean.setEntry(n, t, Arrays.stream(data).sum()/data.length);
+				mean.putScalar(n, t, Arrays.stream(data).sum()/data.length);
 			});
 		});
 	}
 	
-	public MeanBaseFunction(RealMatrix mean) {
+	public MeanBaseFunction(INDArray mean) {
 		this.mean=mean;
 	}
 	
 	@Override
-	public RealMatrix getY(RealMatrix X) {
+	public INDArray getY(INDArray X) {
 		return mean;
 	}
 	@Override
 	public void writeBaseFunctionInfo(Element baseFunction) {
 		baseFunction.setAttribute("ClassName", this.getClass().getName());
-		baseFunction.setAttribute("mean", mean.toString());
+		baseFunction.setAttribute("mean", MatrixUtils.createRealMatrix(mean.toDoubleMatrix()).toString());
 	}
 
 	public static BaseFunction parseBaseFunction(Attributes a) {
-		RealMatrix mean=RealMatrixFormat.getInstance().parse(a.getValue("mean"));
+		INDArray mean=Nd4j.create(RealMatrixFormat.getInstance().parse(a.getValue("mean")).getData());
 		return new MeanBaseFunction(mean);
 	}
 	

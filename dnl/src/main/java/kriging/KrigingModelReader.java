@@ -12,16 +12,18 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealMatrixFormat;
 import org.matsim.core.utils.collections.Tuple;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class KrigingModelReader extends DefaultHandler {
 	
-	private RealMatrix theta;
-	private RealMatrix beta;
-	private Map<String,RealMatrix> weights=new ConcurrentHashMap<>();
-	private Map<Integer,Tuple<RealMatrix,RealMatrix>> trainingDataSet=new ConcurrentHashMap<>();
+	private INDArray theta;
+	private INDArray beta;
+	private Map<String,INDArray> weights=new ConcurrentHashMap<>();
+	private Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet=new ConcurrentHashMap<>();
 	private int N;
 	private int T;
 	private int I;
@@ -31,11 +33,11 @@ public class KrigingModelReader extends DefaultHandler {
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		
 		if(qName.equalsIgnoreCase("theta")) {
-			theta=RealMatrixFormat.getInstance().parse(attributes.getValue("theta"));
+			theta=Nd4j.create(RealMatrixFormat.getInstance().parse(attributes.getValue("theta")).getData());
 		}
 		
 		if(qName.equalsIgnoreCase("beta")) {
-			beta=RealMatrixFormat.getInstance().parse(attributes.getValue("beta"));
+			beta=Nd4j.create(RealMatrixFormat.getInstance().parse(attributes.getValue("beta")).getData());
 		}
 		
 		if(qName.equalsIgnoreCase("metadata")) {
@@ -47,16 +49,16 @@ public class KrigingModelReader extends DefaultHandler {
 		if(qName.equalsIgnoreCase("weights")) {
 			RealMatrixFormat rmf=RealMatrixFormat.getInstance();
 			for(int i=0;i<attributes.getLength();i++) {
-				this.weights.put(attributes.getQName(i), rmf.parse(attributes.getValue(i)));
+				this.weights.put(attributes.getQName(i), Nd4j.create(rmf.parse(attributes.getValue(i)).getData()));
 			}
 		}
 		
 		if(qName.equalsIgnoreCase("trainingData")) {
 			RealMatrixFormat rmf=RealMatrixFormat.getInstance();
 			Integer id=Integer.parseInt(attributes.getValue("Id"));
-			RealMatrix X=rmf.parse(attributes.getValue("X"));
-			RealMatrix Y=rmf.parse(attributes.getValue("Y"));
-			this.trainingDataSet.put(id, new Tuple<RealMatrix,RealMatrix>(X,Y));
+			INDArray X=Nd4j.create(rmf.parse(attributes.getValue("X")).getData());
+			INDArray Y=Nd4j.create(rmf.parse(attributes.getValue("Y")).getData());
+			this.trainingDataSet.put(id, new Tuple<INDArray,INDArray>(X,Y));
 			
 		}
 		

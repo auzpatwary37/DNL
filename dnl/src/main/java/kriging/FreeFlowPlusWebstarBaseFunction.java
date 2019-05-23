@@ -9,6 +9,8 @@ import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealMatrixFormat;
 import org.matsim.api.core.v01.Id;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
 
@@ -29,13 +31,13 @@ public class FreeFlowPlusWebstarBaseFunction implements BaseFunction{
 		this.link2LinkInfo=link2LinkInfo;
 	}
 	@Override
-	public RealMatrix getY(RealMatrix X) {
-		RealMatrix Y=MatrixUtils.createRealMatrix(X.getRowDimension(), X.getColumnDimension());
-		IntStream.rangeClosed(0,X.getRowDimension()-1).forEach((n)->
+	public INDArray getY(INDArray X) {
+		INDArray Y=Nd4j.create(X.size(0), X.size(1));
+		IntStream.rangeClosed(0,Math.toIntExact(X.size(0))-1).forEach((n)->
 		{
-			IntStream.rangeClosed(0,X.getColumnDimension()-1).forEach((t)->{
-				double tt=this.getLinkToLinkWebstarDelay(X.getEntry(n, t), n);
-				Y.setEntry(n, t, tt);
+			IntStream.rangeClosed(0,Math.toIntExact(X.size(1))-1).forEach((t)->{
+				double tt=this.getLinkToLinkWebstarDelay(X.getDouble(n, t), n);
+				Y.putScalar(n, t, tt);
 			});
 		});
 		return Y;
