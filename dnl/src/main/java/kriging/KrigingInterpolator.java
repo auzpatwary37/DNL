@@ -1,5 +1,11 @@
 package kriging;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -11,6 +17,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.matsim.core.utils.collections.Tuple;
+import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.factory.Nd4j;
@@ -92,7 +99,7 @@ public class KrigingInterpolator{
 		Map<String,INDArray> varianceMatrixAll=this.variogram.calculateVarianceMatrixAll(theta);
 		Map<String,INDArray> varianceMatrixInverseAll=this.variogram.calculateVarianceMatrixAll(theta);
 		for(Entry<String,INDArray> n_t_K:varianceMatrixAll.entrySet()) {
-			varianceMatrixInverseAll.put(n_t_K.getKey(),InvertMatrix.pinvert(n_t_K.getValue(), false));
+			varianceMatrixInverseAll.put(n_t_K.getKey(),InvertMatrix.invert(n_t_K.getValue(), false));
 		}
 		for(Entry<Integer,Tuple<INDArray,INDArray>>dataPoint:this.trainingDataSet.entrySet()) {
 			Z_MB.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(dataPoint.getKey())},dataPoint.getValue().getSecond().sub(this.baseFunction.getY(dataPoint.getValue().getFirst()).mul(beta)));
@@ -145,21 +152,26 @@ public class KrigingInterpolator{
 		return this.calcCombinedLogLikelihood(this.variogram.gettheta(),this.getBeta());
 	}
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		INDArray a=Nd4j.create(3,2,2);
+		
+		Nd4j.setDefaultDataTypes(DataType.FLOAT, DataType.FLOAT);
+		INDArray a=Nd4j.create(3,2);
+		System.out.println(a.toString());
 		int n=0;
 		for(int i=0;i<3;i++) {
-			for(int j=1;j<2;j++) {
-				for(int k=0;k<2;k++) {
-					a.putScalar(new int[] {i,j,k},n);
+			for(int j=0;j<2;j++) {
+				
+					a.putScalar(new int[] {i,j},n);
+					System.out.println(a.toString());
+					System.out.println("\n\n");
 					n++;
-				}
+				
 			}
 		}
+		INDArray c=Nd4j.concat(1, a,a);
+		
 		System.out.println(a.toString());
-		a.reshape(new int[]{12,1});
-		System.out.println(a);
-		a.reshape(new int[] {3,2,2});
-		System.out.println(a);
+		System.out.println(c.toString());
+		System.out.println(c.shapeInfoToString());
 	}
 	
 

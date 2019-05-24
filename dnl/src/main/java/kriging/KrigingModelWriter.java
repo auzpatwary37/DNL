@@ -18,8 +18,11 @@ import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import training.DataIO;
 
 public class KrigingModelWriter {
 	private final Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet;
@@ -34,8 +37,13 @@ public class KrigingModelWriter {
 		this.theta=model.getVariogram().gettheta();
 		this.beta=model.getBeta();
 		this.baseFunction=model.getBaseFunction();
+		
 	}
 	
+	/**
+	 * Provide folder location as multiple files will be created.
+	 * @param fileLoc
+	 */
 	public void writeModel(String fileLoc) {
 		try {
 			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -53,31 +61,24 @@ public class KrigingModelWriter {
 			metaData.setAttribute("DateAndTime", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance()));
 			rootEle.appendChild(metaData);
 			
-			Element trainingDataSet=document.createElement("trainingDataSet");
-			
-			for(int i=0;i<this.trainingDataSet.size();i++) {
-				Element trainingData=document.createElement("trainingData");
-				trainingData.setAttribute("Id", Integer.toString(i));
-				trainingData.setAttribute("X",MatrixUtils.createRealMatrix(this.trainingDataSet.get(i).getFirst().toDoubleMatrix()).toString());
-				trainingData.setAttribute("Y",MatrixUtils.createRealMatrix(this.trainingDataSet.get(i).getSecond().toDoubleMatrix()).toString());
-				trainingDataSet.appendChild(trainingData);
-			}
+			Element trainingDataSet=document.createElement("trainingDataSet");	
+			DataIO.writeData(this.trainingDataSet,fileLoc+"/dataSet.txt");
+			trainingDataSet.setAttribute("FileLocation", fileLoc+"/dataSet.txt");
 			rootEle.appendChild(trainingDataSet);
 			
 			Element weights=document.createElement("Weights");
-			for(Entry<String,INDArray> weight:this.weights.entrySet()) {
-				weights.setAttribute(weight.getKey(), MatrixUtils.createRealMatrix(weight.getValue().toDoubleMatrix()).toString());
-			}
+			DataIO.writeWeights(this.weights, fileLoc+"/weights.txt");
+			weights.setAttribute("Filelocation", fileLoc+"/weights.txt");
 			rootEle.appendChild(weights);
 			
 			Element theta=document.createElement("theta");
-			theta.setAttribute("theta", MatrixUtils.createRealMatrix(this.theta.toDoubleMatrix()).toString());
-			
+			Nd4j.writeTxt(this.theta, fileLoc+"/theta.txt");
+			theta.setAttribute("FilelOcation", fileLoc+"/theta.txt");
 			rootEle.appendChild(theta);
 			
 			Element betaEle=document.createElement("beta");
-			betaEle.setAttribute("beta", MatrixUtils.createRealMatrix(beta.toDoubleMatrix()).toString());
-		
+			Nd4j.writeTxt(this.beta, fileLoc+"/beta.txt");
+			theta.setAttribute("FilelOcation", fileLoc+"/beta.txt");
 			rootEle.appendChild(betaEle);
 			
 			Element baseFunction=document.createElement("baseFunction");
@@ -92,7 +93,7 @@ public class KrigingModelWriter {
 			tr.setOutputProperty(OutputKeys.METHOD, "xml");
 			tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 			tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-			tr.transform(new DOMSource(document), new StreamResult(new FileOutputStream(fileLoc)));
+			tr.transform(new DOMSource(document), new StreamResult(new FileOutputStream(fileLoc+".xml")));
 
 
 		}catch(Exception e) {

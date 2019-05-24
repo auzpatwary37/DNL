@@ -18,12 +18,14 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import training.DataIO;
+
 public class KrigingModelReader extends DefaultHandler {
 	
 	private INDArray theta;
 	private INDArray beta;
-	private Map<String,INDArray> weights=new ConcurrentHashMap<>();
-	private Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet=new ConcurrentHashMap<>();
+	private Map<String,INDArray> weights;
+	private Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet;
 	private int N;
 	private int T;
 	private int I;
@@ -33,11 +35,11 @@ public class KrigingModelReader extends DefaultHandler {
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		
 		if(qName.equalsIgnoreCase("theta")) {
-			theta=Nd4j.create(RealMatrixFormat.getInstance().parse(attributes.getValue("theta")).getData());
+			theta=Nd4j.readTxt(attributes.getValue("FileLocation"));
 		}
 		
 		if(qName.equalsIgnoreCase("beta")) {
-			beta=Nd4j.create(RealMatrixFormat.getInstance().parse(attributes.getValue("beta")).getData());
+			beta=Nd4j.readTxt(attributes.getValue("FileLocation"));
 		}
 		
 		if(qName.equalsIgnoreCase("metadata")) {
@@ -47,18 +49,11 @@ public class KrigingModelReader extends DefaultHandler {
 		}
 		
 		if(qName.equalsIgnoreCase("weights")) {
-			RealMatrixFormat rmf=RealMatrixFormat.getInstance();
-			for(int i=0;i<attributes.getLength();i++) {
-				this.weights.put(attributes.getQName(i), Nd4j.create(rmf.parse(attributes.getValue(i)).getData()));
-			}
+			this.weights=DataIO.readWeight(attributes.getValue("FileLocation"));
 		}
 		
 		if(qName.equalsIgnoreCase("trainingData")) {
-			RealMatrixFormat rmf=RealMatrixFormat.getInstance();
-			Integer id=Integer.parseInt(attributes.getValue("Id"));
-			INDArray X=Nd4j.create(rmf.parse(attributes.getValue("X")).getData());
-			INDArray Y=Nd4j.create(rmf.parse(attributes.getValue("Y")).getData());
-			this.trainingDataSet.put(id, new Tuple<INDArray,INDArray>(X,Y));
+			this.trainingDataSet=DataIO.readDataSet(attributes.getValue("FileLocation"));
 			
 		}
 		
