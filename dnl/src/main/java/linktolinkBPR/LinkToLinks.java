@@ -13,6 +13,8 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -36,13 +38,19 @@ public class LinkToLinks {
 	 * TODO:Add signal info in this constructor as well
 	 * @param network
 	 */
-	public LinkToLinks(Network network,Map<Integer,Tuple<Double,Double>>timeBean,int kn,int kt) {
+	public LinkToLinks(Network network,Map<Integer,Tuple<Double,Double>>timeBean,int kn,int kt,SignalFlowReductionGenerator sg) {
 		this.network=network;
 		//Time bean has to continuous, there cannot be any gap between. Should be homogeneous as well. Should we make it endogenous? and take the 
 		//number of time bean as input instead? What will happen to the input demand of link to link?
 		this.timeBean=timeBean;
 		this.generateLinkToLinkMap();
 		for(int n=0;n<this.linkToLinks.size();n++) {
+			Link fromLink=this.linkToLinks.get(n).getFromLink();
+			Link toLink=this.linkToLinks.get(n).getToLink();
+			if(sg!=null) {
+				this.linkToLinks.get(n).setG_cRatio(sg.getGCratio(fromLink, toLink.getId())[0]);
+				this.linkToLinks.get(n).setCycleTime(sg.getGCratio(fromLink, toLink.getId())[1]);
+			}
 			for(int t=0;t<timeBean.size();t++) {
 				this.weights.put(Integer.toString(n)+"_"+Integer.toString(t), this.generateWeightMatrix(n, t, kn, kt));
 			}
@@ -211,12 +219,14 @@ public class LinkToLinks {
 	public static void main(String[] args) {
 		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
 		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
-		
+		Config config =ConfigUtils.createConfig();
+		SignalFlowReductionGenerator sg = null;
+		//config.network().setInputFile("Network/SiouxFalls/network.xml");
 		Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
 		for(int i=15;i<18;i++) {
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
-		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3);
+		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
 		System.out.println("Done!!! Total LinkToLink = "+l2ls.getL2lCounter());
 	}
 	

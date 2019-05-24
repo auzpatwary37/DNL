@@ -32,19 +32,19 @@
 		<!-- true if at the end of a run, plans, network, config etc should be dumped to a file -->
 		<param name="dumpDataAtEnd" value="true" />
 		<!-- Default=false. If enabled, the router takes travel times needed for turning moves into account. Cannot be used if the (Fast)AStarLandmarks routing or TravelTimeCalculator.separateModes is enabled. -->
-		<param name="enableLinkToLinkRouting" value="true" />
+		<param name="enableLinkToLinkRouting" value="false" />
 		<!-- Default=xml; Specifies the file format for writing events. Currently supported: xml.
 		Multiple values can be specified separated by commas (','). -->
 		<param name="eventsFileFormat" value="xml" />
 		<!-- Default=0;  -->
 		<param name="firstIteration" value="0" />
 		<!-- Default=1000;  -->
-		<param name="lastIteration" value="150" />
+		<param name="lastIteration" value="50" />
 		<!-- Defines which mobility simulation will be used. Currently supported: qsim JDEQSim 
 		Depending on the chosen mobsim, you'll have to add additional config modules to configure the corresponding mobsim.
 		For 'qsim', add a module 'qsim' to the config. -->
 		<param name="mobsim" value="qsim" />
-		<param name="outputDirectory" value="Network/SiouxFalls/output0" />
+		<param name="outputDirectory" value="Network/ND/output0" />
 		<!-- Possible values: failIfDirectoryExists, overwriteExistingFiles, deleteDirectoryIfExists -->
 		<param name="overwriteFiles" value="failIfDirectoryExists" />
 		<!-- The type of routing (least cost path) algorithm used, may have the values: Dijkstra, FastDijkstra, AStarLandmarks or FastAStarLandmarks -->
@@ -113,7 +113,7 @@
 		<!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
 		<param name="inputCRS" value="null" />
 		<param name="inputChangeEventsFile" value="null" />
-		<param name="inputNetworkFile" value="Network/SiouxFalls/siouxfallsNetwork.xml" />
+		<param name="inputNetworkFile" value="Network/ND/ndNetwork.xml" />
 		<param name="laneDefinitionsFile" value="null" />
 		<param name="timeVariantNetwork" value="false" />
 	</module>
@@ -143,7 +143,7 @@
 			<param name="earlyDeparture" value="-0.0" />
 			<param name="lateArrival" value="-18.0" />
 			<param name="marginalUtilityOfMoney" value="1.0" />
-			<param name="performing" value="100.0" />
+			<param name="performing" value="6.0" />
 			<param name="subpopulation" value="null" />
 			<param name="utilityOfLineSwitch" value="-1.0" />
 			<param name="waiting" value="-0.0" />
@@ -256,7 +256,7 @@
 				<!-- [utils/m] utility of traveling (e.g. walking or driving) per m, normally negative.  this is on top of the time (dis)utility. -->
 				<param name="marginalUtilityOfDistance_util_m" value="0.0" />
 				<!-- [utils/hr] additional marginal utility of traveling.  normally negative.  this comes on top of the opportunity cost of time -->
-				<param name="marginalUtilityOfTraveling_util_hr" value="-200.0" />
+				<param name="marginalUtilityOfTraveling_util_hr" value="-6.0" />
 				<param name="mode" value="car" />
 				<!-- [unit_of_money/m] conversion of distance into money. Normally negative. -->
 				<param name="monetaryDistanceRate" value="0.0" />
@@ -315,7 +315,7 @@
 		<param name="inputCRS" value="null" />
 		<!-- Path to a file containing person attributes (required file format: ObjectAttributes). -->
 		<param name="inputPersonAttributesFile" value="null" />
-		<param name="inputPlansFile" value="Network/SiouxFalls/population.xml" />
+		<param name="inputPlansFile" value="Network/ND/population.xml" />
 		<!-- Defines how routes are stored in memory. Currently supported: LinkNetworkRoute, CompressedNetworkRoute. -->
 		<param name="networkRouteType" value="LinkNetworkRoute" />
 		<!-- (not tested) will remove plan attributes that are presumably not used, such as activityStartTime. default=false. Use with Caution! -->
@@ -391,7 +391,7 @@
 	</module>
 	<module name="qsim" >
 		<param name="endTime" value="24:00:00" />
-		<param name="flowCapacityFactor" value="0.5" />
+		<param name="flowCapacityFactor" value="1.0" />
 		<!-- decides if waiting vehicles enter the network after or before the already driving vehicles were moved. Default: false -->
 		<param name="insertingWaitingVehiclesBeforeDrivingVehicles" value="false" />
 		<!-- If link dynamics is set as SeepageQ, set to false if all seep modes should perform seepage. Default is true (better option). -->
@@ -469,468 +469,6 @@
 			<param name="executionPath" value="null" />
 			<param name="strategyName" value="ReRoute" />
 			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.2" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="TimeAllocationMutator" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="TimeAllocationMutator" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="TimeAllocationMutator" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="TimeAllocationMutator" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="TimeAllocationMutator" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="TimeAllocationMutator" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="TimeAllocationMutator" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="TimeAllocationMutator" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="TimeAllocationMutator" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.1" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.2" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.2" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ChangeExpBeta" />
-			<param name="subpopulation" value="null" />
-			<param name="weight" value="0.8" />
-		</parameterset>
-		<parameterset type="strategysettings" >
-			<param name="disableAfterIteration" value="-1" />
-			<param name="executionPath" value="null" />
-			<param name="strategyName" value="ReRoute" />
-			<param name="subpopulation" value="null" />
 			<param name="weight" value="0.2" />
 		</parameterset>
 	</module>
@@ -975,14 +513,14 @@
 	<module name="travelTimeCalculator" >
 		<!-- (only for backwards compatibility; only used if separateModes==false && + filterModes==true)  Transport modes that will be respected by the travel time collector. 'car' is default which includes also buses from the pt simulation module. -->
 		<param name="analyzedModes" value="car" />
-		<param name="calculateLinkToLinkTravelTimes" value="true" />
+		<param name="calculateLinkToLinkTravelTimes" value="false" />
 		<param name="calculateLinkTravelTimes" value="true" />
 		<!-- (only for backwards compatiblity; only used if separateModes==false)  Only modes included in analyzedModes are included. -->
 		<param name="filterModes" value="false" />
 		<!-- The lenght (in sec) of the time period that is splited into time bins; an additional time bin is created to aggregate all travel times collected after maxTime -->
 		<param name="maxTime" value="108000" />
 		<!-- (only for backwards compatibility) If false, link travel times are measured and aggregated over all vehicles using the link. -->
-		<param name="separateModes" value="false" />
+		<param name="separateModes" value="true" />
 		<!-- How to deal with congested time bins that have no link entry events. `optimistic' assumes free speed (too optimistic); 'experimental_LastMile' is experimental and probably too pessimistic. -->
 		<param name="travelTimeAggregator" value="optimistic" />
 		<!-- The size of the time bin (in sec) into which the link travel times are aggregated for the router -->
@@ -993,7 +531,7 @@
 		<param name="travelTimeGetter" value="average" />
 	</module>
 	<module name="vehicles" >
-		<param name="vehiclesFile" value="Network/SiouxFalls/vehicles.xml" />
+		<param name="vehiclesFile" value="Network/ND/vehicles.xml" />
 	</module>
 	<module name="vspExperimental" >
 		<!-- (do not use except of you have to) There was a problem with pt interaction scoring.  Some people solved it by overwriting the parameters of the pt interaction activity type.  Doing this now throws an Exception.  If you still insist on doing this, set the following to true. -->
