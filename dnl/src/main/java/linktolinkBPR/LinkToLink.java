@@ -98,6 +98,8 @@ public class LinkToLink {
 		return linkToLinkId;
 	}
 	
-	
+	public double getFreeFlowTT() {
+		return this.fromLink.getLength()/this.fromLink.getFreespeed();
+	}
 	
 }

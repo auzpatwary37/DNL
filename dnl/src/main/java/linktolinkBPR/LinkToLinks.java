@@ -215,6 +215,10 @@ public class LinkToLinks {
 	public Map<String,INDArray> getWeightMatrices(){
 		return this.weights;
 	}
+	public LinkToLink getLinkToLink(Id<LinkToLink> linkToLinkId) {
+		return this.linkToLinks.get(this.numToLinkToLink.inverse().get(linkToLinkId));
+	}
+	
 	
 	public static void main(String[] args) {
 		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
@@ -229,6 +233,7 @@ public class LinkToLinks {
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
 		System.out.println("Done!!! Total LinkToLink = "+l2ls.getL2lCounter());
 	}
+	
 	
 	
 }

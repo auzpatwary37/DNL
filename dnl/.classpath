@@ -31,5 +31,14 @@
 	</classpathentry>
 	<classpathentry kind="src" path="/matsim"/>
 	<classpathentry kind="src" path="/signals"/>
+	<classpathentry kind="lib" path="C:/Users/h/.m2/repository/org/matsim/matsim/0.10.0-SNAPSHOT/matsim-0.10.0-SNAPSHOT.jar" sourcepath="C:/Users/h/.m2/repository/org/matsim/matsim/0.10.0-SNAPSHOT/matsim-0.10.0-SNAPSHOT-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="maven.groupId" value="org.matsim"/>
+			<attribute name="maven.artifactId" value="matsim"/>
+			<attribute name="maven.version" value="0.10.0-SNAPSHOT"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
