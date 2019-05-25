@@ -38,6 +38,33 @@
 			</plugin>
 		</plugins>
 	</build>
+	
+	<repositories>
+		<!--Note that in general repositories are not transitive, so they need 
+			to be repeated at every level where needed. -->
+		<repository>
+			<!-- Geotools is not on Maven central -->
+			<id>osgeo</id>
+			<name>Geotools repository</name>
+			<url>http://download.osgeo.org/webdav/geotools</url>
+		</repository>
+		<repository>
+			<!-- For MATSim releases: -->
+			<id>matsim</id>
+			<url>https://dl.bintray.com/matsim/matsim</url>
+		</repository>
+		<repository>
+			<!-- For MATSim monthly snapshots: -->
+			<id>bintray-matsim-eth-matsim</id>
+			<name>bintray</name>
+			<url>https://dl.bintray.com/matsim-eth/matsim</url>
+		</repository>
+		<repository>
+			<!-- For MATSim snapshots: -->
+			<id>ojo-snapshots</id>
+			<url>http://oss.jfrog.org/libs-snapshot</url>
+		</repository>
+	</repositories>
 	<dependencies>
 	<!-- https://mvnrepository.com/artifact/com.xeiam.xchart/xchart -->
 <dependency>
@@ -84,11 +111,20 @@
        <artifactId>slf4j-api</artifactId>
        <version>1.7.5</version>
    </dependency>
-   <dependency>
-       <groupId>org.slf4j</groupId>
-       <artifactId>slf4j-log4j12</artifactId>
-       <version>1.7.5</version>
-   </dependency>
+<dependency>
+    <groupId>org.matsim</groupId>
+    <artifactId>matsim</artifactId>
+    <version>11.0</version>
+  </dependency>
+  <!-- https://mvnrepository.com/artifact/org.matsim.contrib/signals -->
+<!-- https://mvnrepository.com/artifact/org.matsim.contrib/signals -->
+<dependency>
+    <groupId>org.matsim.contrib</groupId>
+    <artifactId>signals</artifactId>
+    <version>11.0</version>
+</dependency>
+
+  
    
    <!-- https://mvnrepository.com/artifact/org.nd4j/nd4j-api -->
 </dependencies>

@@ -21,15 +21,16 @@ import linktolinkBPR.LinkToLink;
 import linktolinkBPR.LinkToLinks;
 
 public class LinkToLinkTTRecorder implements LinkEnterEventHandler,LinkLeaveEventHandler{
-
+	
+	@Inject
 	private LinkToLinks l2ls;
 	private INDArray sumTT=Nd4j.create(l2ls.getL2lCounter(),l2ls.getTimeBean().size());
 	private INDArray numVehicle=Nd4j.create(sumTT.shape());
 	private Map<Id<Vehicle>,VehicleInfo> vehicleBuffer=new ConcurrentHashMap<>();
+
 	
 	@Inject
-	public LinkToLinkTTRecorder(LinkToLinks l2ls) {
-		this.l2ls=l2ls;
+	public LinkToLinkTTRecorder() {
 	}
 	
 	@Override
@@ -44,8 +45,8 @@ public class LinkToLinkTTRecorder implements LinkEnterEventHandler,LinkLeaveEven
 			double tt=event.getTime()-intime;
 			int n=this.getL2lNoId(fromLinkId, toLinkId);
 			int t=this.getTimeId(intime);
-			this.sumTT.putScalar(n-1,t-1,this.sumTT.getDouble(n-1,t-1)+tt);
-			this.numVehicle.putScalar(n-1,t-1, this.numVehicle.getDouble(n-1,t-1)+1);
+			this.sumTT.putScalar(n,t,this.sumTT.getDouble(n,t)+tt);
+			this.numVehicle.putScalar(n,t, this.numVehicle.getDouble(n,t)+1);
 			this.vehicleBuffer.remove(event.getVehicleId());
 			//Add the vehicle for next link to link buffer
 			this.vehicleBuffer.put(event.getVehicleId(), new VehicleInfo(event.getVehicleId(),event.getLinkId(),event.getTime()));

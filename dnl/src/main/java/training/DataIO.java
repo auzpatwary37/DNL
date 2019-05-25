@@ -1,5 +1,6 @@
 package training;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,6 +43,20 @@ public class DataIO {
 		Nd4j.writeTxt(rawArray,fileLoc);
 	}
 	
+	
+	public static void writeData(List<Tuple<INDArray,INDArray>> dataSet,String fileLoc) {
+		int N=Math.toIntExact(dataSet.get(0).getFirst().size(0));
+		int T=Math.toIntExact(dataSet.get(0).getFirst().size(1));
+		int I=dataSet.size();
+		INDArray rawArray=Nd4j.create(new int[] {N,2*T,I});
+		int i=0;
+		for(Tuple<INDArray,INDArray>dataPoint:dataSet) {
+			INDArray joinedArray=Nd4j.concat(1, dataPoint.getFirst(),dataPoint.getSecond());
+			rawArray.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(i)},joinedArray);
+			i++;
+		}
+		Nd4j.writeTxt(rawArray,fileLoc);
+	}
 	public void writeData(String fileLoc) {
 		DataIO.writeData(this.dataSet, fileLoc);
 	}
