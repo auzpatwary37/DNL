@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
@@ -35,10 +36,15 @@ import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.collections.Tuple;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.VehicleWriterV1;
 import org.matsim.vehicles.Vehicles;
+
+import linktolinkBPR.LinkToLinks;
+import linktolinkBPR.SignalFlowReductionGenerator;
+import matsimIntegration.DNLDataCollectionModule;
 
 public class TrainingDataGenerator {
 	public static void main(String[] args) throws IOException {
@@ -77,6 +83,18 @@ public class TrainingDataGenerator {
 //		config.planCalcScore().setPerforming_utils_hr(100);
 //		config.qsim().setFlowCapFactor(0.5);
 //
+		
+		//Generate the linkToLink
+		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
+		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
+		SignalFlowReductionGenerator sg = null;
+		//config.network().setInputFile("Network/SiouxFalls/network.xml");
+		Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
+		for(int i=15;i<24;i++) {
+			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
+		}
+		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
+		
 //		
 		for(int i=0;i<50;i++) {
 			GenerateRandomNDPopulation(config,"Network/ND/ndDemand.csv", 5, "Network/ND",2.5);
@@ -86,7 +104,7 @@ public class TrainingDataGenerator {
 			new ConfigWriter(config).write("Network/SiouxFalls/final_config.xml");
 			Scenario scenario = ScenarioUtils.loadScenario(config);
 			Controler controler = new Controler(scenario);
-//			//controler.addOverridingModule(new TravelTimeCalculatorModule());
+			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,"Network/ND/DataSet.txt"));
 			controler.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 			controler.run();
 		}

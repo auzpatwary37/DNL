@@ -15,9 +15,11 @@ import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.controler.events.AfterMobsimEvent;
 import org.matsim.core.controler.events.BeforeMobsimEvent;
 import org.matsim.core.controler.events.ShutdownEvent;
+import org.matsim.core.controler.events.StartupEvent;
 import org.matsim.core.controler.listener.AfterMobsimListener;
 import org.matsim.core.controler.listener.BeforeMobsimListener;
 import org.matsim.core.controler.listener.ShutdownListener;
+import org.matsim.core.controler.listener.StartupListener;
 import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -29,13 +31,12 @@ import linktolinkBPR.LinkToLinks;
 import training.DataIO;
 import linktolinkBPR.LinkToLink;
 
-public class DNLDataCollectionControlerListener implements BeforeMobsimListener, AfterMobsimListener,ShutdownListener{
+public class DNLDataCollectionControlerListener implements BeforeMobsimListener, AfterMobsimListener,ShutdownListener,StartupListener{
 
 	@Inject
 	private LinkToLinkTTRecorder TTRecorder;
 	private final int N;
 	private final int T;
-	@Inject
 	private LinkToLinks l2ls;
 	@Inject
 	private EventsManager eventManager;
@@ -46,8 +47,9 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 	private ArrayList<Tuple<INDArray,INDArray>> dataset=new ArrayList<>();
 	private INDArray X;
 	
-	public DNLDataCollectionControlerListener() {
-		eventManager.addHandler(this.TTRecorder);
+	@Inject
+	public DNLDataCollectionControlerListener(LinkToLinks l2ls) {
+		this.l2ls=l2ls;
 		this.N=l2ls.getL2lCounter();
 		this.T=l2ls.getTimeBean().size();
 	}
@@ -98,7 +100,9 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 		{
 			IntStream.rangeClosed(0,T-1).forEach((t)->{
 				String key=Integer.toString(n)+"_"+Integer.toString(t);
-				X.putScalar(n,t,linkToLinksDemand.get(key));
+				if(linkToLinksDemand.containsKey(key)) {
+					X.putScalar(n,t,linkToLinksDemand.get(key));
+				}
 			});
 		});
 	}
@@ -106,6 +110,11 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 	@Override
 	public void notifyShutdown(ShutdownEvent event) {
 		DataIO.writeData(this.dataset, fileLoc);
+	}
+
+	@Override
+	public void notifyStartup(StartupEvent event) {
+		eventManager.addHandler(this.TTRecorder);
 	}
 	
 

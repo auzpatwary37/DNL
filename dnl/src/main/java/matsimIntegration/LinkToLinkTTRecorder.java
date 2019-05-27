@@ -20,17 +20,20 @@ import com.google.inject.Inject;
 import linktolinkBPR.LinkToLink;
 import linktolinkBPR.LinkToLinks;
 
-public class LinkToLinkTTRecorder implements LinkEnterEventHandler,LinkLeaveEventHandler{
+public class LinkToLinkTTRecorder implements LinkEnterEventHandler,LinkLeaveEventHandler,VehicleEnterTrafficEvent,VehicleLeaveTrafficEvent{
 	
-	@Inject
+//	@Inject
 	private LinkToLinks l2ls;
-	private INDArray sumTT=Nd4j.create(l2ls.getL2lCounter(),l2ls.getTimeBean().size());
-	private INDArray numVehicle=Nd4j.create(sumTT.shape());
+	private INDArray sumTT;
+	private INDArray numVehicle;
 	private Map<Id<Vehicle>,VehicleInfo> vehicleBuffer=new ConcurrentHashMap<>();
 
 	
 	@Inject
-	public LinkToLinkTTRecorder() {
+	public LinkToLinkTTRecorder(LinkToLinks l2ls) {
+		this.l2ls=l2ls;
+		sumTT=Nd4j.create(l2ls.getL2lCounter(),l2ls.getTimeBean().size());
+		numVehicle=Nd4j.create(sumTT.shape());
 	}
 	
 	@Override
@@ -77,6 +80,13 @@ public class LinkToLinkTTRecorder implements LinkEnterEventHandler,LinkLeaveEven
 	}
 	
 	public int getL2lNoId(Id<Link>fromLink,Id<Link>toLink) {
+		if(l2ls==null) {
+			System.out.println("l2lNull");
+		}else if(l2ls.getNumToLinkToLink().inverse()==null) {
+			System.out.println("inverseMapNull");
+		}else if(fromLink==null ||toLink==null) {
+			System.out.println("LinkIdsNull");
+		}
 		return this.l2ls.getNumToLinkToLink().inverse().get(Id.create(fromLink+"_"+toLink, LinkToLink.class));
 	}
 	
