@@ -29,6 +29,7 @@ public class LinkToLinks {
 	private Map<Id<Link>,List<LinkToLink>>fromLinkToLinkMap=new HashMap<>();
 	private Map<Id<Link>,List<LinkToLink>>ToLinkToLinkMap=new HashMap<>();
 	private BiMap<Integer,Id<LinkToLink>> numToLinkToLink=HashBiMap.create();
+	private BiMap<Integer,Integer> numToTimeBean=HashBiMap.create();
 	private final Network network;
 	private final Map<Integer,Tuple<Double,Double>>timeBean;
 	private int l2lCounter=0;
@@ -43,6 +44,11 @@ public class LinkToLinks {
 		//Time bean has to continuous, there cannot be any gap between. Should be homogeneous as well. Should we make it endogenous? and take the 
 		//number of time bean as input instead? What will happen to the input demand of link to link?
 		this.timeBean=timeBean;
+		int tId=0;
+		for(int timeKey:this.timeBean.keySet()) {
+			this.numToTimeBean.put(tId,timeKey);
+			tId++;
+		}
 		this.generateLinkToLinkMap();
 		for(int n=0;n<this.linkToLinks.size();n++) {
 			Link fromLink=this.linkToLinks.get(n).getFromLink();
@@ -220,6 +226,10 @@ public class LinkToLinks {
 	}
 	
 	
+	public BiMap<Integer, Integer> getNumToTimeBean() {
+		return numToTimeBean;
+	}
+
 	public static void main(String[] args) {
 		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
 		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");

@@ -7,9 +7,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.LinkLeaveEvent;
+import org.matsim.api.core.v01.events.VehicleLeavesTrafficEvent;
 import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.events.handler.LinkLeaveEventHandler;
+import org.matsim.api.core.v01.events.handler.VehicleLeavesTrafficEventHandler;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.core.api.experimental.events.VehicleArrivesAtFacilityEvent;
+import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityEventHandler;
 import org.matsim.core.utils.collections.Tuple;
 import org.matsim.vehicles.Vehicle;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -20,7 +24,7 @@ import com.google.inject.Inject;
 import linktolinkBPR.LinkToLink;
 import linktolinkBPR.LinkToLinks;
 
-public class LinkToLinkTTRecorder implements LinkEnterEventHandler,LinkLeaveEventHandler,VehicleEnterTrafficEvent,VehicleLeaveTrafficEvent{
+public class LinkToLinkTTRecorder implements LinkEnterEventHandler,LinkLeaveEventHandler,VehicleLeavesTrafficEventHandler{
 	
 //	@Inject
 	private LinkToLinks l2ls;
@@ -53,7 +57,7 @@ public class LinkToLinkTTRecorder implements LinkEnterEventHandler,LinkLeaveEven
 			this.vehicleBuffer.remove(event.getVehicleId());
 			//Add the vehicle for next link to link buffer
 			this.vehicleBuffer.put(event.getVehicleId(), new VehicleInfo(event.getVehicleId(),event.getLinkId(),event.getTime()));
-			
+
 		}else {
 			//fresh vehicle enter
 			this.vehicleBuffer.put(event.getVehicleId(), new VehicleInfo(event.getVehicleId(),event.getLinkId(),event.getTime()));
@@ -73,7 +77,7 @@ public class LinkToLinkTTRecorder implements LinkEnterEventHandler,LinkLeaveEven
 		}
 		for(Entry<Integer,Tuple<Double,Double>> timeBean:this.l2ls.getTimeBean().entrySet()) {
 			if(intime>timeBean.getValue().getFirst() && intime<=timeBean.getValue().getSecond()) {
-				return timeBean.getKey();
+				return this.l2ls.getNumToTimeBean().inverse().get(timeBean.getKey());
 			}
 		}
 		return this.l2ls.getTimeBean().size()-1;
@@ -86,12 +90,21 @@ public class LinkToLinkTTRecorder implements LinkEnterEventHandler,LinkLeaveEven
 			System.out.println("inverseMapNull");
 		}else if(fromLink==null ||toLink==null) {
 			System.out.println("LinkIdsNull");
+		}else if(fromLink.equals(toLink)) {
+			System.out.println("SameLink!!!!");
 		}
 		return this.l2ls.getNumToLinkToLink().inverse().get(Id.create(fromLink+"_"+toLink, LinkToLink.class));
 	}
 	
 	public INDArray getTTMAP() {
 		return this.sumTT.divi(numVehicle);
+	}
+
+
+
+	@Override
+	public void handleEvent(VehicleLeavesTrafficEvent event) {
+		this.vehicleBuffer.remove(event.getVehicleId());
 	}
 
 }
