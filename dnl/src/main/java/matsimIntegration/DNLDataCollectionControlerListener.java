@@ -20,6 +20,7 @@ import org.matsim.core.controler.listener.AfterMobsimListener;
 import org.matsim.core.controler.listener.BeforeMobsimListener;
 import org.matsim.core.controler.listener.ShutdownListener;
 import org.matsim.core.controler.listener.StartupListener;
+import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -40,6 +41,8 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 	private LinkToLinks l2ls;
 	@Inject
 	private EventsManager eventManager;
+	@Inject
+	private TravelTimeCalculator ttCalculator;
 	
 	@Inject
 	private @Named("fileLoc") String fileLoc;
@@ -56,6 +59,21 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 	
 	@Override
 	public void notifyAfterMobsim(AfterMobsimEvent event) {
+		this.dataset.add(new Tuple<>(this.X,this.TTRecorder.getTTMAP()));
+		//this.TTRecorder.reset();
+		INDArray Y=Nd4j.create(X.shape());
+		IntStream.rangeClosed(0,N-1).forEach((n)->
+		{
+			IntStream.rangeClosed(0,T-1).forEach((t)->{
+				LinkToLink l2l=this.l2ls.getLinkToLinks().get(n);
+				Tuple<Double,Double> timeBean=l2ls.getTimeBean().get(l2ls.getNumToTimeBean().get(t));
+				double tt=this.ttCalculator.getLinkToLinkTravelTimes().getLinkToLinkTravelTime(l2l.getFromLink(), l2l.getToLink(), (timeBean.getFirst()+timeBean.getSecond())*.5);
+				if(tt==Double.NaN) {
+					System.out.println();
+				}
+				Y.putScalar(n,t,tt);
+			});
+		});
 		this.dataset.add(new Tuple<>(this.X,this.TTRecorder.getTTMAP()));
 	}
 
@@ -101,7 +119,12 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 			IntStream.rangeClosed(0,T-1).forEach((t)->{
 				String key=Integer.toString(n)+"_"+Integer.toString(t);
 				if(linkToLinksDemand.containsKey(key)) {
+					if(linkToLinksDemand.get(key)==Double.NaN) {
+						System.out.println();
+					}
 					X.putScalar(n,t,linkToLinksDemand.get(key));
+				}else {
+					X.putScalar(n,t,0);
 				}
 			});
 		});
@@ -114,7 +137,7 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 
 	@Override
 	public void notifyStartup(StartupEvent event) {
-		eventManager.addHandler(this.TTRecorder);
+		//eventManager.addHandler(this.TTRecorder);
 	}
 	
 

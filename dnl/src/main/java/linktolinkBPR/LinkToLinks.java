@@ -1,5 +1,8 @@
 package linktolinkBPR;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -231,7 +234,7 @@ public class LinkToLinks {
 	}
 
 	public static void main(String[] args) {
-		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
+		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
 		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
 		Config config =ConfigUtils.createConfig();
 		SignalFlowReductionGenerator sg = null;
@@ -241,9 +244,24 @@ public class LinkToLinks {
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
+		l2ls.writeLinkToLinkDetails("Network/ND/l2lDetails.csv");
 		System.out.println("Done!!! Total LinkToLink = "+l2ls.getL2lCounter());
 	}
-	
+	public void writeLinkToLinkDetails(String fileloc) {
+		try {
+			FileWriter fw=new FileWriter(new File(fileloc));
+			fw.append("LinkToLinkNo,FromLink,ToLink,CycleTime,Capacity,g_cratio\n");
+			for(LinkToLink l2l:this.linkToLinks) {
+				fw.append(this.numToLinkToLink.inverse().get(l2l.getLinkToLinkId())+","+l2l.getFromLink().getId()+","+l2l.getToLink().getId()+","+l2l.getCycleTime()+","+l2l.getFreeFlowTT()+","+l2l.getG_cRatio()+"\n");
+			}
+			fw.flush();
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 	
 	
 }

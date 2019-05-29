@@ -106,6 +106,13 @@ public class LinkToLinkTTRecorder implements LinkEnterEventHandler,LinkLeaveEven
 	public void handleEvent(VehicleLeavesTrafficEvent event) {
 		this.vehicleBuffer.remove(event.getVehicleId());
 	}
+	
+	public void reset() {
+		this.vehicleBuffer.clear();
+		sumTT=Nd4j.create(l2ls.getL2lCounter(),l2ls.getTimeBean().size());
+		numVehicle=Nd4j.create(sumTT.shape());
+		
+	}
 
 }
 
