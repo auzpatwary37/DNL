@@ -69,12 +69,12 @@ public class DataIO {
 		Map<Integer,Tuple<INDArray,INDArray>> dataSet=new ConcurrentHashMap<>();
 		INDArray rawArray=Nd4j.readTxt(fileLoc);
 		int T=Math.toIntExact(rawArray.size(1))/2;
-		int I=Math.toIntExact(rawArray.size(3));
+		int I=Math.toIntExact(rawArray.size(2));
 		
 		for(int i=0;i<I;i++) {
 			
-			INDArray X=rawArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.interval(0, T-1),NDArrayIndex.point(i)});
-			INDArray Y=rawArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.interval(T, 2*T-1),NDArrayIndex.point(i)});
+			INDArray X=rawArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.interval(0, T),NDArrayIndex.point(i)});
+			INDArray Y=rawArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.interval(T, 2*T),NDArrayIndex.point(i)});
 			dataSet.put(i,new Tuple<INDArray,INDArray>(X,Y));
 			
 		}

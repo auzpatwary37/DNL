@@ -16,6 +16,8 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.matsim.api.core.v01.network.Network;
+import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -26,6 +28,8 @@ import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.inverse.InvertMatrix;
 
 import linktolinkBPR.LinkToLinks;
+import linktolinkBPR.SignalFlowReductionGenerator;
+import training.DataIO;
 
 /**
  * 
@@ -44,9 +48,10 @@ public class KrigingInterpolator{
 	private int I;
 	
 	
-	public KrigingInterpolator(Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet, LinkToLinks l2ls) {
+	public KrigingInterpolator(Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet, LinkToLinks l2ls,BaseFunction bf) {
 		this.trainingDataSet=trainingDataSet;
 		this.l2ls=l2ls;
+		this.baseFunction=bf;
 		this.variogram=new Variogram(trainingDataSet, this.l2ls);
 		this.N=Math.toIntExact(trainingDataSet.get(0).getFirst().size(0));
 		this.T=Math.toIntExact(trainingDataSet.get(0).getFirst().size(1));
@@ -152,26 +157,18 @@ public class KrigingInterpolator{
 		return this.calcCombinedLogLikelihood(this.variogram.gettheta(),this.getBeta());
 	}
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		
-		Nd4j.setDefaultDataTypes(DataType.FLOAT, DataType.FLOAT);
-		INDArray a=Nd4j.create(3,2);
-		System.out.println(a.toString());
-		int n=0;
-		for(int i=0;i<3;i++) {
-			for(int j=0;j<2;j++) {
-				
-					a.putScalar(new int[] {i,j},n);
-					System.out.println(a.toString());
-					System.out.println("\n\n");
-					n++;
-				
-			}
+		Map<Integer,Tuple<INDArray,INDArray>> trainingData=DataIO.readDataSet("Network/ND/DataSetNDTrain.txt");
+		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
+		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
+		SignalFlowReductionGenerator sg = null;
+		//config.network().setInputFile("Network/SiouxFalls/network.xml");
+		Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
+		for(int i=15;i<24;i++) {
+			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
-		INDArray c=Nd4j.concat(1, a,a);
+		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
+		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new FreeFlowPlusWebstarBaseFunction(l2ls));
 		
-		System.out.println(a.toString());
-		System.out.println(c.toString());
-		System.out.println(c.shapeInfoToString());
 	}
 	
 

@@ -69,10 +69,10 @@ public class TrainingDataGenerator {
 //		config.controler().setLinkToLinkRoutingEnabled(true);
 		config.controler().setLastIteration(50);
 		config.global().setCoordinateSystem("arbitrary");
-		config.parallelEventHandling().setNumberOfThreads(8);
+		config.parallelEventHandling().setNumberOfThreads(3);
 		config.controler().setWritePlansInterval(50);
-		config.global().setNumberOfThreads(8);
-		config.qsim().setNumberOfThreads(4);
+		config.global().setNumberOfThreads(3);
+		config.qsim().setNumberOfThreads(3);
 		config.parallelEventHandling().setNumberOfThreads(2);
 		config.strategy().setFractionOfIterationsToDisableInnovation(0.8);
 		config.controler().setWriteEventsInterval(50);
@@ -98,21 +98,23 @@ public class TrainingDataGenerator {
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		
+		new ConfigWriter(config).write("Network/ND/final_config.xml");
 //		
-		for(int i=0;i<50;i++) {
-			GenerateRandomNDPopulation(config,"Network/ND/ndDemand.csv", 5, "Network/ND",2.5);
-			config.plans().setInputFile("Network/ND/population.xml");
-			config.vehicles().setVehiclesFile("Network/ND/vehicles.xml");
-			config.controler().setOutputDirectory("Network/ND/output"+i);
-			new ConfigWriter(config).write("Network/SiouxFalls/final_config.xml");
-			config.travelTimeCalculator().setCalculateLinkToLinkTravelTimes(true);
-			config.travelTimeCalculator().setTraveltimeBinSize(3600);
-			config.travelTimeCalculator().setSeparateModes(false);
-			TravelTimeCalculator.Builder b;
-			Scenario scenario = ScenarioUtils.loadScenario(config);
+		for(int i=0;i<6;i++) {
+			Config configcurrent=ConfigUtils.createConfig();
+			ConfigUtils.loadConfig(configcurrent, "Network/ND/final_config.xml");
+			GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, "Network/ND",.5*(i+1));
+			configcurrent.plans().setInputFile("Network/ND/population"+i+".xml");
+			configcurrent.vehicles().setVehiclesFile("Network/ND/vehicles.xml");
+			configcurrent.controler().setOutputDirectory("Network/ND/output"+i);
+			
+			configcurrent.travelTimeCalculator().setCalculateLinkToLinkTravelTimes(true);
+			configcurrent.travelTimeCalculator().setTraveltimeBinSize(3600);
+			configcurrent.travelTimeCalculator().setSeparateModes(false);
+			//TravelTimeCalculator.Builder b;
+			Scenario scenario = ScenarioUtils.loadScenario(configcurrent);
 			Controler controler = new Controler(scenario);
-			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,"Network/ND/DataSet.txt"));
+			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,"Network/ND/DataSet"+i+".txt"));
 			controler.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 			controler.run();
 		}
@@ -303,7 +305,7 @@ public class TrainingDataGenerator {
 		new NetworkWriter(network).write(netFileWriteLoc);
 	}
 	
-	public static void GenerateRandomNDPopulation(Config config,String demandFileLocaiton,double sdPercent,String writeLoc,double demandPercent) throws IOException {
+	public static void GenerateRandomNDPopulation(int counter,Config config,String demandFileLocaiton,double sdPercent,String writeLoc,double demandPercent) throws IOException {
 		Population p=PopulationUtils.createPopulation(config);
 		Vehicles vehicles=ScenarioUtils.loadScenario(config).getVehicles();
 		
@@ -357,7 +359,7 @@ public class TrainingDataGenerator {
 		act2.setTypicalDuration(8*60*60);
 		config.planCalcScore().addActivityParams(act2);
 		
-		new PopulationWriter(p).write(writeLoc+"/population.xml");
+		new PopulationWriter(p).write(writeLoc+"/population"+counter+".xml");
 		new VehicleWriterV1(vehicles).writeFile(writeLoc+"/vehicles.xml");
 		new ConfigWriter(config).write(writeLoc+"/config.xml");
 	}

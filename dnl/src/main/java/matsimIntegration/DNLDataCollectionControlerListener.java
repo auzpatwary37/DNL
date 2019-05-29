@@ -59,7 +59,7 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 	
 	@Override
 	public void notifyAfterMobsim(AfterMobsimEvent event) {
-		this.dataset.add(new Tuple<>(this.X,this.TTRecorder.getTTMAP()));
+		//this.dataset.add(new Tuple<>(this.X,this.TTRecorder.getTTMAP()));
 		//this.TTRecorder.reset();
 		INDArray Y=Nd4j.create(X.shape());
 		IntStream.rangeClosed(0,N-1).forEach((n)->
@@ -74,7 +74,7 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 				Y.putScalar(n,t,tt);
 			});
 		});
-		this.dataset.add(new Tuple<>(this.X,this.TTRecorder.getTTMAP()));
+		this.dataset.add(new Tuple<>(this.X,Y));
 	}
 
 	@Override

@@ -105,23 +105,39 @@ public class Variogram {
 	 * @return K dim IxI
 	 */
 	public INDArray calcVarianceMatrix(int n, int t,INDArray theta){
+		long startTime=System.currentTimeMillis();
 		double sigma=sigmaMatrix.getDouble(n, t);
 		INDArray K=Nd4j.create(I,I);
 		int i=0;
-		int j=0;
-		for(Tuple<INDArray,INDArray> dataPair1:trainingDataSet.values()) {
-			for(Tuple<INDArray,INDArray> dataPair2:trainingDataSet.values()) {
-				if(i==j) {
-					K.putScalar(i, i, sigma);
+		IntStream.rangeClosed(0,I-1).forEach((ii)->
+		{
+			IntStream.rangeClosed(0,ii).forEach((jj)->{
+
+				if(ii!=jj) {
+					double v=sigma*Math.exp(-1*this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t)*theta.getDouble(n, t));
+					K.putScalar(ii, jj, v);
+					K.putScalar(jj, ii, v);
 				}else {
-					double v=sigma*Math.exp(-1*this.calcDistance(dataPair1.getFirst(), dataPair2.getFirst(), n, t)*theta.getDouble(n, t));
-					K.putScalar(i, j, v);
-					K.putScalar(j, i, v);
+					K.putScalar(ii, ii,sigma);
 				}
-				j++;
-			}
-			i++;
-		}
+			});
+		});
+		
+//		for(int ii=0;ii<I;ii++) {
+//			for(int jj=0;jj<=ii;jj++) {
+//				if(ii!=jj) {
+//					double v=sigma*Math.exp(-1*this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t)*theta.getDouble(n, t));
+//					K.putScalar(ii, jj, v);
+//					K.putScalar(jj, ii, v);
+//				}else {
+//					K.putScalar(ii, ii,sigma);
+//				}
+//			}
+//		}
+//		
+		
+		long endTime=System.currentTimeMillis();
+		System.out.println("Took time = "+(endTime-startTime));
 		return K;
 	}
 	/**
