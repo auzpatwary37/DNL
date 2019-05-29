@@ -62,9 +62,9 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 		//this.dataset.add(new Tuple<>(this.X,this.TTRecorder.getTTMAP()));
 		//this.TTRecorder.reset();
 		INDArray Y=Nd4j.create(X.shape());
-		IntStream.rangeClosed(0,N-1).forEach((n)->
+		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
-			IntStream.rangeClosed(0,T-1).forEach((t)->{
+			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
 				LinkToLink l2l=this.l2ls.getLinkToLinks().get(n);
 				Tuple<Double,Double> timeBean=l2ls.getTimeBean().get(l2ls.getNumToTimeBean().get(t));
 				double tt=this.ttCalculator.getLinkToLinkTravelTimes().getLinkToLinkTravelTime(l2l.getFromLink(), l2l.getToLink(), (timeBean.getFirst()+timeBean.getSecond())*.5);
@@ -114,9 +114,9 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 			}
 		});
 		
-		IntStream.rangeClosed(0,N-1).forEach((n)->
+		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
-			IntStream.rangeClosed(0,T-1).forEach((t)->{
+			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
 				String key=Integer.toString(n)+"_"+Integer.toString(t);
 				if(linkToLinksDemand.containsKey(key)) {
 					if(linkToLinksDemand.get(key)==Double.NaN) {

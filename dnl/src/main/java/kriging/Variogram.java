@@ -74,9 +74,9 @@ public class Variogram {
 	public INDArray calcSigmaMatrix(Map<Integer,Tuple<INDArray,INDArray>>trainingDataSet) {
 		INDArray sd=Nd4j.create(N,T);
 		StandardDeviation sdCalculator= new StandardDeviation();
-		IntStream.rangeClosed(0,N-1).forEach((n)->
+		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
-			IntStream.rangeClosed(0,T-1).forEach((t)->{
+			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
 				double[] data=new double[trainingDataSet.size()];
 				for(int i=0;i<trainingDataSet.size();i++) {
 					data[i]=trainingDataSet.get(i).getSecond().getDouble(n, t);
@@ -109,9 +109,9 @@ public class Variogram {
 		double sigma=sigmaMatrix.getDouble(n, t);
 		INDArray K=Nd4j.create(I,I);
 		int i=0;
-		IntStream.rangeClosed(0,I-1).forEach((ii)->
+		IntStream.rangeClosed(0,I-1).parallel().forEach((ii)->
 		{
-			IntStream.rangeClosed(0,ii).forEach((jj)->{
+			IntStream.rangeClosed(0,ii).parallel().forEach((jj)->{
 
 				if(ii!=jj) {
 					double v=sigma*Math.exp(-1*this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t)*theta.getDouble(n, t));
@@ -166,13 +166,15 @@ public class Variogram {
 	 * @return the map with n_t -> IxI realMatrix covariance matrix
 	 */
 	public Map<String,INDArray>calculateVarianceMatrixAll(INDArray theta){
+		long startTime=System.currentTimeMillis();
 		Map<String,INDArray> varianceMatrixAll=new ConcurrentHashMap<>();
-		IntStream.rangeClosed(0,N-1).forEach((n)->
+		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
-			IntStream.rangeClosed(0,T-1).forEach((t)->{
+			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
 				varianceMatrixAll.put(Integer.toString(n)+"_"+Integer.toString(t),this.calcVarianceMatrix(n, t, theta));
 			});
 		});
+		System.out.println("Time for all Matrix = "+(System.currentTimeMillis()-startTime));
 		return varianceMatrixAll;
 	}
 	
@@ -183,9 +185,9 @@ public class Variogram {
 	 */
 	public Map<String,INDArray>calculateVarianceVectorAll(INDArray X,INDArray theta){
 		Map<String,INDArray> varianceVectorAll=new ConcurrentHashMap<>();
-		IntStream.rangeClosed(0,N-1).forEach((n)->
+		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
-			IntStream.rangeClosed(0,T-1).forEach((t)->{
+			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
 				varianceVectorAll.put(Integer.toString(n)+"_"+Integer.toString(t),this.calcVarianceVector(n, t, X, theta));
 			});
 		});

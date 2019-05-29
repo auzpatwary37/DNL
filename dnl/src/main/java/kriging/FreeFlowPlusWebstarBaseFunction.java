@@ -33,9 +33,9 @@ public class FreeFlowPlusWebstarBaseFunction implements BaseFunction{
 	@Override
 	public INDArray getY(INDArray X) {
 		INDArray Y=Nd4j.create(X.size(0), X.size(1));
-		IntStream.rangeClosed(0,Math.toIntExact(X.size(0))-1).forEach((n)->
+		IntStream.rangeClosed(0,Math.toIntExact(X.size(0))-1).parallel().forEach((n)->
 		{
-			IntStream.rangeClosed(0,Math.toIntExact(X.size(1))-1).forEach((t)->{
+			IntStream.rangeClosed(0,Math.toIntExact(X.size(1))-1).parallel().forEach((t)->{
 				double tt=this.getLinkToLinkWebstarDelay(X.getDouble(n, t), n);
 				Y.putScalar(n, t, tt);
 			});

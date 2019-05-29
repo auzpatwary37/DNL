@@ -119,9 +119,9 @@ public class KrigingInterpolator{
 		INDArray Y_b=this.baseFunction.getY(X);
 		INDArray Z_MB=info.getZ_MB();
 		Map<String,INDArray> varianceVectorAll=this.variogram.calculateVarianceVectorAll(X, theta);
-		IntStream.rangeClosed(0,Math.toIntExact(X.size(0))-1).forEach((n)->
+		IntStream.rangeClosed(0,Math.toIntExact(X.size(0))-1).parallel().forEach((n)->
 		{
-			IntStream.rangeClosed(0,Math.toIntExact(X.size(1))-1).forEach((t)->{
+			IntStream.rangeClosed(0,Math.toIntExact(X.size(1))-1).parallel().forEach((t)->{
 				String key=Integer.toString(n)+"_"+Integer.toString(t);
 				INDArray KInverse=info.getVarianceMatrixInverseAll().get(key);
 				double y=Y_b.getDouble(n,t)*beta.getDouble(n,t)+

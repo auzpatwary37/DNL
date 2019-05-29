@@ -31,9 +31,9 @@ public class MeanBaseFunction implements BaseFunction{
 		int N=Math.toIntExact(trainingDataSet.get(0).getFirst().size(0));
 		int T=Math.toIntExact(trainingDataSet.get(0).getFirst().size(1));
 		this.mean=Nd4j.create(N,T);
-		IntStream.rangeClosed(0,N-1).forEach((n)->
+		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
-			IntStream.rangeClosed(0,T-1).forEach((t)->{
+			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
 				double[] data=new double[trainingDataSet.size()];
 				for(int i=0;i<trainingDataSet.size();i++) {
 					data[i]=trainingDataSet.get(i).getSecond().getDouble(n, t);
