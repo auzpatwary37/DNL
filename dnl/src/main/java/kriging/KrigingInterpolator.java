@@ -15,11 +15,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.linear.LUDecomposition;
+import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.SingularValueDecomposition;
+import org.jfree.data.general.DatasetUtilities;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.utils.collections.Tuple;
+import org.nd4j.linalg.api.buffer.DataBuffer;
 import org.nd4j.linalg.api.buffer.DataType;
+import org.nd4j.linalg.api.buffer.util.DataTypeUtil;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.factory.Nd4j;
@@ -56,6 +61,7 @@ public class KrigingInterpolator{
 		this.N=Math.toIntExact(trainingDataSet.get(0).getFirst().size(0));
 		this.T=Math.toIntExact(trainingDataSet.get(0).getFirst().size(1));
 		this.I=trainingDataSet.size();
+		this.beta=Nd4j.zeros(N,T).addi(1);
 	}
 	
 	
@@ -102,9 +108,11 @@ public class KrigingInterpolator{
 		//This is the Z-MB
 		INDArray Z_MB=Nd4j.create(this.N,this.T,this.I);
 		Map<String,INDArray> varianceMatrixAll=this.variogram.calculateVarianceMatrixAll(theta);
-		Map<String,INDArray> varianceMatrixInverseAll=this.variogram.calculateVarianceMatrixAll(theta);
+		Map<String,INDArray> varianceMatrixInverseAll=new ConcurrentHashMap<>();
 		for(Entry<String,INDArray> n_t_K:varianceMatrixAll.entrySet()) {
-			varianceMatrixInverseAll.put(n_t_K.getKey(),InvertMatrix.invert(n_t_K.getValue(), false));
+			//n_t_K.getValue()
+			RealMatrix inv=new SingularValueDecomposition(MatrixUtils.createRealMatrix(n_t_K.getValue().toDoubleMatrix())).getSolver().getInverse();
+			varianceMatrixInverseAll.put(n_t_K.getKey(),Nd4j.create(toFloatArray(inv.getData()))) ;
 		}
 		for(Entry<Integer,Tuple<INDArray,INDArray>>dataPoint:this.trainingDataSet.entrySet()) {
 			Z_MB.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(dataPoint.getKey())},dataPoint.getValue().getSecond().sub(this.baseFunction.getY(dataPoint.getValue().getFirst()).mul(beta)));
@@ -132,31 +140,62 @@ public class KrigingInterpolator{
 		return X;
 	}
 	
-	
+	public static float[][] toFloatArray(double[][] arr) {
+		  if (arr == null) return null;
+		  int n = arr.length;
+		  float[][] ret = new float[n][arr[0].length];
+		  for (int i = 0; i < n; i++) {
+			  for(int j=0;j<arr[i].length;j++) {
+				  ret[i][j] = (float)arr[i][j];
+			  }
+		  }
+		  return ret;
+		}
 	
 	//Intentionally not made parallel
 	public double calcCombinedLogLikelihood(INDArray theta, INDArray beta) {
-		double logLikelihood=0;
 		VarianceInfoHolder info=this.preProcessData(beta, theta);
-		
+		INDArray logLiklihood=Nd4j.create(this.N,this.T);
 		for(int n=0;n<this.N;n++) {
 			for(int t=0;t<this.T;t++) {
 				String key=Integer.toString(n)+"_"+Integer.toString(t);
-				INDArray Z_MB=info.getZ_MB().get(new INDArrayIndex[] {NDArrayIndex.point(n),NDArrayIndex.point(t),NDArrayIndex.all()});
+				INDArray Z_MB=Nd4j.create(info.getZ_MB().size(2),1);
+				Z_MB.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.point(1)}, info.getZ_MB().get(new INDArrayIndex[] {NDArrayIndex.point(n),NDArrayIndex.point(t),NDArrayIndex.all()}));
+				double Logdet_k=0;
+				//log here for ease
+
+				SingularValueDecomposition svd=new SingularValueDecomposition(CheckUtil.convertToApacheMatrix(info.getVarianceMatrixAll().get(key)));
+				for(double dd:svd.getSingularValues()) {
+					if(dd!=0) {
+						Logdet_k+=Math.log(dd);
+					}
+				}
+				INDArray secondLLTerm=Z_MB.transpose().mmul(info.getVarianceMatrixInverseAll().get(key)).mmul(Z_MB);
 				double d=-1*this.I/2.0*Math.log(2*Math.PI)-
-						.5*Math.log(new LUDecomposition(CheckUtil.convertToApacheMatrix(info.getVarianceMatrixAll().get(key))).getDeterminant())
-						-.5*Z_MB.mmul(info.getVarianceMatrixInverseAll().get(key)).mmul(Z_MB).getDouble(0,0);
-				logLikelihood+=d;
+						.5*Logdet_k
+						-.5*secondLLTerm.getDouble(0,0);
+				if(d==Double.NaN) {
+					System.out.println("case NAN");
+
+				}else if(d==Double.NEGATIVE_INFINITY){
+					System.out.println("Negative Infinity");
+				}else if (d==Double.POSITIVE_INFINITY) {
+					System.out.println("");
+				}
+				logLiklihood.putScalar(n,t,d);
 			}
 		}
-
-		return logLikelihood;
+		System.out.println("Complete");
+		double sum=logLiklihood.sumNumber().doubleValue();
+		return sum;
 	}
 	
 	public double calcCombinedLogLikelihood() {
 		return this.calcCombinedLogLikelihood(this.variogram.gettheta(),this.getBeta());
 	}
+	
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		DataTypeUtil.setDTypeForContext(DataType.FLOAT);
 		Map<Integer,Tuple<INDArray,INDArray>> trainingData=DataIO.readDataSet("Network/ND/DataSetNDTrain.txt");
 		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
 		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
@@ -168,7 +207,7 @@ public class KrigingInterpolator{
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
 		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new FreeFlowPlusWebstarBaseFunction(l2ls));
-		
+		System.out.println(kriging.calcCombinedLogLikelihood());
 	}
 	
 

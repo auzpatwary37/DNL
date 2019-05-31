@@ -16,7 +16,19 @@ public class DataCleanUp {
 	public static void main(String[] args) {
 		List<Tuple<INDArray,INDArray>> datasetFull=new ArrayList<>();
 		for(int i=0;i<6;i++) {
-			datasetFull.addAll(DataIO.readDataSet("Network/ND/DataSet"+i+".txt").values());
+			
+			for(Tuple<INDArray,INDArray> data:DataIO.readDataSet("Network/ND/DataSet"+i+".txt").values()) {
+				boolean isDuplicate=false;
+				for(Tuple<INDArray,INDArray> currentData:datasetFull) {
+					if(data.getFirst().sub(currentData.getFirst()).norm2Number().doubleValue()<1*33*9) {
+						isDuplicate=true;
+						break;
+					}
+				}
+				if(isDuplicate==false) {
+					datasetFull.add(data);
+				}
+			}
 		}
 		DataIO.writeData(datasetFull, "Network/ND/DataSetNDFull.txt");
 		TestAndTrainData testAndTrain=DataCleanUp.DevideDataInTestAndTrain(datasetFull, 0.1);

@@ -88,8 +88,9 @@ public class Variogram {
 	}
 	
 	public double calcDistance(INDArray a,INDArray b,int n,int t) {
-		return a.sub(b).mul(this.weights.get(Integer.toString(n)+"_"+Integer.toString(t))).norm2Number().doubleValue();
-		//return distance;
+		double aa=a.sub(b).mul(this.weights.get(Integer.toString(n)+"_"+Integer.toString(t))).norm2Number().doubleValue();
+		return aa;
+		 //return distance;
 	}
 	
 	//For now this function is useless but it can be later used to make the weights trainable
@@ -109,22 +110,10 @@ public class Variogram {
 		double sigma=sigmaMatrix.getDouble(n, t);
 		INDArray K=Nd4j.create(I,I);
 		int i=0;
-		IntStream.rangeClosed(0,I-1).parallel().forEach((ii)->
-		{
-			IntStream.rangeClosed(0,ii).parallel().forEach((jj)->{
-
-				if(ii!=jj) {
-					double v=sigma*Math.exp(-1*this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t)*theta.getDouble(n, t));
-					K.putScalar(ii, jj, v);
-					K.putScalar(jj, ii, v);
-				}else {
-					K.putScalar(ii, ii,sigma);
-				}
-			});
-		});
-		
-//		for(int ii=0;ii<I;ii++) {
-//			for(int jj=0;jj<=ii;jj++) {
+//		IntStream.rangeClosed(0,I-1).parallel().forEach((ii)->
+//		{
+//			IntStream.rangeClosed(0,ii).parallel().forEach((jj)->{
+//
 //				if(ii!=jj) {
 //					double v=sigma*Math.exp(-1*this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t)*theta.getDouble(n, t));
 //					K.putScalar(ii, jj, v);
@@ -132,9 +121,21 @@ public class Variogram {
 //				}else {
 //					K.putScalar(ii, ii,sigma);
 //				}
-//			}
-//		}
-//		
+//			});
+//		});
+		
+		for(int ii=0;ii<I;ii++) {
+			for(int jj=0;jj<=ii;jj++) {
+				if(ii!=jj) {
+					double v=sigma*Math.exp(-1*this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t)*theta.getDouble(n, t));
+					K.putScalar(ii, jj, v);
+					K.putScalar(jj, ii, v);
+				}else {
+					K.putScalar(ii, ii,sigma);
+				}
+			}
+		}
+		
 		
 		long endTime=System.currentTimeMillis();
 		System.out.println("Took time = "+(endTime-startTime));
