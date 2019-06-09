@@ -11,6 +11,7 @@ import org.apache.commons.math3.linear.RealMatrixFormat;
 import org.matsim.api.core.v01.Id;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.conditions.Conditions;
 import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
 
@@ -18,7 +19,7 @@ import linktolinkBPR.LinkToLink;
 import linktolinkBPR.LinkToLinks;
 
 public class FreeFlowPlusWebstarBaseFunction implements BaseFunction{
-	
+	public static int no=0;
 	private Map<Integer,Link2LinkInfoHolder> link2LinkInfo=new ConcurrentHashMap<>();
 	
 	public FreeFlowPlusWebstarBaseFunction( LinkToLinks l2ls) {
@@ -33,21 +34,36 @@ public class FreeFlowPlusWebstarBaseFunction implements BaseFunction{
 	@Override
 	public INDArray getY(INDArray X) {
 		INDArray Y=Nd4j.create(X.size(0), X.size(1));
-		IntStream.rangeClosed(0,Math.toIntExact(X.size(0))-1).parallel().forEach((n)->
-		{
-			IntStream.rangeClosed(0,Math.toIntExact(X.size(1))-1).parallel().forEach((t)->{
+		no++;
+//		IntStream.rangeClosed(0,Math.toIntExact(X.size(0))-1).parallel().forEach((n)->
+//		{
+//			IntStream.rangeClosed(0,Math.toIntExact(X.size(1))-1).parallel().forEach((t)->{
+		
+		for(int n=0;n<X.size(0);n++) {
+			for(int t=0;t<X.size(1);t++) {
 				double tt=this.getLinkToLinkWebstarDelay(X.getDouble(n, t), n);
 				Y.putScalar(n, t, tt);
-			});
-		});
+				if(Y.cond(Conditions.isInfinite()).any()||Y.cond(Conditions.isNan()).any()) {
+					System.out.println("Z is nan or inf!!!");
+				}
+				
+			}
+		}
+//			});
+//		});
+		
 		return Y;
 	}
 
 
 	
-	public double getLinkToLinkWebstarDelay(double demand,Integer n) {
+	public Double getLinkToLinkWebstarDelay(double demand,Integer n) {
 		Link2LinkInfoHolder l2l=this.link2LinkInfo.get(n);
-		return l2l.getFromLinkFreeFlowTime()+ l2l.getCycleTime()/2*(1-l2l.getG_cRatio())*(1-l2l.getG_cRatio())/(1-l2l.getG_cRatio()*(demand/l2l.getSaturationFlow()));
+		Double delay=l2l.getFromLinkFreeFlowTime()+ l2l.getCycleTime()/2*(1-l2l.getG_cRatio())*(1-l2l.getG_cRatio())/(1-l2l.getG_cRatio()*(demand/1.2*l2l.getSaturationFlow()));
+		if(Double.isNaN(delay)||delay==Double.POSITIVE_INFINITY) {
+			System.out.println();
+		}
+		return delay;
 	}
 
 	@Override

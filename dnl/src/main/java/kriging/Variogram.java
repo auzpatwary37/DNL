@@ -106,7 +106,7 @@ public class Variogram {
 	 * @return K dim IxI
 	 */
 	public INDArray calcVarianceMatrix(int n, int t,INDArray theta){
-		long startTime=System.currentTimeMillis();
+		//long startTime=System.currentTimeMillis();
 		double sigma=sigmaMatrix.getDouble(n, t);
 		INDArray K=Nd4j.create(I,I);
 		int i=0;
@@ -137,8 +137,8 @@ public class Variogram {
 		}
 		
 		
-		long endTime=System.currentTimeMillis();
-		System.out.println("Took time = "+(endTime-startTime));
+		//long endTime=System.currentTimeMillis();
+		//System.out.println("Took time = "+(endTime-startTime));
 		return K;
 	}
 	/**
