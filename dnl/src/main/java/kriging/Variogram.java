@@ -27,6 +27,7 @@ public class Variogram {
 	private final int N;
 	private final int T;
 	private final int I;
+	private Map<String,INDArray>distances=new ConcurrentHashMap<>();
 	
 	
 	//TODO: Add a writer to save the trained model
@@ -45,7 +46,9 @@ public class Variogram {
 		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
 		//Initialize theta to a nxt matrix of one
 		this.theta=Nd4j.zeros(N,T).addi(1);
+		this.calcDistances();
 		this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
+		
 	}
 	
 	public Variogram(Map<Integer,Tuple<INDArray,INDArray>>trainingDataSet,Map<String,INDArray>weights,INDArray theta) {
@@ -57,7 +60,9 @@ public class Variogram {
 		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
 		//Initialize theta to a nxt matrix of one
 		this.theta=theta;
+		this.calcDistances();
 		this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
+		
 	}
 	
 	/**
@@ -106,6 +111,9 @@ public class Variogram {
 	 * @return K dim IxI
 	 */
 	public INDArray calcVarianceMatrix(int n, int t,INDArray theta){
+		if(theta.getDouble(n,t)<.1) {
+			System.out.println();
+		}
 		//long startTime=System.currentTimeMillis();
 		double sigma=sigmaMatrix.getDouble(n, t);
 		INDArray K=Nd4j.create(I,I);
@@ -127,7 +135,12 @@ public class Variogram {
 		for(int ii=0;ii<I;ii++) {
 			for(int jj=0;jj<=ii;jj++) {
 				if(ii!=jj) {
-					double v=sigma*Math.exp(-1*this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t)*theta.getDouble(n, t));
+					double dist=-1*this.distances.get(Integer.toString(n)+"_"+Integer.toString(t)).getDouble(ii,jj)*theta.getDouble(n, t);
+					
+					double v=sigma*Math.exp(dist);
+					if(Double.isNaN(v)||!Double.isFinite(v)) {
+						throw new IllegalArgumentException("is infinity");
+					}
 					K.putScalar(ii, jj, v);
 					K.putScalar(jj, ii, v);
 				}else {
@@ -138,9 +151,54 @@ public class Variogram {
 		
 		
 		//long endTime=System.currentTimeMillis();
-		//System.out.println("Took time = "+(endTime-startTime));
+		//System.out.println("Done = "+Integer.toString(n)+"_"+Integer.toString(t));
 		return K;
 	}
+	
+	public void calcDistances() {
+
+		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
+		{
+			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
+				this.distances.put(Integer.toString(n)+"_"+Integer.toString(t),this.calcDistanceMatrix(n, t));
+			});
+		});
+	}
+	private INDArray calcDistanceMatrix(int n, int t) {
+		INDArray K=Nd4j.create(I,I);
+		int i=0;
+//		IntStream.rangeClosed(0,I-1).parallel().forEach((ii)->
+//		{
+//			IntStream.rangeClosed(0,ii).parallel().forEach((jj)->{
+//
+//				if(ii!=jj) {
+//					double v=sigma*Math.exp(-1*this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t)*theta.getDouble(n, t));
+//					K.putScalar(ii, jj, v);
+//					K.putScalar(jj, ii, v);
+//				}else {
+//					K.putScalar(ii, ii,sigma);
+//				}
+//			});
+//		});
+		
+		for(int ii=0;ii<I;ii++) {
+			for(int jj=0;jj<=ii;jj++) {
+				if(ii!=jj) {
+					double dist=this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t);
+					K.putScalar(ii, jj, dist);
+					K.putScalar(jj, ii, dist);
+				}else {
+					K.putScalar(ii, ii,0);
+				}
+			}
+		}
+		
+		
+		//long endTime=System.currentTimeMillis();
+		//System.out.println("Done = "+Integer.toString(n)+"_"+Integer.toString(t));
+		return K;
+	}
+
 	/**
 	 * Similar to calcVarianceMatrix but it will calculate variance for a particular point to all other point
 	 * @param n
@@ -167,12 +225,17 @@ public class Variogram {
 	 * @return the map with n_t -> IxI realMatrix covariance matrix
 	 */
 	public Map<String,INDArray>calculateVarianceMatrixAll(INDArray theta){
+		if(theta.isNaN().any()||theta.isInfinite().any()) {
+			throw new IllegalArgumentException("Theta is nan or infinity!!!");
+		}
 		long startTime=System.currentTimeMillis();
 		Map<String,INDArray> varianceMatrixAll=new ConcurrentHashMap<>();
 		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
 			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
+				System.out.println(Integer.toString(n)+"_"+Integer.toString(t));
 				varianceMatrixAll.put(Integer.toString(n)+"_"+Integer.toString(t),this.calcVarianceMatrix(n, t, theta));
+				
 			});
 		});
 		System.out.println("Time for all Matrix = "+(System.currentTimeMillis()-startTime));
@@ -200,7 +263,7 @@ public class Variogram {
 	 */
 	public void updatetheta(INDArray theta) {
 		this.theta=theta;
-		this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
+		//this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
 	}
 	
 	//Getters and Setters

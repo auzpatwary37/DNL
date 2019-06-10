@@ -1,5 +1,6 @@
 package kriging;
 
+import java.awt.image.DataBuffer;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +43,7 @@ public class KrigingInterpolator{
 	private final int N;
 	private final int T;
 	private int I;
+	private VarianceInfoHolder info;
 	
 	
 	public KrigingInterpolator(Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet, LinkToLinks l2ls,BaseFunction bf) {
@@ -91,7 +93,7 @@ public class KrigingInterpolator{
 		this.variogram.updatetheta(theta);
 	}
 	
-	public INDArray getY(INDArray X,VarianceInfoHolder info) {
+	public INDArray getY(INDArray X) {
 		return this.getY(X, this.beta, this.variogram.gettheta(),info);
 	}
 	
@@ -100,16 +102,19 @@ public class KrigingInterpolator{
 		INDArray Z_MB=Nd4j.create(this.N,this.T,this.I);
 		Map<String,INDArray> varianceMatrixAll=this.variogram.calculateVarianceMatrixAll(theta);
 		Map<String,INDArray> varianceMatrixInverseAll=new ConcurrentHashMap<>();
+		Map<String,double[]> singularValuesAll=new ConcurrentHashMap<>();
 		for(Entry<String,INDArray> n_t_K:varianceMatrixAll.entrySet()) {
 			//n_t_K.getValue()
 			RealMatrix inv=new SingularValueDecomposition(MatrixUtils.createRealMatrix(n_t_K.getValue().toDoubleMatrix())).getSolver().getInverse();
+			double[] singularValues=new SingularValueDecomposition(MatrixUtils.createRealMatrix(n_t_K.getValue().toDoubleMatrix())).getSingularValues();
 			varianceMatrixInverseAll.put(n_t_K.getKey(),Nd4j.create(toFloatArray(inv.getData()))) ;
+			singularValuesAll.put(n_t_K.getKey(), singularValues);
 		}
 		for(Entry<Integer,Tuple<INDArray,INDArray>>dataPoint:this.trainingDataSet.entrySet()) {
 			Z_MB.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(dataPoint.getKey())},dataPoint.getValue().getSecond().sub(this.baseFunction.getY(dataPoint.getValue().getFirst()).mul(beta)));
 		}
 		
-		return new VarianceInfoHolder(Z_MB,varianceMatrixAll,varianceMatrixInverseAll);
+		return new VarianceInfoHolder(Z_MB,varianceMatrixAll,varianceMatrixInverseAll,singularValuesAll);
 	}
 	
 	public INDArray getY(INDArray X,INDArray beta,INDArray theta,VarianceInfoHolder info) {
@@ -155,8 +160,8 @@ public class KrigingInterpolator{
 				double Logdet_k=0;
 				//log here for ease
 
-				SingularValueDecomposition svd=new SingularValueDecomposition(CheckUtil.convertToApacheMatrix(info.getVarianceMatrixAll().get(key)));
-				for(double dd:svd.getSingularValues()) {
+				
+				for(double dd:info.getSingularValues().get(key)) {
 					if(dd!=0) {
 						Logdet_k+=Math.log(dd);
 					}
@@ -187,6 +192,7 @@ public class KrigingInterpolator{
 	
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		DataTypeUtil.setDTypeForContext(DataType.FLOAT);
+		Nd4j.setDefaultDataTypes(DataType.FLOAT, DataType.FLOAT);
 		Map<Integer,Tuple<INDArray,INDArray>> trainingData=DataIO.readDataSet("Network/ND/DataSetNDTrain.txt");
 		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
 		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
@@ -197,9 +203,9 @@ public class KrigingInterpolator{
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		//KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new FreeFlowPlusWebstarBaseFunction(l2ls));
+		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new FreeFlowPlusWebstarBaseFunction(l2ls));
 		//System.out.println(kriging.calcCombinedLogLikelihood());
-		
+		kriging.trainKriging();
 		
 //		double[][] a=new double[][]{{1.,2,3},{4,5,6},{7,8,9}};
 //		INDArray aa=Nd4j.create(a);
@@ -224,15 +230,26 @@ public class KrigingInterpolator{
 			public double evaluate(double[] thetaa) {
 				Tuple<INDArray,INDArray> betaTheta=KrigingInterpolator.this.scaleFromVecor(thetaa);
 				double liklihood=KrigingInterpolator.this.calcCombinedLogLikelihood(betaTheta.getFirst(), betaTheta.getSecond());
-				return liklihood;
+				return -1*liklihood;
 			}
 			
 		};
 		function.setEvaluator(evaluator);
-		double[] solution=function.runSPSA(100, this.scaleToVector(this.beta, this.variogram.gettheta()), .5, 300, 10, 100, .6, .1);
+		double[] solution=function.runSPSA(100, this.scaleToVector(this.beta, this.variogram.gettheta()), .5, 3, 1, 1, .6, .1);
 		Tuple<INDArray,INDArray> betaTheta=this.scaleFromVecor(solution);
+		this.updateVariogramParameter(betaTheta.getSecond());
+		this.beta=betaTheta.getFirst();
+		this.info=this.preProcessData();
+		KrigingModelWriter writer=new KrigingModelWriter(this);
+		writer.writeModel("Network/ND/Model1/");
+	
 	}
 	
+	private VarianceInfoHolder preProcessData() {
+		return this.preProcessData(this.beta,this.variogram.gettheta());
+	}
+
+
 	private double[] scaleToVector(INDArray beta, INDArray theta) {
 		INDArray linearBeta=beta.reshape(beta.length());
 		INDArray linearTheta=theta.reshape(theta.length());
@@ -240,9 +257,15 @@ public class KrigingInterpolator{
 	}
 	//beta is the first INDArray and theta is the second INDArray
 	private Tuple<INDArray,INDArray> scaleFromVecor(double[] vector) {
+//		float[] floatArray = new float[vector.length];
+//		for (int i = 0 ; i < vector.length; i++)
+//		{
+//		    floatArray[i] = (float) vector[i];
+//		}
+		Nd4j.setDefaultDataTypes(DataType.FLOAT, DataType.FLOAT);
 		INDArray rawarray=Nd4j.create(vector);
-		INDArray beta=rawarray.reshape(this.N*2,this.T).get(new INDArrayIndex[] {NDArrayIndex.interval(0,this.N),NDArrayIndex.all()});
-		INDArray theta=rawarray.reshape(this.N*2,this.T).get(new INDArrayIndex[] {NDArrayIndex.interval(this.N,this.N*2),NDArrayIndex.all()});
+		INDArray beta=Nd4j.create(rawarray.reshape(this.N*2,this.T).get(new INDArrayIndex[] {NDArrayIndex.interval(0,this.N),NDArrayIndex.all()}).toFloatMatrix());
+		INDArray theta=Nd4j.create(rawarray.reshape(this.N*2,this.T).get(new INDArrayIndex[] {NDArrayIndex.interval(this.N,this.N*2),NDArrayIndex.all()}).toFloatMatrix());
 		return new Tuple<>(beta,theta);
 	}
 }
@@ -251,11 +274,13 @@ class VarianceInfoHolder{
 	private final INDArray Z_MB;
 	private final Map<String,INDArray>varianceMatrixAll; 
 	private final Map<String,INDArray> varianceMatrixInverseAll;
+	private final Map<String,double[]> singularValues;
 	
-	public VarianceInfoHolder(INDArray Z_MB,Map<String,INDArray>varianceMatrixAll,Map<String,INDArray> varianceMatrixInverseAll) {
+	public VarianceInfoHolder(INDArray Z_MB,Map<String,INDArray>varianceMatrixAll,Map<String,INDArray> varianceMatrixInverseAll, Map<String,double[]> singularValues) {
 		this.Z_MB=Z_MB;
 		this.varianceMatrixAll=varianceMatrixAll;
 		this.varianceMatrixInverseAll=varianceMatrixInverseAll;
+		this.singularValues=singularValues;
 	}
 
 	public INDArray getZ_MB() {
@@ -268,6 +293,10 @@ class VarianceInfoHolder{
 
 	public Map<String, INDArray> getVarianceMatrixAll() {
 		return varianceMatrixAll;
+	}
+
+	public Map<String, double[]> getSingularValues() {
+		return singularValues;
 	}
 	
 }
