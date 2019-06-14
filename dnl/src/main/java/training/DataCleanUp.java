@@ -9,6 +9,7 @@ import java.util.Random;
 
 import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.DataSet;
 
 import kriging.KrigingInterpolator;
 
@@ -30,12 +31,22 @@ public class DataCleanUp {
 				}
 			}
 		}
+		
+		DataSet dataset=new DataSet();
+//		INDArray X=
+//		
+//		for(Tuple<INDArray,INDArray> data:datasetFull) {
+//			
+//		}
+		
 		DataIO.writeData(datasetFull, "Network/ND/DataSetNDFull.txt");
 		TestAndTrainData testAndTrain=DataCleanUp.DevideDataInTestAndTrain(datasetFull, 0.1);
 		DataIO.writeData(testAndTrain.getTestData(), "Network/ND/DataSetNDTest.txt");
 		DataIO.writeData(testAndTrain.getTrainData(), "Network/ND/DataSetNDTrain.txt");
 		
+		
 	}
+	
 	/**
 	 * 
 	 * @param fullData
@@ -49,6 +60,8 @@ public class DataCleanUp {
 		return new TestAndTrainData(fullData,testRatio);
 	}
 }
+
+
 
 class TestAndTrainData{
 	private Map<Integer,Tuple<INDArray,INDArray>> testData=new HashMap<>();

@@ -53,7 +53,7 @@ public class LinkToLinks {
 			tId++;
 		}
 		this.generateLinkToLinkMap();
-		for(int n=0;n<this.linkToLinks.size();n++) {
+		for(int n=0;n<this.linkToLinks.size();n++) { 
 			Link fromLink=this.linkToLinks.get(n).getFromLink();
 			Link toLink=this.linkToLinks.get(n).getToLink();
 			if(sg!=null) {
@@ -138,23 +138,23 @@ public class LinkToLinks {
 		linkToLinkMap.put(0, new HashSet<>());
 		linkToLinkMap.get(0).add(l2l);
 		linkToLinkMap.put(1, new HashSet<>());
-		this.fetchLinkToLinkWithFromLink(l2l.getToLink(), 1, kn, linkToLinkMap);
-		this.fetchLinkToLinkWithToLink(l2l.getFromLink(), 1, kn, linkToLinkMap);
+		this.fetchLinkToLinkWithFromLink(l2l.getToLink(), 0, kn, linkToLinkMap);
+		this.fetchLinkToLinkWithToLink(l2l.getFromLink(), 0, kn, linkToLinkMap);
 		for(Entry<Integer,Set<LinkToLink>> linkToLinks:linkToLinkMap.entrySet()) {
 			double wk;
 			if(linkToLinks.getKey()==0) {
-				wk=3;
+				wk=1;
 			}else {
-				wk=1+1/linkToLinks.getKey();
+				wk=1f/(1+linkToLinks.getKey());
 			}
 			for(LinkToLink ll2ll:linkToLinks.getValue()) {
 				int l2lIndex=this.numToLinkToLink.inverse().get(ll2ll.getLinkToLinkId()); 
 				for(int tt=Math.max(t-kt,0);tt<=Math.min(this.timeBean.size()-1,t+kt);tt++) {
 					float wt=0;
 					if(tt-t==0) {
-						wt=3;
+						wt=1;
 					}else {
-						wt=1+1/Math.abs(tt-t);
+						wt=1f/(1+Math.abs(tt-t));
 					}
 					//weight[l2lIndex][tt]=wk*wt;
 					we.putScalar(l2lIndex, tt, wk*wt);
@@ -166,6 +166,10 @@ public class LinkToLinks {
 	}
 	
 	private Map<Integer,Set<LinkToLink>>fetchLinkToLinkWithFromLink(Link toLink,int k,int kn,Map<Integer,Set<LinkToLink>> linkToLinks){
+		k=k+1;
+		if(!linkToLinks.containsKey(k)) {
+			linkToLinks.put(k, new HashSet<>());
+		}
 		if(this.fromLinkToLinkMap.get(toLink.getId())!=null) {
 		for(LinkToLink l2l:this.fromLinkToLinkMap.get(toLink.getId())) {
 			boolean linkExist=false;
@@ -178,13 +182,11 @@ public class LinkToLinks {
 				continue;
 			}
 			linkToLinks.get(k).add(l2l);
-			k=k+1;
-			if(k>kn) {
+			
+			if(k>=kn) {
 				return linkToLinks;
 			}
-			if(!linkToLinks.containsKey(k)) {
-				linkToLinks.put(k, new HashSet<>());
-			}
+			
 			fetchLinkToLinkWithFromLink(l2l.getToLink(),k,kn,linkToLinks);
 		}
 		}
@@ -192,6 +194,10 @@ public class LinkToLinks {
 	}
 	
 	private Map<Integer,Set<LinkToLink>>fetchLinkToLinkWithToLink(Link fromLink,int k,int kn,Map<Integer,Set<LinkToLink>> linkToLinks){
+		k=k+1;
+		if(!linkToLinks.containsKey(k)) {
+			linkToLinks.put(k, new HashSet<>());
+		}
 		if(this.ToLinkToLinkMap.get(fromLink.getId())!=null) {
 		for(LinkToLink l2l:this.ToLinkToLinkMap.get(fromLink.getId())) {
 			boolean linkExist=false;
@@ -204,13 +210,11 @@ public class LinkToLinks {
 				continue;
 			}
 			linkToLinks.get(k).add(l2l);
-			k=k+1;
-			if(k>kn) {
+			
+			if(k>=kn) {
 				return linkToLinks;
 			}
-			if(!linkToLinks.containsKey(k)) {
-				linkToLinks.put(k, new HashSet<>());
-			}
+			
 			fetchLinkToLinkWithToLink(l2l.getFromLink(),k,kn,linkToLinks);
 		}
 		}

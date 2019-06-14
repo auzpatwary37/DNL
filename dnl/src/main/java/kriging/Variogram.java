@@ -45,7 +45,7 @@ public class Variogram {
 		this.I=trainingDataSet.size();
 		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
 		//Initialize theta to a nxt matrix of one
-		this.theta=Nd4j.zeros(N,T).addi(1);
+		this.theta=Nd4j.zeros(N,T).addi(.01);
 		this.calcDistances();
 		this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
 		
@@ -135,14 +135,14 @@ public class Variogram {
 		for(int ii=0;ii<I;ii++) {
 			for(int jj=0;jj<=ii;jj++) {
 				if(ii!=jj) {
-					double dist=-1*this.distances.get(Integer.toString(n)+"_"+Integer.toString(t)).getDouble(ii,jj)*theta.getDouble(n, t);
-					
-					double v=sigma*Math.exp(dist);
+					float dist=(float) (-1*this.distances.get(Integer.toString(n)+"_"+Integer.toString(t)).getDouble(ii,jj)*theta.getDouble(n, t));
+					float v=(float) (sigma*Math.exp(dist));
 					if(Double.isNaN(v)||!Double.isFinite(v)) {
 						throw new IllegalArgumentException("is infinity");
 					}
 					K.putScalar(ii, jj, v);
 					K.putScalar(jj, ii, v);
+					//System.out.println("finished putting");
 				}else {
 					K.putScalar(ii, ii,sigma);
 				}
@@ -233,7 +233,7 @@ public class Variogram {
 		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
 			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
-				System.out.println(Integer.toString(n)+"_"+Integer.toString(t));
+				//System.out.println(Integer.toString(n)+"_"+Integer.toString(t));
 				varianceMatrixAll.put(Integer.toString(n)+"_"+Integer.toString(t),this.calcVarianceMatrix(n, t, theta));
 				
 			});
