@@ -18,7 +18,6 @@ import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.buffer.util.DataTypeUtil;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
@@ -42,7 +41,6 @@ public class KrigingInterpolator{
 	private BaseFunction baseFunction;
 	private final int N;
 	private final int T;
-	private int I;
 	private VarianceInfoHolder info;
 	
 	
@@ -53,7 +51,6 @@ public class KrigingInterpolator{
 		this.variogram=new Variogram(trainingDataSet, this.l2ls);
 		this.N=Math.toIntExact(trainingDataSet.get(0).getFirst().size(0));
 		this.T=Math.toIntExact(trainingDataSet.get(0).getFirst().size(1));
-		this.I=trainingDataSet.size();
 		this.beta=Nd4j.zeros(N,T).addi(1);
 	}
 	
@@ -67,7 +64,6 @@ public class KrigingInterpolator{
 		this.baseFunction=bf;
 		this.N=Math.toIntExact(trainingDataSet.get(0).getFirst().size(0));
 		this.T=Math.toIntExact(trainingDataSet.get(0).getFirst().size(1));
-		this.I=trainingDataSet.size();
 	}
 	
 	public Map<Integer, Tuple<INDArray, INDArray>> getTrainingDataSet() {
@@ -98,22 +94,24 @@ public class KrigingInterpolator{
 	}
 	
 	public VarianceInfoHolder preProcessData(INDArray beta,INDArray theta) {
+		long startTime=System.currentTimeMillis();
 		//This is the Z-MB
-		INDArray Z_MB=Nd4j.create(this.N,this.T,this.I);
+		INDArray Z_MB=Nd4j.create(this.N,this.T,this.trainingDataSet.size());
 		Map<String,INDArray> varianceMatrixAll=this.variogram.calculateVarianceMatrixAll(theta);
 		Map<String,INDArray> varianceMatrixInverseAll=new ConcurrentHashMap<>();
 		Map<String,double[]> singularValuesAll=new ConcurrentHashMap<>();
-		for(Entry<String,INDArray> n_t_K:varianceMatrixAll.entrySet()) {
+		varianceMatrixAll.entrySet().parallelStream().forEach((n_t_K)->{
 			//n_t_K.getValue()
-			RealMatrix inv=new SingularValueDecomposition(MatrixUtils.createRealMatrix(n_t_K.getValue().toDoubleMatrix())).getSolver().getInverse();
-			double[] singularValues=new SingularValueDecomposition(MatrixUtils.createRealMatrix(n_t_K.getValue().toDoubleMatrix())).getSingularValues();
+			SingularValueDecomposition svd=new SingularValueDecomposition(MatrixUtils.createRealMatrix(n_t_K.getValue().toDoubleMatrix()));
+			RealMatrix inv=svd.getSolver().getInverse();
+			double[] singularValues=svd.getSingularValues();
 			varianceMatrixInverseAll.put(n_t_K.getKey(),Nd4j.create(toFloatArray(inv.getData()))) ;
 			singularValuesAll.put(n_t_K.getKey(), singularValues);
-		}
+		});
 		for(Entry<Integer,Tuple<INDArray,INDArray>>dataPoint:this.trainingDataSet.entrySet()) {
-			Z_MB.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(dataPoint.getKey())},dataPoint.getValue().getSecond().sub(this.baseFunction.getY(dataPoint.getValue().getFirst()).mul(beta)));
+			Z_MB.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(dataPoint.getKey())},dataPoint.getValue().getSecond().sub(this.baseFunction.getY(dataPoint.getValue().getFirst()).mul(beta).mul(this.variogram.getTtScale())));// the Y scale is directly applied on Z-MB
 		}
-		
+		System.out.println("Total Time for info preperation (Inversing and SVD) = "+Long.toString(System.currentTimeMillis()-startTime));
 		return new VarianceInfoHolder(Z_MB,varianceMatrixAll,varianceMatrixInverseAll,singularValuesAll);
 	}
 	
@@ -122,18 +120,23 @@ public class KrigingInterpolator{
 		//This is m(x_0);
 		INDArray Y_b=this.baseFunction.getY(X);
 		INDArray Z_MB=info.getZ_MB();
+		
 		Map<String,INDArray> varianceVectorAll=this.variogram.calculateVarianceVectorAll(X, theta);
 		IntStream.rangeClosed(0,Math.toIntExact(X.size(0))-1).parallel().forEach((n)->
 		{
 			IntStream.rangeClosed(0,Math.toIntExact(X.size(1))-1).parallel().forEach((t)->{
 				String key=Integer.toString(n)+"_"+Integer.toString(t);
+				INDArray z_mb=Nd4j.create(this.variogram.getNtSpecificTrainingSet().get(key).size(),1);
 				INDArray KInverse=info.getVarianceMatrixInverseAll().get(key);
+				for(int i=0;i<z_mb.size(0);i++) {
+					z_mb.putScalar(i, 0,Z_MB.getDouble(n,t,this.variogram.getNtSpecificOriginalIndices().get(key).get(i)));
+				}
 				double y=Y_b.getDouble(n,t)*beta.getDouble(n,t)+
-						varianceVectorAll.get(key).mmul(KInverse).mmul(Z_MB.get(new INDArrayIndex[] {NDArrayIndex.point(n),NDArrayIndex.point(t),NDArrayIndex.all()})).getDouble(0,0);
+						varianceVectorAll.get(key).mmul(KInverse).mmul(z_mb).getDouble(0,0)/this.variogram.getTtScale().getDouble(n,t);//Fix the Z_MB part!!!
 				Y.putScalar(n,t,y);
 			});
 		});
-		return X;
+		return Y;
 	}
 	
 	public static float[][] toFloatArray(double[][] arr) {
@@ -155,8 +158,10 @@ public class KrigingInterpolator{
 		for(int n=0;n<this.N;n++) {
 			for(int t=0;t<this.T;t++) {
 				String key=Integer.toString(n)+"_"+Integer.toString(t);
-				INDArray Z_MB=Nd4j.create(info.getZ_MB().size(2),1);
-				Z_MB.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.point(1)}, info.getZ_MB().get(new INDArrayIndex[] {NDArrayIndex.point(n),NDArrayIndex.point(t),NDArrayIndex.all()}));
+				INDArray Z_MB=Nd4j.create(this.variogram.getNtSpecificTrainingSet().get(key).size(),1);
+				for(int j=0;j<Z_MB.size(0);j++) {
+					Z_MB.putScalar(j,0,info.getZ_MB().getDouble(n,t,this.variogram.getNtSpecificOriginalIndices().get(key).get(j)));
+				}
 				double Logdet_k=0;
 				//log here for ease
 
@@ -167,7 +172,7 @@ public class KrigingInterpolator{
 					}
 				}
 				INDArray secondLLTerm=Z_MB.transpose().mmul(info.getVarianceMatrixInverseAll().get(key)).mmul(Z_MB);
-				double d=-1*this.I/2.0*Math.log(2*Math.PI)-
+				double d=-1*Z_MB.size(0)/2.0*Math.log(2*Math.PI)-
 						.5*Logdet_k
 						-.5*secondLLTerm.getDouble(0,0);
 				if(d==Double.NaN) {
@@ -203,9 +208,11 @@ public class KrigingInterpolator{
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new FreeFlowPlusWebstarBaseFunction(l2ls));
+		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData));
+		System.out.println(kriging.calcCombinedLogLikelihood());
+		//System.out.println("Finished!!!");
 		//System.out.println(kriging.calcCombinedLogLikelihood());
-		kriging.trainKriging();
+		//kriging.trainKriging();
 		
 //		double[][] a=new double[][]{{1.,2,3},{4,5,6},{7,8,9}};
 //		INDArray aa=Nd4j.create(a);

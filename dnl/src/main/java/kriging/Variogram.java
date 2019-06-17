@@ -1,5 +1,9 @@
 package kriging;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
@@ -26,9 +30,11 @@ public class Variogram {
 	private Map<String,INDArray> varianceMapAll;
 	private final int N;
 	private final int T;
-	private final int I;
 	private Map<String,INDArray>distances=new ConcurrentHashMap<>();
-	
+	private INDArray distanceScale;
+	private INDArray ttScale;
+	private Map<String,Map<Integer,Tuple<INDArray,INDArray>>> ntSpecificTrainingSet=new ConcurrentHashMap<>();
+	private Map<String,List<Integer>>ntSpecificOriginalIndices=new ConcurrentHashMap<>();
 	
 	//TODO: Add a writer to save the trained model
 	
@@ -38,29 +44,36 @@ public class Variogram {
 	 * @param l2ls
 	 */
 	public Variogram(Map<Integer,Tuple<INDArray,INDArray>>trainingDataSet,LinkToLinks l2ls) {
+		long starttime=System.currentTimeMillis();
 		this.trainingDataSet=trainingDataSet;
 		this.weights=l2ls.getWeightMatrices();
 		this.N=Math.toIntExact(trainingDataSet.get(0).getFirst().size(0));
 		this.T=Math.toIntExact(trainingDataSet.get(0).getFirst().size(1));
-		this.I=trainingDataSet.size();
+		this.distanceScale=Nd4j.ones(N,T);
+		this.ttScale=Nd4j.ones(N,T);
 		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
 		//Initialize theta to a nxt matrix of one
-		this.theta=Nd4j.zeros(N,T).addi(.01);
+		this.theta=Nd4j.zeros(N,T).addi(1);
+		
 		this.calcDistances();
 		this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
+		System.out.println("Finished setting up initial variogram. Total required time = "+Long.toString(System.currentTimeMillis()-starttime));
 		
 	}
 	
+	//TODO: fix the scales
 	public Variogram(Map<Integer,Tuple<INDArray,INDArray>>trainingDataSet,Map<String,INDArray>weights,INDArray theta) {
 		this.trainingDataSet=trainingDataSet;
 		this.N=Math.toIntExact(trainingDataSet.get(0).getFirst().size(0));
 		this.T=Math.toIntExact(trainingDataSet.get(0).getFirst().size(1));
-		this.I=trainingDataSet.size();
 		this.weights=weights;
 		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
 		//Initialize theta to a nxt matrix of one
 		this.theta=theta;
 		this.calcDistances();
+		//Will be fixed later
+		this.distanceScale=Nd4j.ones(N,T);
+		this.ttScale=Nd4j.ones(N,T);
 		this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
 		
 	}
@@ -86,7 +99,10 @@ public class Variogram {
 				for(int i=0;i<trainingDataSet.size();i++) {
 					data[i]=trainingDataSet.get(i).getSecond().getDouble(n, t);
 				}
-				sd.putScalar(n, t, Math.pow(sdCalculator.evaluate(data),2));
+				INDArray dat=Nd4j.create(data);
+				double scale=1/dat.maxNumber().doubleValue();
+				this.ttScale.put(n, t,scale);
+				sd.putScalar(n, t, Math.pow(sdCalculator.evaluate(dat.mul(scale).toDoubleVector()),2));
 			});
 		});
 		return sd;
@@ -111,10 +127,11 @@ public class Variogram {
 	 * @return K dim IxI
 	 */
 	public INDArray calcVarianceMatrix(int n, int t,INDArray theta){
-		if(theta.getDouble(n,t)<.1) {
-			System.out.println();
-		}
+//		if(theta.getDouble(n,t)<.1) {
+//			System.out.println();
+//		}
 		//long startTime=System.currentTimeMillis();
+		int I=this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).size();
 		double sigma=sigmaMatrix.getDouble(n, t);
 		INDArray K=Nd4j.create(I,I);
 		int i=0;
@@ -135,7 +152,7 @@ public class Variogram {
 		for(int ii=0;ii<I;ii++) {
 			for(int jj=0;jj<=ii;jj++) {
 				if(ii!=jj) {
-					float dist=(float) (-1*this.distances.get(Integer.toString(n)+"_"+Integer.toString(t)).getDouble(ii,jj)*theta.getDouble(n, t));
+					float dist=(float) (-1*this.distances.get(Integer.toString(n)+"_"+Integer.toString(t)).getDouble(ii,jj)*this.distanceScale.getDouble(n,t)*theta.getDouble(n, t));
 					float v=(float) (sigma*Math.exp(dist));
 					if(Double.isNaN(v)||!Double.isFinite(v)) {
 						throw new IllegalArgumentException("is infinity");
@@ -152,11 +169,12 @@ public class Variogram {
 		
 		//long endTime=System.currentTimeMillis();
 		//System.out.println("Done = "+Integer.toString(n)+"_"+Integer.toString(t));
+		
 		return K;
 	}
 	
 	public void calcDistances() {
-
+		
 		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
 			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
@@ -165,34 +183,44 @@ public class Variogram {
 		});
 	}
 	private INDArray calcDistanceMatrix(int n, int t) {
-		INDArray K=Nd4j.create(I,I);
+		this.ntSpecificTrainingSet.put(Integer.toString(n)+"_"+Integer.toString(t), new HashMap<>());
 		int i=0;
-//		IntStream.rangeClosed(0,I-1).parallel().forEach((ii)->
-//		{
-//			IntStream.rangeClosed(0,ii).parallel().forEach((jj)->{
-//
-//				if(ii!=jj) {
-//					double v=sigma*Math.exp(-1*this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t)*theta.getDouble(n, t));
-//					K.putScalar(ii, jj, v);
-//					K.putScalar(jj, ii, v);
-//				}else {
-//					K.putScalar(ii, ii,sigma);
-//				}
-//			});
-//		});
-		
-		for(int ii=0;ii<I;ii++) {
-			for(int jj=0;jj<=ii;jj++) {
+		Map<String,Double>distMap=new HashMap<>();
+		List<Integer> intMap=new ArrayList<>();
+		for(int ii=0;ii<this.trainingDataSet.size();ii++) {
+			boolean repeat=false;
+			for(int jj=0;jj<=i;jj++) {
 				if(ii!=jj) {
 					double dist=this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t);
+					if(dist==0 ||dist>=1000000000) {
+						repeat=true;
+						break;
+					}else {
+						distMap.put(Integer.toString(i)+"_"+Integer.toString(jj), dist);
+					}	
+				}
+			}
+			if(repeat==false) {
+				intMap.add(ii);
+				this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).put(i, this.trainingDataSet.get(ii));
+				i++;
+			}
+		}
+		this.ntSpecificOriginalIndices.put(Integer.toString(n)+"_"+Integer.toString(t), intMap);
+		INDArray K=Nd4j.create(i,i);
+		IntStream.rangeClosed(0,i-1).parallel().forEach((ii)->
+		{
+			IntStream.rangeClosed(0,ii).parallel().forEach((jj)->{
+				if(ii!=jj) {
+					double dist=distMap.get(Integer.toString(ii)+"_"+Integer.toString(jj));
 					K.putScalar(ii, jj, dist);
 					K.putScalar(jj, ii, dist);
 				}else {
 					K.putScalar(ii, ii,0);
 				}
-			}
-		}
-		
+			});
+		});
+		this.distanceScale.putScalar(n,t,1.0/K.maxNumber().doubleValue());
 		
 		//long endTime=System.currentTimeMillis();
 		//System.out.println("Done = "+Integer.toString(n)+"_"+Integer.toString(t));
@@ -209,10 +237,10 @@ public class Variogram {
 	 */
 	public INDArray calcVarianceVector(int n, int t,INDArray X, INDArray theta){
 		double sigma=sigmaMatrix.getDouble(n, t);
-		INDArray K=Nd4j.create(I,1);
+		INDArray K=Nd4j.create(this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).size(),1);
 		int i=0;
 		for(Tuple<INDArray,INDArray> dataPair:trainingDataSet.values()) {
-			double v=sigma*Math.exp(-1*this.calcDistance(X, dataPair.getFirst(), n, t)*theta.getDouble(n, t));
+			double v=sigma*Math.exp(-1*this.calcDistance(X, dataPair.getFirst(), n, t)*theta.getDouble(n, t)*this.distanceScale.getDouble(n,t));
 			K.putScalar(i, 1, v);
 			i++;
 		}
@@ -287,6 +315,22 @@ public class Variogram {
 
 	public Map<String, INDArray> getWeights() {
 		return weights;
+	}
+
+	public INDArray getDistanceScale() {
+		return distanceScale;
+	}
+
+	public INDArray getTtScale() {
+		return ttScale;
+	}
+
+	public Map<String, Map<Integer, Tuple<INDArray, INDArray>>> getNtSpecificTrainingSet() {
+		return ntSpecificTrainingSet;
+	}
+
+	public Map<String, List<Integer>> getNtSpecificOriginalIndices() {
+		return ntSpecificOriginalIndices;
 	}
 	
 	
