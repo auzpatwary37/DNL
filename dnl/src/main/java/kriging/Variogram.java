@@ -56,7 +56,7 @@ public class Variogram {
 		this.theta=Nd4j.zeros(N,T).addi(1);
 		
 		this.calcDistances();
-		this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
+		//this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
 		System.out.println("Finished setting up initial variogram. Total required time = "+Long.toString(System.currentTimeMillis()-starttime));
 		
 	}
@@ -74,7 +74,7 @@ public class Variogram {
 		//Will be fixed later
 		this.distanceScale=Nd4j.ones(N,T);
 		this.ttScale=Nd4j.ones(N,T);
-		this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
+		//this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
 		
 	}
 	
@@ -172,7 +172,37 @@ public class Variogram {
 		
 		return K;
 	}
-	
+	/**
+	 * this will calculate the variance matrix for n,t with variogram parameter theta
+	 * @param n LinkToLink
+	 * @param t	Time
+	 * @param theta variogram parameter 
+	 * @return 
+	 */
+	public INDArray calcVarianceMatrix(int n, int t,double theta){
+		int I=this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).size();
+		double sigma=sigmaMatrix.getDouble(n, t);
+		INDArray K=Nd4j.create(I,I);
+		int i=0;
+		
+		for(int ii=0;ii<I;ii++) {
+			for(int jj=0;jj<=ii;jj++) {
+				if(ii!=jj) {
+					float dist=(float) (-1*this.distances.get(Integer.toString(n)+"_"+Integer.toString(t)).getDouble(ii,jj)*this.distanceScale.getDouble(n,t)*theta);
+					float v=(float) (sigma*Math.exp(dist));
+					if(Double.isNaN(v)||!Double.isFinite(v)) {
+						throw new IllegalArgumentException("is infinity");
+					}
+					K.putScalar(ii, jj, v);
+					K.putScalar(jj, ii, v);
+					//System.out.println("finished putting");
+				}else {
+					K.putScalar(ii, ii,sigma);
+				}
+			}
+		}
+		return K;
+	}
 	public void calcDistances() {
 		
 		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
@@ -309,9 +339,6 @@ public class Variogram {
 		return theta;
 	}
 
-	public Map<String, INDArray> getVarianceMapAll() {
-		return varianceMapAll;
-	}
 
 	public Map<String, INDArray> getWeights() {
 		return weights;
