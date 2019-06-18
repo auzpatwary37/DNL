@@ -127,6 +127,9 @@ public class KrigingInterpolator{
 		INDArray varianceMatrix=this.variogram.calcVarianceMatrix(n, t, theta);
 		String key=Integer.toString(n)+"_"+Integer.toString(t);
 		info.getVarianceMatrixAll().put(key, varianceMatrix);
+		if(info.getVarianceMatrixAll().get(key)==null) {
+			System.out.println();
+		}
 		SingularValueDecomposition svd=new SingularValueDecomposition(MatrixUtils.createRealMatrix(info.getVarianceMatrixAll().get(key).toDoubleMatrix()));
 		RealMatrix inv=svd.getSolver().getInverse();
 		double[] singularValues=svd.getSingularValues();
@@ -136,7 +139,7 @@ public class KrigingInterpolator{
 		for(Entry<Integer,Tuple<INDArray,INDArray>>dataPoint:this.trainingDataSet.entrySet()) {
 			Z_MB.putScalar(new int[] {n,t,dataPoint.getKey()},dataPoint.getValue().getSecond().getDouble(n,t)-this.baseFunction.getY(dataPoint.getValue().getFirst()).getDouble(n,t)*beta*this.variogram.getTtScale().getDouble(n,t));// the Y scale is directly applied on Z-MB
 		}
-		System.out.println("Total Time for info preperation (Inversing and SVD) = "+Long.toString(System.currentTimeMillis()-startTime));
+		//System.out.println("Total Time for info preperation (Inversing and SVD) = "+Long.toString(System.currentTimeMillis()-startTime));
 		return info;
 	}
 	
@@ -253,7 +256,7 @@ public class KrigingInterpolator{
 			System.out.println("");
 		}
 		logLiklihood=d;
-		System.out.println("Complete");
+		//System.out.println("Complete");
 		return logLiklihood;
 	}
 	
@@ -279,7 +282,7 @@ public class KrigingInterpolator{
 		//System.out.println("Finished!!!");
 		//System.out.println(kriging.calcCombinedLogLikelihood());
 		kriging.trainKriging();
-		
+		System.out.println(kriging.calcCombinedLogLikelihood());
 //		double[][] a=new double[][]{{1.,2,3},{4,5,6},{7,8,9}};
 //		INDArray aa=Nd4j.create(a);
 //		INDArray bb=Nd4j.create(a);
@@ -290,11 +293,13 @@ public class KrigingInterpolator{
 	
 	public void trainKriging() {
 
-
+//		int n=0;
+//		int t=0;
 		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
 			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
 				//design the optimization
+		
 				Calcfc calcfc = new Calcfc() {
 
 					@Override
@@ -310,7 +315,7 @@ public class KrigingInterpolator{
 					}
 				};
 				double[] x = {1.0, 1.0 };
-				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 2, 1, x, 0.1, .00001, 3, 500);
+				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 2, 1, x, 0.1, .00001, 1, 800);
 				this.beta.putScalar(n, t,x[1]);
 				this.variogram.gettheta().putScalar(n,t,x[0]);
 			});
