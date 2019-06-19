@@ -2,7 +2,9 @@ package kriging;
 
 import java.awt.image.DataBuffer;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -295,10 +297,16 @@ public class KrigingInterpolator{
 
 //		int n=0;
 //		int t=0;
-		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
-		{
-			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
-				//design the optimization
+		List<String> n_tlist=new ArrayList<>();
+		for(int n=0;n<N;n++) {
+			for(int t=0;t<T;t++) {
+				n_tlist.add(Integer.toString(n)+"_"+Integer.toString(t));
+			}
+		}
+		n_tlist.parallelStream().forEach((key)->{
+			int n=Integer.parseInt(key.split("_")[0]);
+			int t=Integer.parseInt(key.split("_")[1]);
+		
 		
 				Calcfc calcfc = new Calcfc() {
 
@@ -315,10 +323,9 @@ public class KrigingInterpolator{
 					}
 				};
 				double[] x = {1.0, 1.0 };
-				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 2, 1, x, 0.1, .00001, 1, 800);
+				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 2, 1, x, 0.5, .001, 1, 800);
 				this.beta.putScalar(n, t,x[1]);
 				this.variogram.gettheta().putScalar(n,t,x[0]);
-			});
 		});
 		
 		//KrigingModelWriter writer=new KrigingModelWriter(this);
