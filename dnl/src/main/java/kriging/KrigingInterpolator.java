@@ -137,7 +137,7 @@ public class KrigingInterpolator{
 		info.getSingularValues().put(key, singularValues);
 		//Only the n_t has been changed
 		for(Entry<Integer,Tuple<INDArray,INDArray>>dataPoint:this.trainingDataSet.entrySet()) {
-			Z_MB.putScalar(new int[] {n,t,dataPoint.getKey()},dataPoint.getValue().getSecond().getDouble(n,t)-this.baseFunction.getY(dataPoint.getValue().getFirst()).getDouble(n,t)*beta*this.variogram.getTtScale().getDouble(n,t));// the Y scale is directly applied on Z-MB
+			Z_MB.putScalar(new int[] {n,t,dataPoint.getKey()},(dataPoint.getValue().getSecond().getDouble(n,t)-this.baseFunction.getY(dataPoint.getValue().getFirst()).getDouble(n,t)*beta)*this.variogram.getTtScale().getDouble(n,t));// the Y scale is directly applied on Z-MB
 		}
 		//System.out.println("Total Time for info preperation (Inversing and SVD) = "+Long.toString(System.currentTimeMillis()-startTime));
 		return info;
