@@ -116,7 +116,7 @@ public class KrigingInterpolator{
 			singularValuesAll.put(n_t_K.getKey(), singularValues);
 		});
 		for(Entry<Integer,Tuple<INDArray,INDArray>>dataPoint:this.trainingDataSet.entrySet()) {
-			Z_MB.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(dataPoint.getKey())},dataPoint.getValue().getSecond().sub(this.baseFunction.getY(dataPoint.getValue().getFirst()).mul(beta).mul(this.variogram.getTtScale())));// the Y scale is directly applied on Z-MB
+			Z_MB.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(dataPoint.getKey())},dataPoint.getValue().getSecond().sub(this.baseFunction.getY(dataPoint.getValue().getFirst()).mul(beta)).mul(this.variogram.getTtScale()));// the Y scale is directly applied on Z-MB
 		}
 		System.out.println("Total Time for info preperation (Inversing and SVD) = "+Long.toString(System.currentTimeMillis()-startTime));
 		return new VarianceInfoHolder(Z_MB,varianceMatrixAll,varianceMatrixInverseAll,singularValuesAll);
@@ -267,30 +267,36 @@ public class KrigingInterpolator{
 	}
 	
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		DataTypeUtil.setDTypeForContext(DataType.FLOAT);
-		Nd4j.setDefaultDataTypes(DataType.FLOAT, DataType.FLOAT);
-		Map<Integer,Tuple<INDArray,INDArray>> trainingData=DataIO.readDataSet("Network/ND/DataSetNDTrain.txt");
-		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
-		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
-		SignalFlowReductionGenerator sg = null;
-		//config.network().setInputFile("Network/SiouxFalls/network.xml");
-		Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
-		for(int i=15;i<24;i++) {
-			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
-		}
-		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData));
-		System.out.println(kriging.calcCombinedLogLikelihood());
+//		DataTypeUtil.setDTypeForContext(DataType.FLOAT);
+//		Nd4j.setDefaultDataTypes(DataType.FLOAT, DataType.FLOAT);
+//		Map<Integer,Tuple<INDArray,INDArray>> trainingData=DataIO.readDataSet("Network/ND/DataSetNDTrain.txt");
+//		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
+//		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
+//		SignalFlowReductionGenerator sg = null;
+//		//config.network().setInputFile("Network/SiouxFalls/network.xml");
+//		Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
+//		for(int i=15;i<24;i++) {
+//			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
+//		}
+//		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
+//		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData));
+		//System.out.println(kriging.calcCombinedLogLikelihood());
 		//System.out.println("Finished!!!");
 		//System.out.println(kriging.calcCombinedLogLikelihood());
-		kriging.trainKriging();
-		System.out.println(kriging.calcCombinedLogLikelihood());
-//		double[][] a=new double[][]{{1.,2,3},{4,5,6},{7,8,9}};
-//		INDArray aa=Nd4j.create(a);
-//		INDArray bb=Nd4j.create(a);
-//		System.out.println(Arrays.deepToString(a));
-//		System.out.println(Arrays.toString(Nd4j.concat(0, aa.reshape(aa.length()),bb.reshape(bb.length())).toDoubleVector()));
-//		System.out.println(Arrays.deepToString(Nd4j.concat(0, aa.reshape(aa.length()),bb.reshape(bb.length())).reshape(6,3).get(new INDArrayIndex[] {NDArrayIndex.interval(0, 3)}).toDoubleMatrix()));
+		//kriging.trainKriging();
+		//System.out.println(kriging.calcCombinedLogLikelihood());
+		INDArray z=Nd4j.ones(3,3).add(2);
+		System.out.println(z);
+		
+		INDArray b=Nd4j.ones(3,3).mul(0.5);
+		System.out.println(b);
+		
+		INDArray M=Nd4j.ones(3,3).add(6);
+		System.out.println(M);
+		
+		System.out.println(z.sub(b.mul(M)).mul(Nd4j.ones(3,3).add(0.1)));
+		
+		
 	}
 	
 	public void trainKriging() {
@@ -303,12 +309,14 @@ public class KrigingInterpolator{
 				n_tlist.add(Integer.toString(n)+"_"+Integer.toString(t));
 			}
 		}
-		n_tlist.parallelStream().forEach((key)->{
+		//n_tlist.parallelStream().forEach((key)->{
+		for(String key:n_tlist) {
 			int n=Integer.parseInt(key.split("_")[0]);
 			int t=Integer.parseInt(key.split("_")[1]);
 		
 		
 				Calcfc calcfc = new Calcfc() {
+					int it=0;
 
 					@Override
 					public double compute(int N, int m, double[] x, double[] con) {
@@ -319,6 +327,10 @@ public class KrigingInterpolator{
 							obj=10000000000000.;
 						}
 						con[0]=x[0];
+						it++;
+						if(it==1) {
+							System.out.println("initial obj = "+-1*obj);
+						}
 						return -1*obj;
 					}
 				};
@@ -326,8 +338,9 @@ public class KrigingInterpolator{
 				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 2, 1, x, 0.5, .001, 1, 800);
 				this.beta.putScalar(n, t,x[1]);
 				this.variogram.gettheta().putScalar(n,t,x[0]);
-		});
-		
+				System.out.println("current total liklihood after "+key+" = "+this.calcCombinedLogLikelihood());
+		//});
+		}
 		//KrigingModelWriter writer=new KrigingModelWriter(this);
 		//writer.writeModel("Network/ND/Model1/");
 
@@ -358,36 +371,7 @@ public class KrigingInterpolator{
 	}
 }
 
-class VarianceInfoHolder{
-	private final INDArray Z_MB;
-	private final Map<String,INDArray>varianceMatrixAll; 
-	private final Map<String,INDArray> varianceMatrixInverseAll;
-	private final Map<String,double[]> singularValues;
-	
-	public VarianceInfoHolder(INDArray Z_MB,Map<String,INDArray>varianceMatrixAll,Map<String,INDArray> varianceMatrixInverseAll, Map<String,double[]> singularValues) {
-		this.Z_MB=Z_MB;
-		this.varianceMatrixAll=varianceMatrixAll;
-		this.varianceMatrixInverseAll=varianceMatrixInverseAll;
-		this.singularValues=singularValues;
-	}
 
-	public INDArray getZ_MB() {
-		return Z_MB;
-	}
-
-	public Map<String, INDArray> getVarianceMatrixInverseAll() {
-		return varianceMatrixInverseAll;
-	}
-
-	public Map<String, INDArray> getVarianceMatrixAll() {
-		return varianceMatrixAll;
-	}
-
-	public Map<String, double[]> getSingularValues() {
-		return singularValues;
-	}
-	
-}
 
 
 
