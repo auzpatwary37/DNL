@@ -1,8 +1,12 @@
 package kriging;
 
 import java.awt.image.DataBuffer;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +15,7 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 
+import org.apache.commons.math3.linear.CholeskyDecomposition;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
@@ -245,7 +250,15 @@ public class KrigingInterpolator{
 				Logdet_k+=Math.log(dd);
 			}
 		}
-		INDArray secondLLTerm=Z_MB.transpose().mmul(info.getVarianceMatrixInverseAll().get(key)).mmul(Z_MB);
+//		INDArray varianceMatrix=info.getVarianceMatrixAll().get(key);
+//		INDArray distanceMatrix=this.variogram.getDistances().get(key);
+//		KrigingInterpolator.writeINDArray(varianceMatrix, "Network/ND/"+n+"_"+t+"variances.csv");
+//		KrigingInterpolator.writeINDArray(distanceMatrix, "Network/ND/"+n+"_"+t+"distances.csv");
+		INDArray inverseMatrix=info.getVarianceMatrixInverseAll().get(key);
+		//double condNum=new SingularValueDecomposition(MatrixUtils.createRealMatrix(info.getVarianceMatrixAll().get(key).toDoubleMatrix())).getConditionNumber();
+//		//double sigma=this.variogram.get
+		//INDArray inverseMatrix1=Nd4j.create(new CholeskyDecomposition(MatrixUtils.createRealMatrix(info.getVarianceMatrixAll().get(key).toDoubleMatrix())).getSolver().getInverse().getData());
+		INDArray secondLLTerm=Z_MB.transpose().mmul(inverseMatrix).mmul(Z_MB);
 		double d=-1*Z_MB.size(0)/2.0*Math.log(2*Math.PI)-
 				.5*Logdet_k
 				-.5*secondLLTerm.getDouble(0,0);
@@ -284,8 +297,8 @@ public class KrigingInterpolator{
 		//System.out.println("Finished!!!");
 		//System.out.println(kriging.calcCombinedLogLikelihood());
 		kriging.trainKriging();
-		System.out.println(kriging.calcCombinedLogLikelihood());
-		
+//		System.out.println(kriging.calcCombinedLogLikelihood());
+//		
 		
 	}
 	
@@ -299,8 +312,8 @@ public class KrigingInterpolator{
 				n_tlist.add(Integer.toString(n)+"_"+Integer.toString(t));
 			}
 		}
-		n_tlist.parallelStream().forEach((key)->{
-		//for(String key:n_tlist) {
+		//n_tlist.parallelStream().forEach((key)->{
+		for(String key:n_tlist) {
 			int n=Integer.parseInt(key.split("_")[0]);
 			int t=Integer.parseInt(key.split("_")[1]);
 		
@@ -310,6 +323,9 @@ public class KrigingInterpolator{
 
 					@Override
 					public double compute(int N, int m, double[] x, double[] con) {
+						if(n==0&&t==7 && x[0]==2.918110) {
+							System.out.println("Debug Point!!!");
+						}
 						double theta=x[0];
 						double beta=x[1];
 						double obj=KrigingInterpolator.this.calcNtSpecificLogLikelihood(n, t, theta, beta,info);
@@ -328,9 +344,9 @@ public class KrigingInterpolator{
 				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 2, 1, x, 0.5, .001, 1, 800);
 				this.beta.putScalar(n, t,x[1]);
 				this.variogram.gettheta().putScalar(n,t,x[0]);
-				//System.out.println("current total liklihood after "+key+" = "+this.calcCombinedLogLikelihood());
-		});
-		//}
+				System.out.println("current total liklihood after "+key+" = "+this.calcCombinedLogLikelihood());
+		//});
+		}
 		//KrigingModelWriter writer=new KrigingModelWriter(this);
 		//writer.writeModel("Network/ND/Model1/");
 
@@ -358,6 +374,25 @@ public class KrigingInterpolator{
 		INDArray beta=Nd4j.create(rawarray.reshape(this.N*2,this.T).get(new INDArrayIndex[] {NDArrayIndex.interval(0,this.N),NDArrayIndex.all()}).toFloatMatrix());
 		INDArray theta=Nd4j.create(rawarray.reshape(this.N*2,this.T).get(new INDArrayIndex[] {NDArrayIndex.interval(this.N,this.N*2),NDArrayIndex.all()}).toFloatMatrix());
 		return new Tuple<>(beta,theta);
+	}
+	public static void writeINDArray(INDArray array,String fileLoc) {
+		try {
+			System.out.println(Arrays.toString(array.shape()));
+			FileWriter fw=new FileWriter(new File(fileLoc));
+			for(int i=0;i<array.size(0);i++) {
+				String seperator="";
+				for(int j=0;j<array.size(1);j++) {
+					fw.append(seperator+array.getDouble(i,j));
+					seperator=",";
+				}
+				fw.append("\n");
+			}
+			fw.flush();
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
 

@@ -35,6 +35,7 @@ public class Variogram {
 	private INDArray ttScale;
 	private Map<String,Map<Integer,Tuple<INDArray,INDArray>>> ntSpecificTrainingSet=new ConcurrentHashMap<>();
 	private Map<String,List<Integer>>ntSpecificOriginalIndices=new ConcurrentHashMap<>();
+	private boolean scaleData=false;
 	
 	//TODO: Add a writer to save the trained model
 	
@@ -100,9 +101,12 @@ public class Variogram {
 					data[i]=trainingDataSet.get(i).getSecond().getDouble(n, t);
 				}
 				INDArray dat=Nd4j.create(data);
-				double scale=1/dat.maxNumber().doubleValue();
-				this.ttScale.put(n, t,scale);
-				sd.putScalar(n, t, Math.pow(sdCalculator.evaluate(dat.mul(scale).toDoubleVector()),2));
+				if(this.scaleData) {
+					double scale=1/dat.maxNumber().doubleValue();
+					this.ttScale.put(n, t,scale);
+				}
+				
+				sd.putScalar(n, t, Math.pow(sdCalculator.evaluate(dat.mul(this.ttScale.getDouble(n,t)).toDoubleVector()),2));
 			});
 		});
 		return sd;
@@ -250,10 +254,15 @@ public class Variogram {
 				}
 			});
 		});
-		this.distanceScale.putScalar(n,t,1.0/K.maxNumber().doubleValue());
+		if(this.scaleData) {
+			this.distanceScale.putScalar(n,t,1.0/K.maxNumber().doubleValue());
+		}
 		
 		//long endTime=System.currentTimeMillis();
 		//System.out.println("Done = "+Integer.toString(n)+"_"+Integer.toString(t));
+//		if(n==0 && t==7) {
+//			System.out.println("debugg!!!");
+//		}
 		return K;
 	}
 
@@ -358,6 +367,10 @@ public class Variogram {
 
 	public Map<String, List<Integer>> getNtSpecificOriginalIndices() {
 		return ntSpecificOriginalIndices;
+	}
+
+	public Map<String, INDArray> getDistances() {
+		return distances;
 	}
 	
 	
