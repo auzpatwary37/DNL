@@ -37,6 +37,8 @@ public class LinkToLinks {
 	private final Map<Integer,Tuple<Double,Double>>timeBean;
 	private int l2lCounter=0;
 	private Map<String,INDArray>weights=new HashMap<>();
+	private int kn;
+	private int kt;
 	/**
 	 * 
 	 * TODO:Add signal info in this constructor as well
@@ -44,6 +46,8 @@ public class LinkToLinks {
 	 */
 	public LinkToLinks(Network network,Map<Integer,Tuple<Double,Double>>timeBean,int kn,int kt,SignalFlowReductionGenerator sg) {
 		this.network=network;
+		this.kn=kn;
+		this.kt=kt;
 		//Time bean has to continuous, there cannot be any gap between. Should be homogeneous as well. Should we make it endogenous? and take the 
 		//number of time bean as input instead? What will happen to the input demand of link to link?
 		this.timeBean=timeBean;
@@ -61,7 +65,7 @@ public class LinkToLinks {
 				this.linkToLinks.get(n).setCycleTime(sg.getGCratio(fromLink, toLink.getId())[1]);
 			}
 			for(int t=0;t<timeBean.size();t++) {
-				this.weights.put(Integer.toString(n)+"_"+Integer.toString(t), this.generateWeightMatrix(n, t, kn, kt));
+				this.weights.put(Integer.toString(n)+"_"+Integer.toString(t), this.generateWeightMatrix(n, t, kn, kt,1,1));
 			}
 		}
 	}
@@ -130,7 +134,15 @@ public class LinkToLinks {
 	}
 	
 	
-	private INDArray generateWeightMatrix(int n,int t,int kn,int kt){
+	private INDArray generateWeightMatrix(int n,int t) {
+		return this.generateWeightMatrix(n, t, 3, 3, 1, 1);
+	}
+	
+	public INDArray generateWeightMatrix(int n,int t, double cn, double ct) {
+		return this.generateWeightMatrix(n, t, this.kn,this.kt, cn, ct);
+	}
+	
+	private INDArray generateWeightMatrix(int n,int t,int kn,int kt,double cn, double ct){
 		LinkToLink l2l=this.linkToLinks.get(n);
 		INDArray we=Nd4j.create(this.linkToLinks.size(), this.timeBean.size());
 		//double weight[][]=new double[this.linkToLinks.size()][this.timeBean.size()];
@@ -140,12 +152,15 @@ public class LinkToLinks {
 		linkToLinkMap.put(1, new HashSet<>());
 		this.fetchLinkToLinkWithFromLink(l2l.getToLink(), 0, kn, linkToLinkMap);
 		this.fetchLinkToLinkWithToLink(l2l.getFromLink(), 0, kn, linkToLinkMap);
+		
+		linkToLinkMap.get(0).addAll(this.fromLinkToLinkMap.get(l2l.getFromLink().getId()));
+		linkToLinkMap.get(0).addAll(this.ToLinkToLinkMap.get(l2l.getToLink().getId()));
 		for(Entry<Integer,Set<LinkToLink>> linkToLinks:linkToLinkMap.entrySet()) {
 			double wk;
 			if(linkToLinks.getKey()==0) {
 				wk=1;
 			}else {
-				wk=1f/(1+linkToLinks.getKey());
+				wk=1f/(1+cn*linkToLinks.getKey());
 			}
 			for(LinkToLink ll2ll:linkToLinks.getValue()) {
 				int l2lIndex=this.numToLinkToLink.inverse().get(ll2ll.getLinkToLinkId()); 
@@ -154,7 +169,7 @@ public class LinkToLinks {
 					if(tt-t==0) {
 						wt=1;
 					}else {
-						wt=1f/(1+Math.abs(tt-t));
+						wt=1f/(1+(float)ct*Math.abs(tt-t));
 					}
 					//weight[l2lIndex][tt]=wk*wt;
 					we.putScalar(l2lIndex, tt, wk*wt);

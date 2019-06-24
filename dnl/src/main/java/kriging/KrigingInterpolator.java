@@ -306,7 +306,7 @@ public class KrigingInterpolator{
 		System.out.println(kriging.calcCombinedLogLikelihood());
 		//System.out.println("Finished!!!");
 		//System.out.println(kriging.calcCombinedLogLikelihood());
-		kriging.trainKriging();
+		kriging.deepTrainKriging();
 		System.out.println(kriging.calcCombinedLogLikelihood());
 //		
 		
@@ -314,83 +314,144 @@ public class KrigingInterpolator{
 	
 	public void trainKriging() {
 		long startTime=System.currentTimeMillis();
-		Thread[] thread=new Thread[Runtime.getRuntime().availableProcessors()-1];
-		int k=1;
-		List<List<String>> n_tlists=new ArrayList<>();
-		for(int i=0;i<thread.length;i++) {
-			n_tlists.add(new ArrayList<>());
-		}
-		for(int n=0;n<N;n++) {
-			for(int t=0;t<T;t++) {
-				n_tlists.get(k%thread.length).add(Integer.toString(n)+"_"+Integer.toString(t));
-				k++;
-			}
-		}
-		for(int i=0;i<thread.length;i++) {
-			thread[i]=new Thread(new krigingTrainer(this, n_tlists.get(i), info));
-		}
-		for(int i=0;i<thread.length;i++) {
-			thread[i].start();
-		}
-		for(int i=0;i<thread.length;i++) {
-			try {
-				thread[i].join();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-//		List<String> n_tlist=new ArrayList<>();
+//		Thread[] thread=new Thread[Runtime.getRuntime().availableProcessors()-1];
+//		int k=1;
+//		List<List<String>> n_tlists=new ArrayList<>();
+//		for(int i=0;i<thread.length;i++) {
+//			n_tlists.add(new ArrayList<>());
+//		}
 //		for(int n=0;n<N;n++) {
 //			for(int t=0;t<T;t++) {
-//				n_tlist.add(Integer.toString(n)+"_"+Integer.toString(t));
-//				}
+//				n_tlists.get(k%thread.length).add(Integer.toString(n)+"_"+Integer.toString(t));
+//				k++;
 //			}
-//	
-//		n_tlist.parallelStream().forEach((key)->{
-//		//for(String key:n_tlist) {
-//			int n=Integer.parseInt(key.split("_")[0]);
-//			int t=Integer.parseInt(key.split("_")[1]);
-//			if(this.variogram.getSigmaMatrix().getDouble(n,t)==0) {
-//				//continue;
-//				return;
+//		}
+//		for(int i=0;i<thread.length;i++) {
+//			thread[i]=new Thread(new krigingTrainer(this, n_tlists.get(i), info));
+//		}
+//		for(int i=0;i<thread.length;i++) {
+//			thread[i].start();
+//		}
+//		for(int i=0;i<thread.length;i++) {
+//			try {
+//				thread[i].join();
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
 //			}
-//			double initialBeta=this.beta.getDouble(n,t);
-//			double initialTheta=1/this.variogram.getDistances().get(key).maxNumber().doubleValue()*10;
-//				Calcfc calcfc = new Calcfc() {
-//					int it=0;
-//
-//					@Override
-//					public double compute(int N, int m, double[] x, double[] con) {
-//						double theta=initialTheta+initialTheta*x[0]/100;
-//						double beta=initialBeta+initialBeta*x[1]/100;
-//						double obj=KrigingInterpolator.this.calcNtSpecificLogLikelihood(n, t, theta, beta,info);
-//						if(theta==0) {
-//							obj=10000000000000.;
+//		}
+		List<String> n_tlist=new ArrayList<>();
+		for(int n=0;n<N;n++) {
+			for(int t=0;t<T;t++) {
+				n_tlist.add(Integer.toString(n)+"_"+Integer.toString(t));
+				}
+			}
+	
+		n_tlist.parallelStream().forEach((key)->{
+		//for(String key:n_tlist) {
+			int n=Integer.parseInt(key.split("_")[0]);
+			int t=Integer.parseInt(key.split("_")[1]);
+			if(this.variogram.getSigmaMatrix().getDouble(n,t)==0) {
+				//continue;
+				return;
+			}
+			double initialBeta=this.beta.getDouble(n,t);
+			double initialTheta=1/this.variogram.getDistances().get(key).maxNumber().doubleValue()*10;
+				Calcfc calcfc = new Calcfc() {
+					int it=0;
+
+					@Override
+					public double compute(int N, int m, double[] x, double[] con) {
+						double theta=initialTheta+initialTheta*x[0]/100;
+						double beta=initialBeta+initialBeta*x[1]/100;
+						double obj=KrigingInterpolator.this.calcNtSpecificLogLikelihood(n, t, theta, beta,info);
+						if(theta==0) {
+							obj=10000000000000.;
+						}
+						con[0]=100*(theta-0.0000001);
+						
+						con[1]=-1*info.getVarianceMatrixCondNum().get(key)+10000;
+						it++;
+//						if(it==1) {
+//							System.out.println("initial obj = "+-1*obj);
 //						}
-//						con[0]=100*(theta-0.0000001);
-//						
-//						con[1]=-1*info.getVarianceMatrixCondNum().get(key)+10000;
-//						it++;
-////						if(it==1) {
-////							System.out.println("initial obj = "+-1*obj);
-////						}
-//						return -1*obj;
-//					}
-//				};
-//				
-//				double[] x = {1,1};
-//				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 2, 2, x, 0.5, .0001, 3, 800);
-//				this.beta.putScalar(n, t,initialBeta+initialBeta*x[1]/100);
-//				this.variogram.gettheta().putScalar(n,t,initialTheta+initialTheta*x[0]/100);
-//				//System.out.println("current total liklihood after "+key+" = "+this.calcCombinedLogLikelihood());
-//		});
+						return -1*obj;
+					}
+				};
+				
+				double[] x = {1,1};
+				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 2, 2, x, 0.5, .0001, 0, 800);
+				this.beta.putScalar(n, t,initialBeta+initialBeta*x[1]/100);
+				this.variogram.gettheta().putScalar(n,t,initialTheta+initialTheta*x[0]/100);
+				//System.out.println("current total liklihood after "+key+" = "+this.calcCombinedLogLikelihood());
+		});
 ////		}
+		KrigingModelWriter writer=new KrigingModelWriter(this);
+		//writer.writeModel("Network/ND/Model1/");
+		System.out.println("Total time for training for "+N+" links and "+T+" time setps = "+Long.toString(System.currentTimeMillis()-startTime));
+	}
+	public void deepTrainKriging() {
+		long startTime=System.currentTimeMillis();
+		List<String> n_tlist=new ArrayList<>();
+		for(int n=0;n<N;n++) {
+			for(int t=0;t<T;t++) {
+				n_tlist.add(Integer.toString(n)+"_"+Integer.toString(t));
+				}
+			}
+	
+		//n_tlist.parallelStream().forEach((key)->{
+		for(String key:n_tlist) {
+			long startTiment=System.currentTimeMillis();
+			int n=Integer.parseInt(key.split("_")[0]);
+			int t=Integer.parseInt(key.split("_")[1]);
+			if(this.variogram.getSigmaMatrix().getDouble(n,t)==0) {
+				continue;
+				//return;
+			}
+			double initialBeta=this.beta.getDouble(n,t);
+			double initialTheta=1/this.variogram.getDistances().get(key).maxNumber().doubleValue()*10;
+			double initialCn=1;
+			double initialCt=1;
+				Calcfc calcfc = new Calcfc() {
+					int it=0;
+
+					@Override
+					public double compute(int N, int m, double[] x, double[] con) {
+						double theta=initialTheta+initialTheta*x[0]/100;
+						double beta=initialBeta+initialBeta*x[1]/100;
+						double cn=initialCn+initialCn*x[2]/100;
+						double ct=initialCt+initialCt*x[3]/100;
+						KrigingInterpolator.this.variogram.calcDistanceMatrix(n, t, cn, ct);
+						double obj=KrigingInterpolator.this.calcNtSpecificLogLikelihood(n, t, theta, beta,info);
+						if(theta==0) {
+							obj=10000000000000.;
+						}
+						con[0]=100*(theta-0.0000001);
+						
+						con[1]=-1*info.getVarianceMatrixCondNum().get(key)+10000;
+						it++;
+//						if(it==1) {
+//							System.out.println("initial obj = "+-1*obj);
+//						}
+						return -1*obj;
+					}
+				};
+				
+				double[] x = {1,1,1,1};
+				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 4, 2, x, 10, .01, 3, 100);
+				this.beta.putScalar(n, t,initialBeta+initialBeta*x[1]/100);
+				this.variogram.gettheta().putScalar(n,t,initialTheta+initialTheta*x[0]/100);
+				double cn=initialCn+initialCn*x[2]/100;
+				double ct=initialCt+initialCt*x[3]/100;
+				this.variogram.calcDistanceMatrix(n,t,cn, ct);
+				System.out.println("current total liklihood after "+key+" = "+this.calcCombinedLogLikelihood());
+				System.out.println("optim for case "+key+Long.toString(System.currentTimeMillis()-startTiment));
+		//});
+		}
 		//KrigingModelWriter writer=new KrigingModelWriter(this);
 		//writer.writeModel("Network/ND/Model1/");
 		System.out.println("Total time for training for "+N+" links and "+T+" time setps = "+Long.toString(System.currentTimeMillis()-startTime));
 	}
-	
 	private VarianceInfoHolder preProcessData() {
 		return this.preProcessData(this.beta,this.variogram.gettheta());
 	}

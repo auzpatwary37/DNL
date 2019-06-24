@@ -36,6 +36,7 @@ public class Variogram {
 	private Map<String,Map<Integer,Tuple<INDArray,INDArray>>> ntSpecificTrainingSet=new ConcurrentHashMap<>();
 	private Map<String,List<Integer>>ntSpecificOriginalIndices=new ConcurrentHashMap<>();
 	private boolean scaleData=false;
+	private LinkToLinks l2ls;
 	
 	//TODO: Add a writer to save the trained model
 	
@@ -55,7 +56,7 @@ public class Variogram {
 		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
 		//Initialize theta to a nxt matrix of one
 		this.theta=Nd4j.zeros(N,T).addi(.1);
-		
+		this.l2ls=l2ls;
 		this.calcDistances();
 		//this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
 		System.out.println("Finished setting up initial variogram. Total required time = "+Long.toString(System.currentTimeMillis()-starttime));
@@ -122,6 +123,13 @@ public class Variogram {
 	public double calcDistance(INDArray a,INDArray b,Map<String,INDArray> weights,int n,int t) {
 		return a.sub(b).mul(weights.get(Integer.toString(n)+"_"+Integer.toString(t))).norm2Number().doubleValue();
 		//return distance;
+	}
+	
+	public double calcDistance(INDArray a,INDArray b,int n,int t,INDArray weights) {
+		
+		double aa=a.sub(b).mul(weights).norm2Number().doubleValue();
+		return aa;
+		 //return distance;
 	}
 	/**
 	 * This function will calculate the K matrix for a (n,t) pair the dimension of the matrix is IxI where I is the number of data point.
@@ -216,6 +224,15 @@ public class Variogram {
 			});
 		});
 	}
+	public void calcDistances(double cn,double ct) {
+		
+		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
+		{
+			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
+				this.calcDistanceMatrix(n, t,cn,ct);
+			});
+		});
+	}
 	private INDArray calcDistanceMatrix(int n, int t) {
 		this.ntSpecificTrainingSet.put(Integer.toString(n)+"_"+Integer.toString(t), new HashMap<>());
 		int i=0;
@@ -266,6 +283,57 @@ public class Variogram {
 		return K;
 	}
 
+	public void calcDistanceMatrix(int n, int t,double cn, double ct) {
+		INDArray weights=this.l2ls.generateWeightMatrix(n, t, cn, ct);//The only difference
+		this.weights.put(Integer.toString(n)+"_"+Integer.toString(t), weights);
+		this.ntSpecificTrainingSet.put(Integer.toString(n)+"_"+Integer.toString(t), new HashMap<>());
+		int i=0;
+		Map<String,Double>distMap=new HashMap<>();
+		List<Integer> intMap=new ArrayList<>();
+		for(int ii=0;ii<this.trainingDataSet.size();ii++) {
+			boolean repeat=false;
+			for(int jj=0;jj<=i;jj++) {
+				if(ii!=jj) {
+					double dist=this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t);
+					if(dist==0 ||dist>=1000000000) {
+						repeat=true;
+						break;
+					}else {
+						distMap.put(Integer.toString(i)+"_"+Integer.toString(jj), dist);
+					}	
+				}
+			}
+			if(repeat==false) {
+				intMap.add(ii);
+				this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).put(i, this.trainingDataSet.get(ii));
+				i++;
+			}
+		}
+		this.ntSpecificOriginalIndices.put(Integer.toString(n)+"_"+Integer.toString(t), intMap);
+		INDArray K=Nd4j.create(i,i);
+		IntStream.rangeClosed(0,i-1).parallel().forEach((ii)->
+		{
+			IntStream.rangeClosed(0,ii).parallel().forEach((jj)->{
+				if(ii!=jj) {
+					double dist=distMap.get(Integer.toString(ii)+"_"+Integer.toString(jj));
+					K.putScalar(ii, jj, dist);
+					K.putScalar(jj, ii, dist);
+				}else {
+					K.putScalar(ii, ii,0);
+				}
+			});
+		});
+		if(this.scaleData) {
+			this.distanceScale.putScalar(n,t,1.0/K.maxNumber().doubleValue());
+		}
+		
+		//long endTime=System.currentTimeMillis();
+		//System.out.println("Done = "+Integer.toString(n)+"_"+Integer.toString(t));
+//		if(n==0 && t==7) {
+//			System.out.println("debugg!!!");
+//		}
+		this.distances.put(Integer.toString(n)+"_"+Integer.toString(t), K);//The only difference
+	}
 	/**
 	 * Similar to calcVarianceMatrix but it will calculate variance for a particular point to all other point
 	 * @param n
