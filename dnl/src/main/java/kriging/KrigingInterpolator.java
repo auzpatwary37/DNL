@@ -314,7 +314,7 @@ public class KrigingInterpolator{
 	
 	public void trainKriging() {
 		long startTime=System.currentTimeMillis();
-		Thread[] thread=new Thread[Runtime.getRuntime().availableProcessors()];
+		Thread[] thread=new Thread[Runtime.getRuntime().availableProcessors()-1];
 		int k=1;
 		List<List<String>> n_tlists=new ArrayList<>();
 		for(int i=0;i<thread.length;i++) {
