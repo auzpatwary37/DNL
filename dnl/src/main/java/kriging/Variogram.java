@@ -54,7 +54,7 @@ public class Variogram {
 		this.ttScale=Nd4j.ones(N,T);
 		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
 		//Initialize theta to a nxt matrix of one
-		this.theta=Nd4j.zeros(N,T).addi(1);
+		this.theta=Nd4j.zeros(N,T).addi(.1);
 		
 		this.calcDistances();
 		//this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
