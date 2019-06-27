@@ -46,7 +46,6 @@ import training.FunctionSPSA;
  */
 public class KrigingInterpolator{
 	private final Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet;
-	private LinkToLinks l2ls;
 	private Variogram variogram;
 	private INDArray beta;
 	private BaseFunction baseFunction;
@@ -58,9 +57,8 @@ public class KrigingInterpolator{
 	
 	public KrigingInterpolator(Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet, LinkToLinks l2ls,BaseFunction bf) {
 		this.trainingDataSet=trainingDataSet;
-		this.l2ls=l2ls;
 		this.baseFunction=bf;
-		this.variogram=new Variogram(trainingDataSet, this.l2ls);
+		this.variogram=new Variogram(trainingDataSet, l2ls);
 		this.N=Math.toIntExact(trainingDataSet.get(0).getFirst().size(0));
 		this.T=Math.toIntExact(trainingDataSet.get(0).getFirst().size(1));
 		this.beta=Nd4j.zeros(N,T).addi(1);
@@ -71,14 +69,16 @@ public class KrigingInterpolator{
 	
 	//TODO: the reading and writing are very messed up right now. Will fix soon. [Ashraf, June 2019].
 	//Constructor for creating in the reader
-	public KrigingInterpolator(Variogram v, INDArray beta, BaseFunction bf) {
+	public KrigingInterpolator(Variogram v, INDArray beta, BaseFunction bf,INDArray Cn,INDArray Ct) {
 		this.trainingDataSet=v.getTrainingDataSet();
 		this.variogram=v;
 		this.beta=beta;
-		this.variogram.getClass().toString();
 		this.baseFunction=bf;
 		this.N=Math.toIntExact(trainingDataSet.get(0).getFirst().size(0));
 		this.T=Math.toIntExact(trainingDataSet.get(0).getFirst().size(1));
+		this.Cn=Cn;
+		this.Ct=Ct;
+		this.info=this.preProcessData();
 	}
 	
 	public Map<Integer, Tuple<INDArray, INDArray>> getTrainingDataSet() {
@@ -180,7 +180,7 @@ public class KrigingInterpolator{
 					z_mb.putScalar(i, 0,Z_MB.getDouble(n,t,this.variogram.getNtSpecificOriginalIndices().get(key).get(i)));
 				}
 				double y=Y_b.getDouble(n,t)*beta.getDouble(n,t)+
-						varianceVectorAll.get(key).mmul(KInverse).mmul(z_mb).getDouble(0,0)/this.variogram.getTtScale().getDouble(n,t);//Fix the Z_MB part!!!
+						varianceVectorAll.get(key).transpose().mmul(KInverse).mmul(z_mb).getDouble(0,0)/this.variogram.getTtScale().getDouble(n,t);//Fix the Z_MB part!!!
 				Y.putScalar(n,t,y);
 			});
 		});
@@ -315,12 +315,30 @@ public class KrigingInterpolator{
 		System.out.println(kriging.calcCombinedLogLikelihood());
 		//System.out.println("Finished!!!");
 		//System.out.println(kriging.calcCombinedLogLikelihood());
-//		kriging.deepTrainKriging();
-//		System.out.println(kriging.calcCombinedLogLikelihood());
-//		
-		new KrigingModelWriter(kriging).writeModel("Nentwork/ND/Model1");
+		kriging.trainKriging();
+		System.out.println(kriging.calcCombinedLogLikelihood());
+		new KrigingModelWriter(kriging).writeModel("Network/ND/ModelNormal");
+		//KrigingInterpolator krigingnew=new KrigingModelReader().readModel("Network/ND/Model1/modelDetails.xml");
+		Map<Integer,Tuple<INDArray,INDArray>> testingData=DataIO.readDataSet("Network/ND/DataSetNDTest.txt");
+		INDArray averageError=Nd4j.create(kriging.N,kriging.T);
+		for(Tuple<INDArray,INDArray> testData:testingData.values()) {
+			INDArray Yreal=testData.getSecond();
+			INDArray y=kriging.getY(testData.getFirst());
+			INDArray errorArray=Yreal.sub(y).div(Yreal).mul(100);
+			for(int i=0;i<errorArray.size(0);i++) {
+				for(int j=0;j<errorArray.size(1);j++) {
+					errorArray.putScalar(i, j,Math.abs(errorArray.getDouble(i,j)));
+				}
+			}
+			averageError.addi(errorArray);
+		}
+		averageError.div(testingData.size());
+		Nd4j.writeTxt(averageError, "Network/ND/ModelNormal/averagePredictionError.txt");
+		System.out.println("Model Read Succesful!!!");
 		
 	}
+	
+	
 	
 	public void trainKriging() {
 		long startTime=System.currentTimeMillis();
@@ -454,6 +472,8 @@ public class KrigingInterpolator{
 				double cn=initialCn+initialCn*x[2]/100;
 				double ct=initialCt+initialCt*x[3]/100;
 				this.variogram.calcDistanceMatrix(n,t,cn, ct);
+				this.Cn.put(n,t,cn);
+				this.Ct.put(n,t,ct);
 				//System.out.println("current total liklihood after "+key+" = "+this.calcCombinedLogLikelihood());
 				System.out.println("optim for case "+key+Long.toString(System.currentTimeMillis()-startTiment));
 		});
@@ -504,6 +524,17 @@ public class KrigingInterpolator{
 			e.printStackTrace();
 		}
 	}
+
+	public INDArray getCn() {
+		return Cn;
+	}
+
+
+
+	public INDArray getCt() {
+		return Ct;
+	}
+
 	
 }
 

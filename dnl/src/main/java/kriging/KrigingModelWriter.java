@@ -22,22 +22,27 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import linktolinkBPR.LinkToLinks;
+import linktolinkBPR.LinkToLinksWriter;
 import training.DataIO;
 
 public class KrigingModelWriter {
 	private final Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet;
-	private final Map<String,INDArray> weights;
 	private final INDArray theta;
 	private final INDArray beta;
 	private final BaseFunction baseFunction;
-	
+	private INDArray Cn;
+	private INDArray Ct;
+	private LinkToLinks l2ls;
 	
 	public KrigingModelWriter(KrigingInterpolator model) {
 		this.trainingDataSet=model.getTrainingDataSet();
-		this.weights=model.getVariogram().getWeights();
 		this.theta=model.getVariogram().gettheta();
 		this.beta=model.getBeta();
+		this.l2ls=model.getVariogram().getL2ls();
 		this.baseFunction=model.getBaseFunction();
+		this.Cn=model.getCn();
+		this.Ct=model.getCt();
 		
 	}
 	
@@ -59,7 +64,6 @@ public class KrigingModelWriter {
 			metaData.setAttribute("N", Long.toString(this.trainingDataSet.get(0).getFirst().size(0)));
 			metaData.setAttribute("T", Long.toString(this.trainingDataSet.get(0).getFirst().size(1)));
 			metaData.setAttribute("I", Integer.toString(this.trainingDataSet.size()));
-			//metaData.setAttribute("DateAndTime", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance()));
 			rootEle.appendChild(metaData);
 			
 			Element trainingDataSet=document.createElement("trainingDataSet");	
@@ -67,24 +71,35 @@ public class KrigingModelWriter {
 			trainingDataSet.setAttribute("FileLocation", fileLoc+"/dataSet.txt");
 			rootEle.appendChild(trainingDataSet);
 			
-			Element weights=document.createElement("Weights");
-			DataIO.writeWeights(this.weights, fileLoc+"/weights.txt");
-			weights.setAttribute("Filelocation", fileLoc+"/weights.txt");
-			rootEle.appendChild(weights);
+			Element Cn=document.createElement("Cn");
+			Nd4j.writeTxt(this.Cn, fileLoc+"/Cn.txt");
+			Cn.setAttribute("Filelocation", fileLoc+"/Cn.txt");
+			rootEle.appendChild(Cn);
+
+			Element Ct=document.createElement("Ct");
+			Nd4j.writeTxt(this.Ct, fileLoc+"/Ct.txt");
+			Ct.setAttribute("Filelocation", fileLoc+"/Ct.txt");
+			rootEle.appendChild(Ct);
 			
 			Element theta=document.createElement("theta");
 			Nd4j.writeTxt(this.theta, fileLoc+"/theta.txt");
-			theta.setAttribute("FilelOcation", fileLoc+"/theta.txt");
+			theta.setAttribute("Filelocation", fileLoc+"/theta.txt");
 			rootEle.appendChild(theta);
 			
 			Element betaEle=document.createElement("beta");
 			Nd4j.writeTxt(this.beta, fileLoc+"/beta.txt");
-			theta.setAttribute("FilelOcation", fileLoc+"/beta.txt");
+			betaEle.setAttribute("Filelocation", fileLoc+"/beta.txt");
 			rootEle.appendChild(betaEle);
 			
 			Element baseFunction=document.createElement("baseFunction");
-			this.baseFunction.writeBaseFunctionInfo(baseFunction);
-			document.appendChild(baseFunction);
+			this.baseFunction.writeBaseFunctionInfo(baseFunction,fileLoc);
+			rootEle.appendChild(baseFunction);
+			
+			Element l2ls=document.createElement("LinkToLinks");
+			new LinkToLinksWriter(this.l2ls).write(fileLoc);
+			l2ls.setAttribute("FileLocation", fileLoc);
+			
+			rootEle.appendChild(l2ls);
 			
 			document.appendChild(rootEle);
 			
@@ -94,7 +109,7 @@ public class KrigingModelWriter {
 			tr.setOutputProperty(OutputKeys.METHOD, "xml");
 			tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 			tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-			tr.transform(new DOMSource(document), new StreamResult(new FileOutputStream(fileLoc+".xml")));
+			tr.transform(new DOMSource(document), new StreamResult(new FileOutputStream(fileLoc+"/modelDetails.xml")));
 
 
 		}catch(Exception e) {

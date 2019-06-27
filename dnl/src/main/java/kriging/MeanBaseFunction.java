@@ -52,13 +52,15 @@ public class MeanBaseFunction implements BaseFunction{
 		return mean;
 	}
 	@Override
-	public void writeBaseFunctionInfo(Element baseFunction) {
+	public void writeBaseFunctionInfo(Element baseFunction,String fileLoc) {
 		baseFunction.setAttribute("ClassName", this.getClass().getName());
-		baseFunction.setAttribute("mean", MatrixUtils.createRealMatrix(mean.toDoubleMatrix()).toString());
+		baseFunction.setAttribute("meanFileLoc", fileLoc+"/meanBase.xml");
+		Nd4j.writeTxt(this.mean, fileLoc+"/meanBase.xml");
 	}
 
 	public static BaseFunction parseBaseFunction(Attributes a) {
-		INDArray mean=Nd4j.create(RealMatrixFormat.getInstance().parse(a.getValue("mean")).getData());
+		String fileLoc=a.getValue("meanFileLoc");
+		INDArray mean=Nd4j.readTxt(a.getValue("meanFileLoc"));
 		return new MeanBaseFunction(mean);
 	}
 	

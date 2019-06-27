@@ -80,6 +80,18 @@ public class Variogram {
 		
 	}
 	
+	public Variogram(Map<Integer,Tuple<INDArray,INDArray>>trainingDataSet,LinkToLinks l2ls,INDArray theta,INDArray Cn,INDArray Ct) {
+		this.trainingDataSet=trainingDataSet;
+		this.l2ls=l2ls;
+		this.weights=l2ls.getWeightMatrices(Cn,Ct);
+		this.theta=theta;
+		this.N=(int) this.trainingDataSet.get(0).getSecond().size(0);
+		this.T=(int) this.trainingDataSet.get(0).getSecond().size(1);
+		this.distanceScale=Nd4j.ones(N,T);		
+		this.ttScale=Nd4j.ones(N,T);
+		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
+		this.calcDistances();
+	}
 	/**
 	 * 
 	 * @param a first tensor
@@ -346,7 +358,7 @@ public class Variogram {
 		double sigma=sigmaMatrix.getDouble(n, t);
 		INDArray K=Nd4j.create(this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).size(),1);
 		int i=0;
-		for(Tuple<INDArray,INDArray> dataPair:trainingDataSet.values()) {
+		for(Tuple<INDArray,INDArray> dataPair:this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).values()) {
 			double v=sigma*Math.exp(-1*this.calcDistance(X, dataPair.getFirst(), n, t)*theta.getDouble(n, t)*this.distanceScale.getDouble(n,t));
 			K.putScalar(i, 1, v);
 			i++;
@@ -439,6 +451,10 @@ public class Variogram {
 
 	public Map<String, INDArray> getDistances() {
 		return distances;
+	}
+
+	public LinkToLinks getL2ls() {
+		return l2ls;
 	}
 	
 	

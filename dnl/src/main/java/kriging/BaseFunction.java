@@ -6,7 +6,7 @@ import org.w3c.dom.Element;
 interface BaseFunction{
 	
 	public INDArray getY(INDArray X);
-	public void writeBaseFunctionInfo(Element baseFunction);
+	public void writeBaseFunctionInfo(Element baseFunction,String fileLoc);
 	
 	
 }

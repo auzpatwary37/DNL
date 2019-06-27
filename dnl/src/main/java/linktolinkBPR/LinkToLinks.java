@@ -36,7 +36,7 @@ public class LinkToLinks {
 	private final Network network;
 	private final Map<Integer,Tuple<Double,Double>>timeBean;
 	private int l2lCounter=0;
-	private Map<String,INDArray>weights=new HashMap<>();
+//	private Map<String,INDArray>weights=new HashMap<>();
 	private int kn;
 	private int kt;
 	/**
@@ -64,11 +64,34 @@ public class LinkToLinks {
 				this.linkToLinks.get(n).setG_cRatio(sg.getGCratio(fromLink, toLink.getId())[0]);
 				this.linkToLinks.get(n).setCycleTime(sg.getGCratio(fromLink, toLink.getId())[1]);
 			}
-			for(int t=0;t<timeBean.size();t++) {
-				this.weights.put(Integer.toString(n)+"_"+Integer.toString(t), this.generateWeightMatrix(n, t, kn, kt,1,1));
-			}
+			this.linkToLinks.get(n).setProximityMap(this.generateProximityMap(this.linkToLinks.get(n)));
 		}
+		this.fromLinkToLinkMap.clear();
+		this.ToLinkToLinkMap.clear();
 	}
+	
+	/**
+	 * Constructor to create from the reader
+	 * 
+	 * @param network
+	 * @param timeBean
+	 * @param numToLinkToLink
+	 * @param numToTimeBean
+	 * @param linkToLinks
+	 * @param kn
+	 * @param kt
+	 */
+	public LinkToLinks(Network network,Map<Integer,Tuple<Double,Double>>timeBean,BiMap<Integer,Id<LinkToLink>> numToLinkToLink,BiMap<Integer,Integer> numToTimeBean,List<LinkToLink> linkToLinks,int kn,int kt) {
+		this.network=network;
+		this.timeBean=timeBean;
+		this.numToLinkToLink=numToLinkToLink;
+		this.numToTimeBean=numToTimeBean;
+		this.linkToLinks=linkToLinks;
+		this.kn=kn;
+		this.kt=kt;
+	}
+	
+	
 	
 	/**
 	 * 
@@ -83,6 +106,20 @@ public class LinkToLinks {
 		}
 	}
 	
+	
+	
+	public void setL2lCounter(int l2lCounter) {
+		this.l2lCounter = l2lCounter;
+	}
+
+	public int getKn() {
+		return kn;
+	}
+
+	public int getKt() {
+		return kt;
+	}
+
 	public List<LinkToLink> getLinkToLinks() {
 		return linkToLinks;
 	}
@@ -134,36 +171,41 @@ public class LinkToLinks {
 	}
 	
 	
-	private INDArray generateWeightMatrix(int n,int t) {
-		return this.generateWeightMatrix(n, t, 3, 3, 1, 1);
-	}
+
 	
+	/**
+	 * 
+	 * @param n
+	 * @param t
+	 * @param cn
+	 * @param ct
+	 * @return
+	 */
 	public INDArray generateWeightMatrix(int n,int t, double cn, double ct) {
 		return this.generateWeightMatrix(n, t, this.kn,this.kt, cn, ct);
 	}
-	
+	/**
+	 * 
+	 * More efficient.
+	 * @param n
+	 * @param t
+	 * @param kn
+	 * @param kt
+	 * @param cn
+	 * @param ct
+	 * @return
+	 */
 	private INDArray generateWeightMatrix(int n,int t,int kn,int kt,double cn, double ct){
 		LinkToLink l2l=this.linkToLinks.get(n);
 		INDArray we=Nd4j.create(this.linkToLinks.size(), this.timeBean.size());
-		//double weight[][]=new double[this.linkToLinks.size()][this.timeBean.size()];
-		Map<Integer,Set<LinkToLink>>linkToLinkMap=new HashMap<>();
-		linkToLinkMap.put(0, new HashSet<>());
-		linkToLinkMap.get(0).add(l2l);
-		linkToLinkMap.put(1, new HashSet<>());
-		this.fetchLinkToLinkWithFromLink(l2l.getToLink(), 0, kn, linkToLinkMap);
-		this.fetchLinkToLinkWithToLink(l2l.getFromLink(), 0, kn, linkToLinkMap);
-		
-		linkToLinkMap.get(0).addAll(this.fromLinkToLinkMap.get(l2l.getFromLink().getId()));
-		linkToLinkMap.get(0).addAll(this.ToLinkToLinkMap.get(l2l.getToLink().getId()));
-		for(Entry<Integer,Set<LinkToLink>> linkToLinks:linkToLinkMap.entrySet()) {
+		for(Entry<Integer,Set<Integer>> linkToLinks:l2l.getProximityMap().entrySet()) {
 			double wk;
 			if(linkToLinks.getKey()==0) {
 				wk=1;
 			}else {
 				wk=1f/(1+cn*linkToLinks.getKey());
 			}
-			for(LinkToLink ll2ll:linkToLinks.getValue()) {
-				int l2lIndex=this.numToLinkToLink.inverse().get(ll2ll.getLinkToLinkId()); 
+			for(int l2lIndex:linkToLinks.getValue()) {
 				for(int tt=Math.max(t-kt,0);tt<=Math.min(this.timeBean.size()-1,t+kt);tt++) {
 					float wt=0;
 					if(tt-t==0) {
@@ -178,6 +220,32 @@ public class LinkToLinks {
 		}
 		//double[][] a =we.getData();
 		return we;
+	}
+	
+	private Map<Integer,Set<Integer>> generateProximityMap(LinkToLink l2l){
+		//LinkToLink l2l=this.linkToLinks.get(n);
+		INDArray we=Nd4j.create(this.linkToLinks.size(), this.timeBean.size());
+		//double weight[][]=new double[this.linkToLinks.size()][this.timeBean.size()];
+		Map<Integer,Set<LinkToLink>>linkToLinkMap=new HashMap<>();
+		linkToLinkMap.put(0, new HashSet<>());
+		linkToLinkMap.get(0).add(l2l);
+		linkToLinkMap.put(1, new HashSet<>());
+		this.fetchLinkToLinkWithFromLink(l2l.getToLink(), 0, kn, linkToLinkMap);
+		this.fetchLinkToLinkWithToLink(l2l.getFromLink(), 0, kn, linkToLinkMap);
+		
+		linkToLinkMap.get(0).addAll(this.fromLinkToLinkMap.get(l2l.getFromLink().getId()));
+		linkToLinkMap.get(0).addAll(this.ToLinkToLinkMap.get(l2l.getToLink().getId()));
+		
+		Map<Integer,Set<Integer>> l2lMap=new HashMap<>();
+		
+		for(Entry<Integer,Set<LinkToLink>>e:linkToLinkMap.entrySet()) {
+			l2lMap.put(e.getKey(), new HashSet<>());
+			for(LinkToLink l2l2:e.getValue()) {
+				l2lMap.get(e.getKey()).add(this.getNumToLinkToLink().inverse().get(l2l2.getLinkToLinkId()));
+			}
+		}
+		
+		return l2lMap;
 	}
 	
 	private Map<Integer,Set<LinkToLink>>fetchLinkToLinkWithFromLink(Link toLink,int k,int kn,Map<Integer,Set<LinkToLink>> linkToLinks){
@@ -236,13 +304,50 @@ public class LinkToLinks {
 		return linkToLinks;
 	}
 	
+	/**
+	 * Assuming cn and ct are 1
+	 * @param n
+	 * @param t
+	 * @return
+	 */
 	public INDArray getWeightMatrix(int n, int t){
-		return this.weights.get(Integer.toString(n)+"_"+Integer.toString(t));
+		return this.generateWeightMatrix(n, t,1,1);
 	}
 	
+	@Deprecated
+	/**
+	 * use the individual n, t based weight matrix getter
+	 * More efficient data structure
+	 * @return
+	 */
 	public Map<String,INDArray> getWeightMatrices(){
-		return this.weights;
+		Map<String,INDArray> weights=new HashMap<>(); 
+		for(int n=0;n<this.linkToLinks.size();n++) { 
+			for(int t=0;t<timeBean.size();t++) {
+				weights.put(Integer.toString(n)+"_"+Integer.toString(t),this.generateWeightMatrix(n, t,1,1));
+			}
+		}
+		return weights;
 	}
+	
+	/**
+	 * use the individual n, t based weight matrix getter
+	 * More efficient data structure
+	 * @deprecated
+	 * @param Cn
+	 * @param Ct
+	 * @return
+	 */
+	public Map<String,INDArray> getWeightMatrices(INDArray Cn,INDArray Ct){
+		Map<String,INDArray> weights=new HashMap<>(); 
+		for(int n=0;n<this.linkToLinks.size();n++) { 
+			for(int t=0;t<timeBean.size();t++) {
+				weights.put(Integer.toString(n)+"_"+Integer.toString(t),this.generateWeightMatrix(n, t,Cn.getDouble(n,t),Ct.getDouble(n,t)));
+			}
+		}
+		return weights;
+	}
+	
 	public LinkToLink getLinkToLink(Id<LinkToLink> linkToLinkId) {
 		return this.linkToLinks.get(this.numToLinkToLink.inverse().get(linkToLinkId));
 	}
@@ -263,8 +368,10 @@ public class LinkToLinks {
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		l2ls.writeLinkToLinkDetails("Network/ND/l2lDetails.csv");
+		new LinkToLinksWriter(l2ls).write("Network/ND/l2l1");
+		LinkToLinks l2ls1=new LinkToLinksReader().readLinkToLinks("Network/ND/l2l1");
 		System.out.println("Done!!! Total LinkToLink = "+l2ls.getL2lCounter());
+		System.out.println("Done!!! Total LinkToLink = "+l2ls1.getL2lCounter());
 	}
 	public void writeLinkToLinkDetails(String fileloc) {
 		try {

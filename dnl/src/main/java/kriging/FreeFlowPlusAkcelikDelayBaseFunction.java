@@ -82,7 +82,7 @@ public class FreeFlowPlusAkcelikDelayBaseFunction implements BaseFunction{
 	
 
 	@Override
-	public void writeBaseFunctionInfo(Element baseFunction) {
+	public void writeBaseFunctionInfo(Element baseFunction,String fileLoc) {
 		baseFunction.setAttribute("ClassName", this.getClass().getName());
 		for(Entry<Integer,Link2LinkInfoHolder>l2l:this.link2LinkInfo.entrySet()) {
 			baseFunction.setAttribute(Integer.toString(l2l.getKey()), l2l.getValue().toString());

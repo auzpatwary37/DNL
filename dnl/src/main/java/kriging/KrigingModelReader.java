@@ -18,28 +18,32 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import linktolinkBPR.LinkToLinks;
+import linktolinkBPR.LinkToLinksReader;
 import training.DataIO;
 
 public class KrigingModelReader extends DefaultHandler {
 	
 	private INDArray theta;
 	private INDArray beta;
-	private Map<String,INDArray> weights;
+	private INDArray Cn;
+	private INDArray Ct;
 	private Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet;
+	private LinkToLinks l2ls;
 	private int N;
 	private int T;
 	private int I;
 	private BaseFunction bf;
-	String dateAndTime;
+
 	@Override 
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		
 		if(qName.equalsIgnoreCase("theta")) {
-			theta=Nd4j.readTxt(attributes.getValue("FileLocation"));
+			theta=Nd4j.readTxt(attributes.getValue("Filelocation"));
 		}
 		
 		if(qName.equalsIgnoreCase("beta")) {
-			beta=Nd4j.readTxt(attributes.getValue("FileLocation"));
+			beta=Nd4j.readTxt(attributes.getValue("Filelocation"));
 		}
 		
 		if(qName.equalsIgnoreCase("metadata")) {
@@ -48,14 +52,23 @@ public class KrigingModelReader extends DefaultHandler {
 			I=Integer.parseInt(attributes.getValue("I"));
 		}
 		
-		if(qName.equalsIgnoreCase("weights")) {
-			this.weights=DataIO.readWeight(attributes.getValue("FileLocation"));
+		if(qName.equalsIgnoreCase("Cn")) {
+			String f=attributes.getValue("Filelocation");
+			Cn=Nd4j.readTxt(f);
+		}
+		if(qName.equalsIgnoreCase("Ct")) {
+			Ct=Nd4j.readTxt(attributes.getValue("Filelocation"));
 		}
 		
-		if(qName.equalsIgnoreCase("trainingData")) {
+		if(qName.equalsIgnoreCase("trainingDataSet")) {
 			this.trainingDataSet=DataIO.readDataSet(attributes.getValue("FileLocation"));
 			
 		}
+		if(qName.equalsIgnoreCase("LinkToLinks")) {
+			this.l2ls=new LinkToLinksReader().readLinkToLinks(attributes.getValue("FileLocation"));
+			
+		}
+		
 		
 		if(qName.equalsIgnoreCase("baseFunction")) {
 			try {
@@ -85,7 +98,7 @@ public class KrigingModelReader extends DefaultHandler {
 		
 	}
 	
-	public KrigingInterpolator readMeasurements(String fileLoc) {
+	public KrigingInterpolator readModel(String fileLoc) {
 		
 		try {
 			SAXParserFactory.newInstance().newSAXParser().parse(fileLoc,this);
@@ -97,9 +110,9 @@ public class KrigingModelReader extends DefaultHandler {
 			e.printStackTrace();
 		}
 		
-		Variogram v=new Variogram(trainingDataSet, this.weights,this.theta);
+		Variogram v=new Variogram(trainingDataSet,this.l2ls,this.theta,this.Cn,this.Ct);
 		
-		return new KrigingInterpolator(v,beta,this.bf);
+		return new KrigingInterpolator(v,beta,this.bf,Cn,Ct);
 	}
 
 	

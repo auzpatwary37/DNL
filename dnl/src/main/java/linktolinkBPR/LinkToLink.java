@@ -1,6 +1,10 @@
 package linktolinkBPR;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.matsim.api.core.v01.Id;
@@ -23,7 +27,7 @@ public class LinkToLink {
 	private final Id<LinkToLink> linkToLinkId;
 	private double g_cRatio=1;
 	private double cycleTime=60;
-	
+	private Map<Integer,Set<Integer>> proximityMap;
 	
 	public LinkToLink(Link fromLink, Link toLink,Map<Integer, Tuple<Double, Double>> timeBean2) {
 		this.fromLink=fromLink;
@@ -45,6 +49,10 @@ public class LinkToLink {
 		
 	}
 	
+	public void setSupply(double supply) {
+		this.supply = supply;
+	}
+
 	public double getCycleTime() {
 		return cycleTime;
 	}
@@ -100,6 +108,50 @@ public class LinkToLink {
 	
 	public double getFreeFlowTT() {
 		return this.fromLink.getLength()/this.fromLink.getFreespeed();
+	}
+
+	public Map<Integer, Set<Integer>> getProximityMap() {
+		return proximityMap;
+	}
+
+	public void setProximityMap(Map<Integer, Set<Integer>> proximityMap) {
+		this.proximityMap = proximityMap;
+	}
+	
+	public String writeProximityMap() {
+		String p="";
+		String entrySeperator="";
+		for(Entry<Integer, Set<Integer>> e:this.proximityMap.entrySet()) {
+			if(e.getValue().size()!=0) {
+				p=p+entrySeperator+e.getKey();
+				p=p+"_";
+				String elementSeperator="";
+				for(Integer n:e.getValue()) {
+					p=p+elementSeperator+n;
+					elementSeperator=" ";
+				}
+				entrySeperator=",";
+		}
+		}
+		return p;
+	}
+	
+	public static Map<Integer,Set<Integer>> parseProximityMatrix(String p){
+		Map<Integer,Set<Integer>> proximityMatrix =new HashMap<>();
+		String[] entries=p.split(",");
+		for(String entry:entries) {
+			Integer key=Integer.parseInt(entry.split("_")[0]);
+			proximityMatrix.put(key, new HashSet<>());
+			
+			String[] nSet=entry.split("_")[1].split(" ");
+				for(String nstring:nSet) {
+					int n=Integer.parseInt(nstring);
+					proximityMatrix.get(key).add(n);
+				}
+			}
+		
+		
+		return proximityMatrix;
 	}
 	
 }
