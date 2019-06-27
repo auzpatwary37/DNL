@@ -274,12 +274,9 @@ public class Variogram {
 		if(this.scaleData) {
 			this.distanceScale.putScalar(n,t,1.0/K.maxNumber().doubleValue());
 		}
-		
-		//long endTime=System.currentTimeMillis();
-		//System.out.println("Done = "+Integer.toString(n)+"_"+Integer.toString(t));
-//		if(n==0 && t==7) {
-//			System.out.println("debugg!!!");
-//		}
+		if(intMap.size()!=K.size(0)) {
+			System.out.println("Debug Here");
+		}
 		return K;
 	}
 
@@ -323,6 +320,9 @@ public class Variogram {
 				}
 			});
 		});
+		if(intMap.size()!=K.size(0)) {
+			System.out.println("Debug Here");
+		}
 		if(this.scaleData) {
 			this.distanceScale.putScalar(n,t,1.0/K.maxNumber().doubleValue());
 		}

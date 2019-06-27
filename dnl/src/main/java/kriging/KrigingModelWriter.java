@@ -31,6 +31,7 @@ public class KrigingModelWriter {
 	private final INDArray beta;
 	private final BaseFunction baseFunction;
 	
+	
 	public KrigingModelWriter(KrigingInterpolator model) {
 		this.trainingDataSet=model.getTrainingDataSet();
 		this.weights=model.getVariogram().getWeights();
@@ -58,7 +59,7 @@ public class KrigingModelWriter {
 			metaData.setAttribute("N", Long.toString(this.trainingDataSet.get(0).getFirst().size(0)));
 			metaData.setAttribute("T", Long.toString(this.trainingDataSet.get(0).getFirst().size(1)));
 			metaData.setAttribute("I", Integer.toString(this.trainingDataSet.size()));
-			metaData.setAttribute("DateAndTime", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance()));
+			//metaData.setAttribute("DateAndTime", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance()));
 			rootEle.appendChild(metaData);
 			
 			Element trainingDataSet=document.createElement("trainingDataSet");	

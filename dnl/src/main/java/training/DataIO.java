@@ -94,10 +94,13 @@ public class DataIO {
 	public static void writeWeights(Map<String,INDArray> weights,String fileLoc) {
 		int N=Math.toIntExact(weights.get("0_0").size(0));
 		int T=Math.toIntExact(weights.get("0_0").size(0));
-		INDArray rawArray=Nd4j.create(new int[] {N,T,N,T});
+		INDArray rawArray=Nd4j.create(weights.get("0_0").length(),weights.get("0_0").length());
+		int k=0;
 		for(int n=0;n<N;n++) {
 			for(int t=0;t<T;t++) {
-				rawArray.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(n),NDArrayIndex.point(t)},weights.get(Integer.toString(n)+"_"+Integer.toString(t)));
+				INDArray rawRow=weights.get(Integer.toString(n)+"_"+Integer.toString(t)).reshape(weights.get(Integer.toString(n)+"_"+Integer.toString(t)).length());
+				rawArray.putRow(k, rawRow);
+				k++;
 			}
 		}
 		Nd4j.writeTxt(rawArray,fileLoc);
