@@ -11,7 +11,12 @@ import java.util.stream.IntStream;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.api.ops.Op;
+import org.nd4j.linalg.api.ops.impl.reduce.longer.MatchCondition;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.conditions.Conditions;
+import org.nd4j.linalg.ops.transforms.Transforms;
+
 import linktolinkBPR.LinkToLinks;
 
 
@@ -122,13 +127,15 @@ public class Variogram {
 				sd.putScalar(n, t, Math.pow(sdCalculator.evaluate(dat.mul(this.ttScale.getDouble(n,t)).toDoubleVector()),2));
 			});
 		});
+		KrigingInterpolator.writeINDArray(sd, "sd.csv");
 		return sd;
 	}
 	
 	public double calcDistance(INDArray a,INDArray b,int n,int t) {
-		double aa=a.sub(b).mul(this.weights.get(Integer.toString(n)+"_"+Integer.toString(t))).norm2Number().doubleValue();
-		return aa;
-		 //return distance;
+		INDArray weight=this.weights.get(Integer.toString(n)+"_"+Integer.toString(t));
+		INDArray aa=a.sub(b).mul(weight);
+		double distance= aa.norm2Number().doubleValue();
+		return distance;
 	}
 	
 	//For now this function is useless but it can be later used to make the weights trainable
@@ -155,29 +162,14 @@ public class Variogram {
 //			System.out.println();
 //		}
 		//long startTime=System.currentTimeMillis();
-		int I=this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).size();
 		double sigma=sigmaMatrix.getDouble(n, t);
+		int I=this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).size();
 		INDArray K=Nd4j.create(I,I);
-		int i=0;
-//		IntStream.rangeClosed(0,I-1).parallel().forEach((ii)->
-//		{
-//			IntStream.rangeClosed(0,ii).parallel().forEach((jj)->{
-//
-//				if(ii!=jj) {
-//					double v=sigma*Math.exp(-1*this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t)*theta.getDouble(n, t));
-//					K.putScalar(ii, jj, v);
-//					K.putScalar(jj, ii, v);
-//				}else {
-//					K.putScalar(ii, ii,sigma);
-//				}
-//			});
-//		});
-		
 		for(int ii=0;ii<I;ii++) {
 			for(int jj=0;jj<=ii;jj++) {
 				if(ii!=jj) {
-					float dist=(float) (-1*this.distances.get(Integer.toString(n)+"_"+Integer.toString(t)).getDouble(ii,jj)*this.distanceScale.getDouble(n,t)*theta.getDouble(n, t));
-					float v=(float) (sigma*Math.exp(dist));
+					double dist=(-1*this.distances.get(Integer.toString(n)+"_"+Integer.toString(t)).getDouble(ii,jj)*this.distanceScale.getDouble(n,t)*theta.getDouble(n,t));
+					double v=sigma*Math.exp(dist);
 					if(Double.isNaN(v)||!Double.isFinite(v)) {
 						throw new IllegalArgumentException("is infinity");
 					}
@@ -189,10 +181,15 @@ public class Variogram {
 				}
 			}
 		}
-		
-		
+		int i=0;
+		//INDArray KK=Transforms.exp(this.distances.get(Integer.toString(n)+"_"+Integer.toString(t)).mul(-1*this.distanceScale.getDouble(n,t)*theta.getDouble(n, t)),true).mul(sigma);
 		//long endTime=System.currentTimeMillis();
 		//System.out.println("Done = "+Integer.toString(n)+"_"+Integer.toString(t));
+//		if(KK.eq(K).all()) {
+//			System.out.println("same");
+//		}else {
+//			System.out.println("Different");
+//		}
 		
 		return K;
 	}
@@ -212,8 +209,8 @@ public class Variogram {
 		for(int ii=0;ii<I;ii++) {
 			for(int jj=0;jj<=ii;jj++) {
 				if(ii!=jj) {
-					float dist=(float) (-1*this.distances.get(Integer.toString(n)+"_"+Integer.toString(t)).getDouble(ii,jj)*this.distanceScale.getDouble(n,t)*theta);
-					float v=(float) (sigma*Math.exp(dist));
+					double dist= (-1*this.distances.get(Integer.toString(n)+"_"+Integer.toString(t)).getDouble(ii,jj)*this.distanceScale.getDouble(n,t)*theta);
+					double v=(sigma*Math.exp(dist));
 					if(Double.isNaN(v)||!Double.isFinite(v)) {
 						throw new IllegalArgumentException("is infinity");
 					}
@@ -246,16 +243,21 @@ public class Variogram {
 		});
 	}
 	private INDArray calcDistanceMatrix(int n, int t) {
+		
+		INDArray weight = this.weights.get(Integer.toString(n)+"_"+Integer.toString(t));
 		this.ntSpecificTrainingSet.put(Integer.toString(n)+"_"+Integer.toString(t), new HashMap<>());
+		Map<Integer,Tuple<INDArray,INDArray>> ntTrainData=this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t));
 		int i=0;
 		Map<String,Double>distMap=new HashMap<>();
 		List<Integer> intMap=new ArrayList<>();
+		//INDArray boolArray;
 		for(int ii=0;ii<this.trainingDataSet.size();ii++) {
+			
 			boolean repeat=false;
-			for(int jj=0;jj<=i;jj++) {
+			for(int jj=0;jj<i;jj++) {
 				if(ii!=jj) {
-					double dist=this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t);
-					if(dist==0 ||dist>=1000000000) {
+					double dist=this.calcDistance(this.trainingDataSet.get(ii).getFirst(), ntTrainData.get(jj).getFirst(), n, t);
+					if(Transforms.abs(this.trainingDataSet.get(ii).getFirst().sub(ntTrainData.get(jj).getFirst()).mul(weight)).lt(1).all()){
 						repeat=true;
 						break;
 					}else {
@@ -265,8 +267,11 @@ public class Variogram {
 			}
 			if(repeat==false) {
 				intMap.add(ii);
-				this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).put(i, this.trainingDataSet.get(ii));
+				ntTrainData.put(i, this.trainingDataSet.get(ii));
 				i++;
+				if(n==23 && t==7 && i==19) {
+					System.out.println();
+				}
 			}
 		}
 		this.ntSpecificOriginalIndices.put(Integer.toString(n)+"_"+Integer.toString(t), intMap);
@@ -289,6 +294,7 @@ public class Variogram {
 		if(intMap.size()!=K.size(0)) {
 			System.out.println("Debug Here");
 		}
+		//KrigingInterpolator.writeINDArray(K, Integer.toString(n)+"_"+Integer.toString(t)+"distance.csv");
 		return K;
 	}
 
@@ -301,10 +307,10 @@ public class Variogram {
 		List<Integer> intMap=new ArrayList<>();
 		for(int ii=0;ii<this.trainingDataSet.size();ii++) {
 			boolean repeat=false;
-			for(int jj=0;jj<=i;jj++) {
+			for(int jj=0;jj<i;jj++) {
 				if(ii!=jj) {
-					double dist=this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.trainingDataSet.get(jj).getFirst(), n, t);
-					if(dist==0 ||dist>=1000000000) {
+					double dist=this.calcDistance(this.trainingDataSet.get(ii).getFirst(), this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).get(jj).getFirst(), n, t);
+					if(Transforms.abs(this.trainingDataSet.get(ii).getFirst().sub(this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).get(jj).getFirst()).mul(weights)).lt(1).all()){
 						repeat=true;
 						break;
 					}else {
