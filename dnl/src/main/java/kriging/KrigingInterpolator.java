@@ -57,6 +57,7 @@ public class KrigingInterpolator{
 	private VarianceInfoHolder info;
 	private INDArray Cn;
 	private INDArray Ct;
+	private int numDone=0;
 	
 	public KrigingInterpolator(Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet, LinkToLinks l2ls,BaseFunction bf) {
 		this.trainingDataSet=trainingDataSet;
@@ -504,7 +505,7 @@ public class KrigingInterpolator{
 				n_tlist.add(Integer.toString(n)+"_"+Integer.toString(t));
 				}
 			}
-	
+		int numberDone=0;
 		n_tlist.parallelStream().forEach((key)->{
 		//for(String key:n_tlist) {
 			long startTiment=System.currentTimeMillis();
@@ -514,11 +515,13 @@ public class KrigingInterpolator{
 				//continue;
 				return;
 			}
+			
 			double initialBeta=this.beta.getDouble(n,t);
 			double initialTheta=1/this.variogram.getDistances().get(key).maxNumber().doubleValue()*10;
 			double initialCn=1;
 			double initialCt=1;
 				Calcfc calcfc = new Calcfc() {
+					
 					int it=0;
 
 					@Override
@@ -533,18 +536,19 @@ public class KrigingInterpolator{
 							obj=10000000000000.;
 						}
 						con[0]=100*(theta-0.0000001);
-						
+						con[1]=initialCn+initialCn*x[2]/100;
+						con[2]=initialCt+initialCt*x[3]/100;
 						//con[1]=-1*info.getVarianceMatrixCondNum().get(key)+10000;
 						it++;
-//						if(it==1) {
-//							System.out.println("initial obj = "+-1*obj);
-//						}
+						if(it==1) {
+							System.out.println("initial obj = "+-1*obj);
+						}
 						return -1*obj;
 					}
 				};
 				
 				double[] x = {1,1,1,1};
-				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 4, 1, x, 10, .01, 2, 500);
+				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 4, 3, x, 10, .01, 1, 100);
 				this.beta.putScalar(n, t,initialBeta+initialBeta*x[1]/100);
 				this.variogram.gettheta().putScalar(n,t,initialTheta+initialTheta*x[0]/100);
 				double cn=initialCn+initialCn*x[2]/100;
@@ -552,8 +556,11 @@ public class KrigingInterpolator{
 				this.variogram.calcDistanceMatrix(n,t,cn, ct);
 				this.Cn.put(n,t,cn);
 				this.Ct.put(n,t,ct);
+				this.numDone++;
 				//System.out.println("current total liklihood after "+key+" = "+this.calcCombinedLogLikelihood());
 				System.out.println("optim time for case "+key+" "+Long.toString(System.currentTimeMillis()-startTiment));
+				System.out.println("Finished training "+this.numDone+" out of "+n_tlist.size());
+				
 		});
 		//}
 		//KrigingModelWriter writer=new KrigingModelWriter(this);
