@@ -11,17 +11,18 @@ import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 
+import kriging.Data;
 import kriging.KrigingInterpolator;
 
 public class DataCleanUp {
 	public static void main(String[] args) {
-		List<Tuple<INDArray,INDArray>> datasetFull=new ArrayList<>();
+		List<Data> datasetFull=new ArrayList<>();
 		for(int i=0;i<6;i++) {
-			
-			for(Tuple<INDArray,INDArray> data:DataIO.readDataSet("Network/ND/DataSet"+i+".txt").values()) {
+			Map<Integer,Data> dset=DataIO.readDataSet("Network/ND/DataSet"+i+".txt","Network/ND/KeySet"+i+".csv");
+			for(Data data:dset.values()) {
 				boolean isDuplicate=false;
-				for(Tuple<INDArray,INDArray> currentData:datasetFull) {
-					if(data.getFirst().sub(currentData.getFirst()).norm2Number().doubleValue()<1*33*9) {
+				for(Data currentData:datasetFull) {
+					if(data.getX().sub(currentData.getX()).lt(1).all()) {
 						isDuplicate=true;
 						break;
 					}
@@ -39,10 +40,10 @@ public class DataCleanUp {
 //			
 //		}
 		
-		DataIO.writeData(datasetFull, "Network/ND/DataSetNDFull.txt");
+		DataIO.writeData(datasetFull, "Network/ND/DataSetNDFull.txt","Network/ND/KeySetNDFull.csv");
 		TestAndTrainData testAndTrain=DataCleanUp.DevideDataInTestAndTrain(datasetFull, 0.1);
-		DataIO.writeData(testAndTrain.getTestData(), "Network/ND/DataSetNDTest.txt");
-		DataIO.writeData(testAndTrain.getTrainData(), "Network/ND/DataSetNDTrain.txt");
+		DataIO.writeData(testAndTrain.getTestData(), "Network/ND/DataSetNDTest.txt","Network/ND/KeySetNDTest.csv");
+		DataIO.writeData(testAndTrain.getTrainData(), "Network/ND/DataSetNDTrain.txt", "Network/ND/KeySetNDTrain.csv");
 		
 		
 	}
@@ -53,10 +54,10 @@ public class DataCleanUp {
 	 * @param testRatio proportion of testing (0,1)
 	 * @return
 	 */
-	public static TestAndTrainData DevideDataInTestAndTrain(Map<Integer,Tuple<INDArray,INDArray>>fullData,double testRatio) {
+	public static TestAndTrainData DevideDataInTestAndTrain(Map<Integer,Data>fullData,double testRatio) {
 		return new TestAndTrainData(fullData,testRatio);
 	}
-	public static TestAndTrainData DevideDataInTestAndTrain(List<Tuple<INDArray,INDArray>>fullData,double testRatio) {
+	public static TestAndTrainData DevideDataInTestAndTrain(List<Data>fullData,double testRatio) {
 		return new TestAndTrainData(fullData,testRatio);
 	}
 }
@@ -64,10 +65,10 @@ public class DataCleanUp {
 
 
 class TestAndTrainData{
-	private Map<Integer,Tuple<INDArray,INDArray>> testData=new HashMap<>();
-	private Map<Integer,Tuple<INDArray,INDArray>> trainData=new HashMap<>();
+	private Map<Integer,Data> testData=new HashMap<>();
+	private Map<Integer,Data> trainData=new HashMap<>();
 	private double testRatio=0.1;
-	public TestAndTrainData(Map<Integer,Tuple<INDArray,INDArray>>fullData,double testRatio) {
+	public TestAndTrainData(Map<Integer,Data>fullData,double testRatio) {
 		List<Integer> testNumbers = new ArrayList<Integer>();
 		if(testRatio<1 && testRatio>0) {
 			this.testRatio=testRatio;
@@ -87,7 +88,7 @@ class TestAndTrainData{
 		int testData=0;
 		int trainData=0;
 
-		for(Entry<Integer, Tuple<INDArray, INDArray>> dataPoint:fullData.entrySet()) {
+		for(Entry<Integer, Data> dataPoint:fullData.entrySet()) {
 			if(testNumbers.contains(dataPoint.getKey())) {
 				this.testData.put(testData, dataPoint.getValue());
 				testData++;
@@ -98,8 +99,8 @@ class TestAndTrainData{
 		}
 	    
 	}
-	public TestAndTrainData(List<Tuple<INDArray,INDArray>>fullDataList,double testRatio) {
-		Map<Integer,Tuple<INDArray,INDArray>>fullData=new HashMap<>();
+	public TestAndTrainData(List<Data>fullDataList,double testRatio) {
+		Map<Integer,Data>fullData=new HashMap<>();
 		for(int i=0;i<fullDataList.size();i++) {
 			fullData.put(i,fullDataList.get(i));
 		}
@@ -122,7 +123,7 @@ class TestAndTrainData{
 		int testData=0;
 		int trainData=0;
 
-		for(Entry<Integer, Tuple<INDArray, INDArray>> dataPoint:fullData.entrySet()) {
+		for(Entry<Integer, Data> dataPoint:fullData.entrySet()) {
 			if(testNumbers.contains(dataPoint.getKey())) {
 				this.testData.put(testData, dataPoint.getValue());
 				testData++;
@@ -132,10 +133,10 @@ class TestAndTrainData{
 			}
 		}
 	}
-	public Map<Integer, Tuple<INDArray, INDArray>> getTestData() {
+	public Map<Integer, Data> getTestData() {
 		return testData;
 	}
-	public Map<Integer, Tuple<INDArray, INDArray>> getTrainData() {
+	public Map<Integer, Data> getTrainData() {
 		return trainData;
 	}
 	

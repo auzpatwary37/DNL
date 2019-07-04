@@ -28,7 +28,7 @@ public class KrigingModelReader extends DefaultHandler {
 	private INDArray beta;
 	private INDArray Cn;
 	private INDArray Ct;
-	private Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet;
+	private Map<Integer,Data> trainingDataSet;
 	private LinkToLinks l2ls;
 	private int N;
 	private int T;
@@ -61,7 +61,7 @@ public class KrigingModelReader extends DefaultHandler {
 		}
 		
 		if(qName.equalsIgnoreCase("trainingDataSet")) {
-			this.trainingDataSet=DataIO.readDataSet(attributes.getValue("FileLocation"));
+			this.trainingDataSet=DataIO.readDataSet(attributes.getValue("FileLocation"),attributes.getValue("KeyFileLocation"));
 			
 		}
 		if(qName.equalsIgnoreCase("LinkToLinks")) {

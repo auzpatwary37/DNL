@@ -78,18 +78,29 @@ public class DataIO {
 	}
 	
 	
-	public static void writeData(List<Tuple<INDArray,INDArray>> dataSet,String fileLoc) {
-		int N=Math.toIntExact(dataSet.get(0).getFirst().size(0));
-		int T=Math.toIntExact(dataSet.get(0).getFirst().size(1));
+	public static void writeData(List<Data> dataSet,String fileLoc,String keyfileloc) {
+		int N=Math.toIntExact(dataSet.get(0).getX().size(0));
+		int T=Math.toIntExact(dataSet.get(0).getX().size(1));
 		int I=dataSet.size();
 		INDArray rawArray=Nd4j.create(new int[] {N,2*T,I});
 		int i=0;
-		for(Tuple<INDArray,INDArray>dataPoint:dataSet) {
-			INDArray joinedArray=Nd4j.concat(1, dataPoint.getFirst(),dataPoint.getSecond());
+		try {
+			FileWriter fw =new FileWriter(new File(keyfileloc));
+			fw.append("NumberId,dataKey\n");
+		for(Data dataPoint:dataSet) {
+			INDArray joinedArray=Nd4j.concat(1, dataPoint.getX(),dataPoint.getY());
 			rawArray.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(i)},joinedArray);
+			fw.append(i+","+dataPoint.getKey()+"\n");
 			i++;
 		}
 		Nd4j.writeTxt(rawArray,fileLoc);
+		fw.flush();
+		fw.close();
+		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	

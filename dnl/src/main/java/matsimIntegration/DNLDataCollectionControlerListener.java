@@ -28,6 +28,7 @@ import org.nd4j.linalg.factory.Nd4j;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
+import kriging.Data;
 import linktolinkBPR.LinkToLinks;
 import training.DataIO;
 import linktolinkBPR.LinkToLink;
@@ -46,8 +47,10 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 	
 	@Inject
 	private @Named("fileLoc") String fileLoc;
+	private @Named("keyPrefix") String keyPrefix;
+	private @Named("keyFileloc") String keyFileloc;
 	
-	private ArrayList<Tuple<INDArray,INDArray>> dataset=new ArrayList<>();
+	private ArrayList<Data> dataset=new ArrayList<>();
 	private INDArray X;
 	
 	@Inject
@@ -74,7 +77,7 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 				Y.putScalar(n,t,tt);
 			});
 		});
-		this.dataset.add(new Tuple<>(this.X,Y));
+		this.dataset.add(new Data(this.X,Y,this.keyPrefix+"_"+event.getIteration()));
 	}
 
 	@Override
@@ -132,7 +135,7 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 
 	@Override
 	public void notifyShutdown(ShutdownEvent event) {
-		DataIO.writeData(this.dataset, fileLoc);
+		DataIO.writeData(this.dataset, fileLoc, keyFileloc);
 	}
 
 	@Override

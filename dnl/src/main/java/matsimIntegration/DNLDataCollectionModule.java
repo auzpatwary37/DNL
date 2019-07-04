@@ -13,16 +13,22 @@ public class DNLDataCollectionModule extends AbstractModule{
 	
 	private LinkToLinks l2ls;
 	private String fileLoc;
+	private String keyPrefix;
+	private String keyFileLoc;
 	
-	public DNLDataCollectionModule(LinkToLinks l2ls,String fileLoc) {
+	public DNLDataCollectionModule(LinkToLinks l2ls,String fileLoc,String keyPrefix,String keyFileloc) {
 		this.l2ls=l2ls;
 		this.fileLoc=fileLoc;
+		this.keyPrefix=keyPrefix;
+		this.keyFileLoc=keyFileloc;
 	}
 	
 	public void install() {
 		bind(LinkToLinks.class).toInstance(this.l2ls);
 		bind(LinkToLinkTTRecorder.class).toInstance(new LinkToLinkTTRecorder(this.l2ls));
 		bind(String.class).annotatedWith(Names.named("fileLoc")).toInstance(this.fileLoc);
+		bind(String.class).annotatedWith(Names.named("keyPrefix")).toInstance(this.keyPrefix);
+		bind(String.class).annotatedWith(Names.named("keyFileloc")).toInstance(this.keyFileLoc);
 //		this.addEventHandlerBinding().to(LinkToLinkTTRecorder.class).in(Singleton.class);
 		this.addControlerListenerBinding().to(DNLDataCollectionControlerListener.class).in(Singleton.class);
 		

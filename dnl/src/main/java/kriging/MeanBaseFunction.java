@@ -27,16 +27,16 @@ public class MeanBaseFunction implements BaseFunction{
 	}
 	
 	
-	public MeanBaseFunction( Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet) {
-		int N=Math.toIntExact(trainingDataSet.get(0).getFirst().size(0));
-		int T=Math.toIntExact(trainingDataSet.get(0).getFirst().size(1));
+	public MeanBaseFunction( Map<Integer, Data> trainingData) {
+		int N=Math.toIntExact(trainingData.get(0).getX().size(0));
+		int T=Math.toIntExact(trainingData.get(0).getX().size(1));
 		this.mean=Nd4j.create(N,T);
 		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
 			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
-				double[] data=new double[trainingDataSet.size()];
-				for(int i=0;i<trainingDataSet.size();i++) {
-					data[i]=trainingDataSet.get(i).getSecond().getDouble(n, t);
+				double[] data=new double[trainingData.size()];
+				for(int i=0;i<trainingData.size();i++) {
+					data[i]=trainingData.get(i).getY().getDouble(n, t);
 				}
 				mean.putScalar(n, t, Arrays.stream(data).sum()/data.length);
 			});

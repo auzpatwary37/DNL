@@ -17,6 +17,7 @@ import org.nd4j.linalg.api.buffer.util.DataTypeUtil;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+import kriging.Data;
 import kriging.KrigingInterpolator;
 import kriging.MeanBaseFunction;
 import kriging.VarianceInfoHolder;
@@ -30,7 +31,7 @@ class zmbtest {
 	void setUp() throws Exception {
 		DataTypeUtil.setDTypeForContext(DataType.FLOAT);
 		Nd4j.setDefaultDataTypes(DataType.FLOAT, DataType.FLOAT);
-		Map<Integer,Tuple<INDArray,INDArray>> trainingData=DataIO.readDataSet("Network/ND/DataSetNDTrain.txt");
+		Map<Integer,Data> trainingData=DataIO.readDataSet("Network/ND/DataSetNDTrain.txt","Network/ND/KeySetNDTrain.csv");
 		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
 		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
 		SignalFlowReductionGenerator sg = null;

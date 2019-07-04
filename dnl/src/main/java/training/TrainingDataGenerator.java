@@ -114,7 +114,7 @@ public class TrainingDataGenerator {
 			//TravelTimeCalculator.Builder b;
 			Scenario scenario = ScenarioUtils.loadScenario(configcurrent);
 			Controler controler = new Controler(scenario);
-			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,"Network/ND/DataSet"+i+".txt"));
+			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,"Network/ND/DataSet"+i+".txt",Double.toString(.25*(i+1)),"Network/ND/DataSet"+i+".csv"));
 			controler.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 			controler.run();
 		}

@@ -27,7 +27,7 @@ import linktolinkBPR.LinkToLinksWriter;
 import training.DataIO;
 
 public class KrigingModelWriter {
-	private final Map<Integer,Tuple<INDArray,INDArray>> trainingDataSet;
+	private final Map<Integer,Data> trainingDataSet;
 	private final INDArray theta;
 	private final INDArray beta;
 	private final BaseFunction baseFunction;
@@ -61,14 +61,15 @@ public class KrigingModelWriter {
 			
 			//Store the metaData here 
 			Element metaData=document.createElement("meataData");
-			metaData.setAttribute("N", Long.toString(this.trainingDataSet.get(0).getFirst().size(0)));
-			metaData.setAttribute("T", Long.toString(this.trainingDataSet.get(0).getFirst().size(1)));
+			metaData.setAttribute("N", Long.toString(this.trainingDataSet.get(0).getX().size(0)));
+			metaData.setAttribute("T", Long.toString(this.trainingDataSet.get(0).getX().size(1)));
 			metaData.setAttribute("I", Integer.toString(this.trainingDataSet.size()));
 			rootEle.appendChild(metaData);
 			
 			Element trainingDataSet=document.createElement("trainingDataSet");	
-			DataIO.writeData(this.trainingDataSet,fileLoc+"/dataSet.txt");
+			DataIO.writeData(this.trainingDataSet,fileLoc+"/dataSet.txt",fileLoc+"/keySet.csv");
 			trainingDataSet.setAttribute("FileLocation", fileLoc+"/dataSet.txt");
+			trainingDataSet.setAttribute("KeyFileLocation", fileLoc+"/keySet.csv");
 			rootEle.appendChild(trainingDataSet);
 			
 			Element Cn=document.createElement("Cn");
