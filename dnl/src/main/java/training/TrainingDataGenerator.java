@@ -103,7 +103,7 @@ public class TrainingDataGenerator {
 		for(int i=0;i<6;i++) {
 			Config configcurrent=ConfigUtils.createConfig();
 			ConfigUtils.loadConfig(configcurrent, "Network/ND/final_config.xml");
-			GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, "Network/ND",.5*(i+1));
+			GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, "Network/ND",.25*(i+1));
 			configcurrent.plans().setInputFile("Network/ND/population"+i+".xml");
 			configcurrent.vehicles().setVehiclesFile("Network/ND/vehicles.xml");
 			configcurrent.controler().setOutputDirectory("Network/ND/output"+i);

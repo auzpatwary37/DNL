@@ -1,5 +1,10 @@
 package training;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -10,6 +15,8 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
+
+import kriging.Data;
 
 public class DataIO {
 	private final Map<Integer,Tuple<INDArray,INDArray>> dataSet;
@@ -43,6 +50,33 @@ public class DataIO {
 		Nd4j.writeTxt(rawArray,fileLoc);
 	}
 	
+	public static void writeData(Map<Integer,Data> dataSet,String fileLoc,String keyFileloc) {
+		int N=Math.toIntExact(dataSet.get(0).getX().size(0));
+		int T=Math.toIntExact(dataSet.get(0).getX().size(1));
+		int I=dataSet.size();
+		INDArray rawArray=Nd4j.create(new int[] {N,2*T,I});
+		int i=0;
+		try {
+			FileWriter fw =new FileWriter(new File(keyFileloc));
+			fw.append("NumberId,dataKey\n");
+			
+		for(Entry<Integer,Data>dataPoint:dataSet.entrySet()) {
+			INDArray joinedArray=Nd4j.concat(1, dataPoint.getValue().getX(),dataPoint.getValue().getY());
+			rawArray.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(i)},joinedArray);
+			fw.append(dataPoint.getKey()+","+dataPoint.getValue().getKey()+"\n");
+			i++;
+		}
+		
+		Nd4j.writeTxt(rawArray,fileLoc);
+		fw.flush();
+		fw.close();
+		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	
 	public static void writeData(List<Tuple<INDArray,INDArray>> dataSet,String fileLoc) {
 		int N=Math.toIntExact(dataSet.get(0).getFirst().size(0));
@@ -57,6 +91,8 @@ public class DataIO {
 		}
 		Nd4j.writeTxt(rawArray,fileLoc);
 	}
+	
+	
 	public void writeData(String fileLoc) {
 		DataIO.writeData(this.dataSet, fileLoc);
 	}
@@ -81,6 +117,32 @@ public class DataIO {
 		
 		return dataSet;
 	}
+	
+	public static Map<Integer,Data> readDataSet(String fileLoc,String keyFileloc){
+		Map<Integer,Data> dataSet=new ConcurrentHashMap<>();
+		INDArray rawArray=Nd4j.readTxt(fileLoc);
+		int T=Math.toIntExact(rawArray.size(1))/2;
+		int I=Math.toIntExact(rawArray.size(2));
+		
+		try {
+			BufferedReader bf=new BufferedReader(new FileReader(new File(keyFileloc)));
+			bf.readLine();//get rid of the header
+		
+		
+		for(int i=0;i<I;i++) {
+			String line= bf.readLine();
+			INDArray X=rawArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.interval(0, T),NDArrayIndex.point(i)});
+			INDArray Y=rawArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.interval(T, 2*T),NDArrayIndex.point(i)});
+			dataSet.put(i,new Data(Y, Y, line.split(",")[1]));
+			
+		}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("the key file and the dataset file is not consistant.");
+		}
+		return dataSet;
+	}
+	
 	public int getN() {
 		return N;
 	}
