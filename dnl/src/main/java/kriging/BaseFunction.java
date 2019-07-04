@@ -7,6 +7,6 @@ interface BaseFunction{
 	
 	public INDArray getY(INDArray X);
 	public void writeBaseFunctionInfo(Element baseFunction,String fileLoc);
-	
+	public double getntSpecificY(INDArray X,int n, int t);
 	
 }

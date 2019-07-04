@@ -58,6 +58,7 @@ public class BPRBaseFunction implements BaseFunction{
 		
 		return Y;
 	}
+	
 
 	private double getLinkToLinkBPRDelay(double demand, int n,double timeLength) {
 		Link2LinkInfoHolder l2l=this.link2LinkInfo.get(n);
@@ -99,6 +100,12 @@ public class BPRBaseFunction implements BaseFunction{
 			}
 		}
 		return new BPRBaseFunction(link2LinkInfo,timeLength);
+	}
+
+	@Override
+	public double getntSpecificY(INDArray X, int n, int t) {
+		double tt=this.getLinkToLinkBPRDelay(X.getDouble(n, t), n,this.timeBeanLength.get(t));
+		return tt;
 	}
 
 }

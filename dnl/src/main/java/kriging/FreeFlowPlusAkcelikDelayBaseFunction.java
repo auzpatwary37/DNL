@@ -116,4 +116,10 @@ public class FreeFlowPlusAkcelikDelayBaseFunction implements BaseFunction{
 		return new FreeFlowPlusAkcelikDelayBaseFunction(link2LinkInfo,timeLength);
 	}
 
+	@Override
+	public double getntSpecificY(INDArray X, int n, int t) {
+		double tt=this.getLinkToLinkAkcelikDelay(X.getDouble(n, t), n,this.timeBeanLength.get(t));
+		return tt;
+	}
+
 }

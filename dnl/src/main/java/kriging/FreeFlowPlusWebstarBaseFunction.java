@@ -84,6 +84,12 @@ public class FreeFlowPlusWebstarBaseFunction implements BaseFunction{
 		}
 		return new FreeFlowPlusWebstarBaseFunction(link2LinkInfo);
 	}
+
+	@Override
+	public double getntSpecificY(INDArray X, int n, int t) {
+		double tt=this.getLinkToLinkWebstarDelay(X.getDouble(n, t), n);
+		return tt;
+	}
 	
 }
 

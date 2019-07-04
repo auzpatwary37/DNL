@@ -170,7 +170,7 @@ public class KrigingInterpolator{
 		info.getVarianceMatrixInverseAll().put(key,Nd4j.create(inv.getData())) ;
 		info.getLogDeterminant().put(key, logdet);
 		for(Entry<Integer,Data>dataPoint:this.trainingDataSet.entrySet()) {
-			Z_MB.putScalar(new int[] {n,t,dataPoint.getKey()},(dataPoint.getValue().getY().getDouble(n,t)-this.baseFunction.getY(dataPoint.getValue().getX()).getDouble(n,t)*beta)*this.variogram.getTtScale().getDouble(n,t));// the Y scale is directly applied on Z-MB
+			Z_MB.putScalar(new int[] {n,t,dataPoint.getKey()},(dataPoint.getValue().getY().getDouble(n,t)-this.baseFunction.getntSpecificY(dataPoint.getValue().getX(),n,t)*beta)*this.variogram.getTtScale().getDouble(n,t));// the Y scale is directly applied on Z-MB
 		}
 		return info;
 	}
@@ -328,13 +328,13 @@ public class KrigingInterpolator{
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData));
+		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new BPRBaseFunction(l2ls));
 		System.out.println(kriging.calcCombinedLogLikelihood());
 		//System.out.println("Finished!!!");
 		//System.out.println(kriging.calcCombinedLogLikelihood());
 		kriging.trainKriging();
 		System.out.println(kriging.calcCombinedLogLikelihood());
-		new KrigingModelWriter(kriging).writeModel("Network/ND/ModelNormal");
+		new KrigingModelWriter(kriging).writeModel("Network/ND/ModelBPR");
 		//KrigingInterpolator krigingnew=new KrigingModelReader().readModel("Network/ND/Model1/modelDetails.xml");
 		Map<Integer,Tuple<INDArray,INDArray>> testingData=DataIO.readDataSet("Network/ND/DataSetNDTest.txt");
 		INDArray averageError=Nd4j.create(kriging.N,kriging.T);
@@ -350,7 +350,7 @@ public class KrigingInterpolator{
 			averageError.addi(errorArray);
 		}
 		averageError.div(testingData.size());
-		Nd4j.writeTxt(averageError, "Network/ND/ModelNormal/averagePredictionError.txt");
+		Nd4j.writeTxt(averageError, "Network/ND/ModelBPR/averagePredictionError.txt");
 		System.out.println("Model Read Succesful!!!");
 		
 	}

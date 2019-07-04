@@ -63,6 +63,10 @@ public class MeanBaseFunction implements BaseFunction{
 		INDArray mean=Nd4j.readTxt(a.getValue("meanFileLoc"));
 		return new MeanBaseFunction(mean);
 	}
+	@Override
+	public double getntSpecificY(INDArray X, int n, int t) {
+		return mean.getDouble(n,t);
+	}
 	
 	
 	
