@@ -71,7 +71,11 @@ public class BPRBaseFunction implements BaseFunction{
 	public void writeBaseFunctionInfo(Element baseFunction, String fileLoc) {
 		baseFunction.setAttribute("ClassName", this.getClass().getName());
 		for(Entry<Integer,Link2LinkInfoHolder>l2l:this.link2LinkInfo.entrySet()) {
-			baseFunction.setAttribute(Integer.toString(l2l.getKey()), l2l.getValue().toString());
+			try {
+			baseFunction.setAttribute("a_"+l2l.getKey(), l2l.getValue().toString());
+			}catch(Exception e) {
+				System.out.println(e);
+			}
 		}
 		StringBuilder sb = new StringBuilder();
 		String prefix = "";

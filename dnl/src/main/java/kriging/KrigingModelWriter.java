@@ -92,13 +92,16 @@ public class KrigingModelWriter {
 			betaEle.setAttribute("Filelocation", fileLoc+"/beta.txt");
 			rootEle.appendChild(betaEle);
 			
-			Element baseFunction=document.createElement("baseFunction");
-			this.baseFunction.writeBaseFunctionInfo(baseFunction,fileLoc);
-			rootEle.appendChild(baseFunction);
-			
 			Element l2ls=document.createElement("LinkToLinks");
 			new LinkToLinksWriter(this.l2ls).write(fileLoc);
 			l2ls.setAttribute("FileLocation", fileLoc);
+			
+			Element baseFunction=document.createElement("baseFunction");
+			this.baseFunction.writeBaseFunctionInfo(baseFunction,fileLoc);
+			//System.out.println();
+			rootEle.appendChild(baseFunction);
+			
+			
 			
 			rootEle.appendChild(l2ls);
 			
@@ -114,7 +117,7 @@ public class KrigingModelWriter {
 
 
 		}catch(Exception e) {
-			
+			System.out.println(e);
 		}
 	}
 }

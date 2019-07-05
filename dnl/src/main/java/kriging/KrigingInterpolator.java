@@ -31,6 +31,7 @@ import org.nd4j.linalg.cpu.nativecpu.blas.CpuLapack;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
+import org.nd4j.linalg.ops.transforms.Transforms;
 
 import de.xypron.jcobyla.Cobyla;
 import de.xypron.jcobyla.Calcfc;
@@ -305,6 +306,8 @@ public class KrigingInterpolator{
 	}
 	
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		String modelFolderName="ModelNormal";
+		
 		DataTypeUtil.setDTypeForContext(DataType.DOUBLE);
 		Nd4j.setDefaultDataTypes(DataType.DOUBLE, DataType.DOUBLE);
 		Map<Integer,Data> trainingData=DataIO.readDataSet("Network/ND/DataSetNDTrain.txt","Network/ND/KeySetNDTrain.csv");
@@ -328,29 +331,32 @@ public class KrigingInterpolator{
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new BPRBaseFunction(l2ls));
+		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData));
 		System.out.println(kriging.calcCombinedLogLikelihood());
-		//System.out.println("Finished!!!");
-		//System.out.println(kriging.calcCombinedLogLikelihood());
+		System.out.println("Finished!!!");
+		System.out.println(kriging.calcCombinedLogLikelihood());
 		kriging.trainKriging();
 		System.out.println(kriging.calcCombinedLogLikelihood());
-		new KrigingModelWriter(kriging).writeModel("Network/ND/ModelBPR");
-		//KrigingInterpolator krigingnew=new KrigingModelReader().readModel("Network/ND/Model1/modelDetails.xml");
-		Map<Integer,Tuple<INDArray,INDArray>> testingData=DataIO.readDataSet("Network/ND/DataSetNDTest.txt");
+		new KrigingModelWriter(kriging).writeModel("Network/ND/"+modelFolderName+"/");
+		KrigingInterpolator krigingnew=new KrigingModelReader().readModel("Network/ND/"+modelFolderName+"/modelDetails.xml");
+		System.out.println(krigingnew.calcCombinedLogLikelihood());
+		Map<Integer,Data> testingData=DataIO.readDataSet("Network/ND/DataSetNDTest.txt","Network/ND/KeySetNDTest.csv");
 		INDArray averageError=Nd4j.create(kriging.N,kriging.T);
-		for(Tuple<INDArray,INDArray> testData:testingData.values()) {
-			INDArray Yreal=testData.getSecond();
-			INDArray y=kriging.getY(testData.getFirst());
+		for(Data testData:testingData.values()) {
+			INDArray Yreal=testData.getY();
+			INDArray y=kriging.getY(testData.getX());
 			INDArray errorArray=Yreal.sub(y).div(Yreal).mul(100);
-			for(int i=0;i<errorArray.size(0);i++) {
-				for(int j=0;j<errorArray.size(1);j++) {
-					errorArray.putScalar(i, j,Math.abs(errorArray.getDouble(i,j)));
-				}
-			}
+			errorArray=Transforms.abs(errorArray);
+//			for(int i=0;i<errorArray.size(0);i++) {
+//				for(int j=0;j<errorArray.size(1);j++) {
+//					errorArray.putScalar(i, j,Math.abs(errorArray.getDouble(i,j)));
+//				}
+//			}
+			KrigingInterpolator.writeINDArray(errorArray, "Network/ND/"+modelFolderName+"/"+testData.getKey()+".csv");
 			averageError.addi(errorArray);
 		}
-		averageError.div(testingData.size());
-		Nd4j.writeTxt(averageError, "Network/ND/ModelBPR/averagePredictionError.txt");
+		averageError.divi(testingData.size());
+		Nd4j.writeTxt(averageError, "Network/ND/"+modelFolderName+"/averagePredictionError.txt");
 		System.out.println("Model Read Succesful!!!");
 		
 	}
