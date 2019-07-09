@@ -426,7 +426,7 @@ public class KrigingInterpolator{
 				n_tlist.add(Integer.toString(n)+"_"+Integer.toString(t));
 				}
 			}
-		int numberDone=0;
+		this.numDone=0;
 		n_tlist.parallelStream().forEach((key)->{
 		//for(String key:n_tlist) {
 			long startTiment=System.currentTimeMillis();
@@ -438,7 +438,7 @@ public class KrigingInterpolator{
 			}
 			
 			double initialBeta=this.beta.getDouble(n,t);
-			double initialTheta=1/this.variogram.getDistances().get(key).maxNumber().doubleValue()*10;
+			double initialTheta=1/this.variogram.getDistances().get(key).maxNumber().doubleValue();
 			double initialCn=1;
 			double initialCt=1;
 				Calcfc calcfc = new Calcfc() {
@@ -452,9 +452,11 @@ public class KrigingInterpolator{
 						double cn=initialCn+initialCn*x[2]/100;
 						double ct=initialCt+initialCt*x[3]/100;
 						KrigingInterpolator.this.variogram.calcDistanceMatrix(n, t, cn, ct);
-						double obj=KrigingInterpolator.this.calcNtSpecificLogLikelihood(n, t, theta, beta,info);
-						if(theta==0) {
+						double obj=0;
+						if(theta<=0) {
 							obj=10000000000000.;
+						}else {
+							obj=KrigingInterpolator.this.calcNtSpecificLogLikelihood(n, t, theta, beta,info);
 						}
 						con[0]=100*(theta-0.0000001);
 						con[1]=initialCn+initialCn*x[2]/100;
@@ -469,7 +471,7 @@ public class KrigingInterpolator{
 				};
 				
 				double[] x = {1,1,1,1};
-				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 4, 3, x, 10, .01, 1, 100);
+				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 4, 3, x, 2, .01, 1, 100);
 				this.beta.putScalar(n, t,initialBeta+initialBeta*x[1]/100);
 				this.variogram.gettheta().putScalar(n,t,initialTheta+initialTheta*x[0]/100);
 				double cn=initialCn+initialCn*x[2]/100;
@@ -485,6 +487,7 @@ public class KrigingInterpolator{
 		});
 		//}
 		System.out.println("Total time for training for "+N+" links and "+T+" time setps = "+Long.toString(System.currentTimeMillis()-startTime));
+		this.trainingTime=System.currentTimeMillis()-startTime;
 	}
 	private VarianceInfoHolder preProcessData() {
 		return this.preProcessData(this.beta,this.variogram.gettheta());
