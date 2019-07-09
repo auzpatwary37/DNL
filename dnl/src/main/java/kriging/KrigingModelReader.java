@@ -34,6 +34,7 @@ public class KrigingModelReader extends DefaultHandler {
 	private int T;
 	private int I;
 	private BaseFunction bf;
+	private double trainingTime=0;
 
 	@Override 
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
@@ -50,6 +51,7 @@ public class KrigingModelReader extends DefaultHandler {
 			N=Integer.parseInt(attributes.getValue("N"));
 			T=Integer.parseInt(attributes.getValue("T"));
 			I=Integer.parseInt(attributes.getValue("I"));
+			this.trainingTime=Double.parseDouble(attributes.getValue("TrainingTime"));
 		}
 		
 		if(qName.equalsIgnoreCase("Cn")) {
@@ -112,7 +114,10 @@ public class KrigingModelReader extends DefaultHandler {
 		
 		Variogram v=new Variogram(trainingDataSet,this.l2ls,this.theta,this.Cn,this.Ct);
 		
-		return new KrigingInterpolator(v,beta,this.bf,Cn,Ct);
+		KrigingInterpolator kriging=new KrigingInterpolator(v,beta,this.bf,Cn,Ct);
+		kriging.setTrainingTime(trainingTime);
+		
+		return kriging;
 	}
 
 	

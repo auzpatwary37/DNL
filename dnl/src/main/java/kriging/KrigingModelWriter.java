@@ -27,6 +27,7 @@ import linktolinkBPR.LinkToLinksWriter;
 import training.DataIO;
 
 public class KrigingModelWriter {
+	private final KrigingInterpolator krigingModel;
 	private final Map<Integer,Data> trainingDataSet;
 	private final INDArray theta;
 	private final INDArray beta;
@@ -36,6 +37,7 @@ public class KrigingModelWriter {
 	private LinkToLinks l2ls;
 	
 	public KrigingModelWriter(KrigingInterpolator model) {
+		this.krigingModel=model;
 		this.trainingDataSet=model.getTrainingDataSet();
 		this.theta=model.getVariogram().gettheta();
 		this.beta=model.getBeta();
@@ -64,6 +66,7 @@ public class KrigingModelWriter {
 			metaData.setAttribute("N", Long.toString(this.trainingDataSet.get(0).getX().size(0)));
 			metaData.setAttribute("T", Long.toString(this.trainingDataSet.get(0).getX().size(1)));
 			metaData.setAttribute("I", Integer.toString(this.trainingDataSet.size()));
+			metaData.setAttribute("TrainingTime", Double.toString(this.krigingModel.getTrainingTime()));
 			rootEle.appendChild(metaData);
 			
 			Element trainingDataSet=document.createElement("trainingDataSet");	
