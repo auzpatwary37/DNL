@@ -256,12 +256,12 @@ public class Variogram {
 				intMap.add(ii);
 				ntTrainData.put(i, this.trainingDataSet.get(ii));
 				i++;
-				if(n==23 && t==7 && i==19) {
-					System.out.println();
-				}
 			}
 		}
 		this.ntSpecificOriginalIndices.put(Integer.toString(n)+"_"+Integer.toString(t), intMap);
+		if(intMap.size()==1) {
+			System.out.println("Debug!!!");
+		}
 		INDArray K=Nd4j.create(i,i);
 		IntStream.rangeClosed(0,i-1).parallel().forEach((ii)->
 		{
@@ -312,6 +312,7 @@ public class Variogram {
 			}
 		}
 		this.ntSpecificOriginalIndices.put(Integer.toString(n)+"_"+Integer.toString(t), intMap);
+		
 		INDArray K=Nd4j.create(i,i);
 		IntStream.rangeClosed(0,i-1).parallel().forEach((ii)->
 		{

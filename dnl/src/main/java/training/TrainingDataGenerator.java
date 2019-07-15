@@ -100,13 +100,15 @@ public class TrainingDataGenerator {
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
 		new ConfigWriter(config).write("Network/ND/final_config.xml");
 //		
-		for(int i=0;i<6;i++) {
+		double[] ratio=new double[] {0.5,0.553,0.6053,0.658,0.71,0.76,0.816,0.868,0.921,0.974,1.026,1.079,1.132,1.184,1.237,1.289,1.342,1.395,1.447,1.5};
+		
+		for(int i=0;i<20;i++) {
 			Config configcurrent=ConfigUtils.createConfig();
 			ConfigUtils.loadConfig(configcurrent, "Network/ND/final_config.xml");
-			GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, "Network/ND",.25*(i+1));
+			GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, "Network/ND",ratio[i]);
 			configcurrent.plans().setInputFile("Network/ND/population"+i+".xml");
 			configcurrent.vehicles().setVehiclesFile("Network/ND/vehicles.xml");
-			configcurrent.controler().setOutputDirectory("Network/ND/output"+i);
+			configcurrent.controler().setOutputDirectory("Network/ND/largeDataset/output"+i);
 			
 			configcurrent.travelTimeCalculator().setCalculateLinkToLinkTravelTimes(true);
 			configcurrent.travelTimeCalculator().setTraveltimeBinSize(3600);
@@ -114,7 +116,7 @@ public class TrainingDataGenerator {
 			//TravelTimeCalculator.Builder b;
 			Scenario scenario = ScenarioUtils.loadScenario(configcurrent);
 			Controler controler = new Controler(scenario);
-			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,"Network/ND/DataSet"+i+".txt",Double.toString(.25*(i+1)),"Network/ND/DataSet"+i+".csv"));
+			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,"Network/ND/largeDataset/DataSet"+i+".txt",Double.toString(ratio[i]),"Network/ND/largeDataset/KeySet"+i+".csv"));
 			controler.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 			controler.run();
 		}

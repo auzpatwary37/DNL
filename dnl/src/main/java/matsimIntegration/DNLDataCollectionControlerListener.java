@@ -47,7 +47,9 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 	
 	@Inject
 	private @Named("fileLoc") String fileLoc;
+	@Inject
 	private @Named("keyPrefix") String keyPrefix;
+	@Inject
 	private @Named("keyFileloc") String keyFileloc;
 	
 	private ArrayList<Data> dataset=new ArrayList<>();

@@ -47,7 +47,7 @@ public class KrigingModelReader extends DefaultHandler {
 			beta=Nd4j.readTxt(attributes.getValue("Filelocation"));
 		}
 		
-		if(qName.equalsIgnoreCase("metadata")) {
+		if(qName.equalsIgnoreCase("meatadata")) {
 			N=Integer.parseInt(attributes.getValue("N"));
 			T=Integer.parseInt(attributes.getValue("T"));
 			I=Integer.parseInt(attributes.getValue("I"));

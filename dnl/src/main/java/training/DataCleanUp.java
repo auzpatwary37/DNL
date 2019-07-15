@@ -17,8 +17,8 @@ import kriging.KrigingInterpolator;
 public class DataCleanUp {
 	public static void main(String[] args) {
 		List<Data> datasetFull=new ArrayList<>();
-		for(int i=0;i<6;i++) {
-			Map<Integer,Data> dset=DataIO.readDataSet("Network/ND/DataSet"+i+".txt","Network/ND/KeySet"+i+".csv");
+		for(int i=0;i<20;i++) {
+			Map<Integer,Data> dset=DataIO.readDataSet("Network/ND/largeDataset/DataSet"+i+".txt","Network/ND/largeDataset/KeySet"+i+".csv");
 			for(Data data:dset.values()) {
 				boolean isDuplicate=false;
 				for(Data currentData:datasetFull) {
@@ -33,17 +33,19 @@ public class DataCleanUp {
 			}
 		}
 		
-		DataSet dataset=new DataSet();
+
 //		INDArray X=
 //		
 //		for(Tuple<INDArray,INDArray> data:datasetFull) {
 //			
 //		}
+		DataIO.writeData(datasetFull, "Network/ND/largeDataset/DataSetNDFull.txt","Network/ND/largeDataset/KeySetNDFull.csv");
+		for(double i=.30;i<=.90;i=i+.10) {
 		
-		DataIO.writeData(datasetFull, "Network/ND/DataSetNDFull.txt","Network/ND/KeySetNDFull.csv");
-		TestAndTrainData testAndTrain=DataCleanUp.DevideDataInTestAndTrain(datasetFull, 0.1);
-		DataIO.writeData(testAndTrain.getTestData(), "Network/ND/DataSetNDTest.txt","Network/ND/KeySetNDTest.csv");
-		DataIO.writeData(testAndTrain.getTrainData(), "Network/ND/DataSetNDTrain.txt", "Network/ND/KeySetNDTrain.csv");
+		TestAndTrainData testAndTrain=DataCleanUp.DevideDataInTestAndTrain(datasetFull, 1-i);
+		DataIO.writeData(testAndTrain.getTestData(), "Network/ND/largeDataset/DataSetNDTest"+Double.toString(i)+".txt","Network/ND/largeDataset/KeySetNDTest"+Double.toString(i)+".csv");
+		DataIO.writeData(testAndTrain.getTrainData(), "Network/ND/largeDataset/DataSetNDTrain"+Double.toString(i)+".txt", "Network/ND/largeDataset/KeySetNDTrain"+Double.toString(i)+".csv");
+		}
 		
 		
 	}

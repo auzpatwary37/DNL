@@ -130,7 +130,7 @@ public class DataIO {
 	}
 	
 	public static Map<Integer,Data> readDataSet(String fileLoc,String keyFileloc){
-		Map<Integer,Data> dataSet=new ConcurrentHashMap<>();
+	Map<Integer,Data> dataSet=new ConcurrentHashMap<>();
 		INDArray rawArray=Nd4j.readTxt(fileLoc);
 		int T=Math.toIntExact(rawArray.size(1))/2;
 		int I=Math.toIntExact(rawArray.size(2));
@@ -144,7 +144,10 @@ public class DataIO {
 			String line= bf.readLine();
 			INDArray X=rawArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.interval(0, T),NDArrayIndex.point(i)});
 			INDArray Y=rawArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.interval(T, 2*T),NDArrayIndex.point(i)});
-			dataSet.put(i,new Data(Y, Y, line.split(",")[1]));
+			if(!(X.size(0)==33 && X.size(1)==9 && Y.size(0)==33 && Y.size(1)==9)) {
+				System.out.println();
+			}
+			dataSet.put(i,new Data(X, Y, line.split(",")[1]));
 			
 		}
 		} catch (IOException e) {
