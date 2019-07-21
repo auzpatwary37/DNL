@@ -19,7 +19,13 @@ import org.apache.commons.math3.linear.CholeskyDecomposition;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.blas.Lapack;
@@ -36,6 +42,7 @@ import org.nd4j.linalg.ops.transforms.Transforms;
 import de.xypron.jcobyla.Cobyla;
 import de.xypron.jcobyla.Calcfc;
 import de.xypron.jcobyla.CobylaExitStatus;
+import linktolinkBPR.LinkToLink;
 import linktolinkBPR.LinkToLinks;
 import linktolinkBPR.SignalFlowReductionGenerator;
 import training.DataIO;
@@ -212,6 +219,50 @@ public class KrigingInterpolator{
 			});
 		});
 		return Y;
+	}
+	
+	public Tuple<INDArray,INDArray> getXYIterative(Population population){
+		return this.getXYIterative(this.beta,this.variogram.gettheta(),this.info,population);
+	}
+	
+	public Tuple<INDArray,INDArray> getXYIterative(INDArray beta,INDArray theta,VarianceInfoHolder info,Population population) {
+		INDArray XX=KrigingInterpolator.generateXFromPop(population, this.variogram.getL2ls());
+		INDArray Y=Nd4j.create(XX.size(0),XX.size(1));
+		INDArray X=Nd4j.create(XX.toDoubleMatrix());
+		INDArray Yold=Nd4j.create(Y.shape());
+		for(int iter=0;iter<100;iter++) {
+			Yold.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all()}, Nd4j.create(Y.toFloatMatrix()));
+			//This is m(x_0);
+			INDArray Y_b=this.baseFunction.getY(X);
+			INDArray Z_MB=info.getZ_MB();
+
+			Map<String,INDArray> varianceVectorAll=this.variogram.calculateVarianceVectorAll(X, theta);
+			IntStream.rangeClosed(0,Math.toIntExact(X.size(0))-1).parallel().forEach((n)->
+			{
+				IntStream.rangeClosed(0,Math.toIntExact(X.size(1))-1).parallel().forEach((t)->{
+					if(this.variogram.getSigmaMatrix().getDouble(n,t)==0) {
+						Y.putScalar(n,t,Y_b.getDouble(n,t));
+					}else {
+						String key=Integer.toString(n)+"_"+Integer.toString(t);
+						INDArray z_mb=Nd4j.create(this.variogram.getNtSpecificTrainingSet().get(key).size(),1);
+						INDArray KInverse=info.getVarianceMatrixInverseAll().get(key);
+						for(int i=0;i<z_mb.size(0);i++) {
+							z_mb.putScalar(i, 0,Z_MB.getDouble(n,t,this.variogram.getNtSpecificOriginalIndices().get(key).get(i)));
+						}
+						double y=Y_b.getDouble(n,t)*beta.getDouble(n,t)+
+								varianceVectorAll.get(key).transpose().mmul(KInverse).mmul(z_mb).getDouble(0,0)/this.variogram.getTtScale().getDouble(n,t);//Fix the Z_MB part!!!
+						Y.putScalar(n,t,y);
+					}
+				});
+			});
+			INDArray Xnew=updateX(Y, population, this.variogram.getL2ls());
+			X.addi(Xnew.sub(X).mul(1./(iter+1)));
+			//X.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all()},updateX(Y, population, this.variogram.getL2ls()));
+			if(Transforms.abs(X.sub(Xnew)).lt(1).all()) {
+				break;
+			}
+		}
+		return new Tuple<>(X,Y);
 	}
 	
 	public static float[][] toFloatArray(double[][] arr) {
@@ -443,6 +494,7 @@ public class KrigingInterpolator{
 					public double compute(int N, int m, double[] x, double[] con) {
 						double theta=initialTheta+initialTheta*x[0]/100;
 						double beta=initialBeta+initialBeta*x[1]/100;
+						//double beta=1;
 						double obj=KrigingInterpolator.this.calcNtSpecificLogLikelihood(n, t, theta, beta,info);
 						if(theta==0) {
 							obj=10000000000000.;
@@ -604,6 +656,111 @@ public class KrigingInterpolator{
 		this.trainingTime = trainingTime;
 	}
 	
+	public static INDArray updateX(INDArray TT,Population population,LinkToLinks l2ls) {
+		INDArray X=Nd4j.create(TT.shape());
+		Map<String,Double> linkToLinksDemand=new ConcurrentHashMap<>();
+		population.getPersons().entrySet().forEach((e)->{
+			Plan plan=e.getValue().getSelectedPlan();
+			for(PlanElement pl:plan.getPlanElements()) {
+				Leg l;
+				ArrayList<Id<Link>> links=new ArrayList<>();
+
+				if(pl instanceof Leg) {
+					l=(Leg)pl;
+					String[] part=l.getRoute().getRouteDescription().split(" ");
+					for(String s:part) {
+						links.add(Id.createLinkId(s.trim()));
+					}
+					double time=l.getDepartureTime();
+					for(int i=1;i<links.size();i++) {
+						Id<LinkToLink> l2lId=Id.create(links.get(i-1)+"_"+links.get(i), LinkToLink.class);
+						int n=l2ls.getNumToLinkToLink().inverse().get(l2lId);
+						int t=l2ls.getTimeId(time);
+						String key=Integer.toString(n)+"_"+Integer.toString(t);
+						if(linkToLinksDemand.containsKey(key)) {
+							linkToLinksDemand.put(key, linkToLinksDemand.get(key)+1);
+						}else {
+							linkToLinksDemand.put(key,1.);
+						}
+
+						time+=TT.getDouble(n,t);
+					}
+				}else {
+					continue;
+				}
+			}
+		});
+
+		linkToLinksDemand.entrySet().parallelStream().forEach((n_t_d)->{		
+			String key=n_t_d.getKey();
+			int n=Integer.parseInt(key.split("_")[0]);
+			int t=Integer.parseInt(key.split("_")[1]);
+			if(linkToLinksDemand.containsKey(key)) {
+				if(linkToLinksDemand.get(key)==Double.NaN) {
+					System.out.println();
+				}
+
+				X.putScalar(n,t,linkToLinksDemand.get(key));
+			}else {
+				X.putScalar(n,t,0);
+			}
+		});
+		return X;
+	}
+	
+
+	public static INDArray generateXFromPop(Population population,LinkToLinks l2ls) {
+		Nd4j.setDefaultDataTypes(DataType.DOUBLE, DataType.DOUBLE);
+		INDArray X=Nd4j.create(l2ls.getLinkToLinks().size(),l2ls.getTimeBean().size());
+		Map<String,Double> linkToLinksDemand=new ConcurrentHashMap<>();
+		population.getPersons().entrySet().forEach((e)->{
+			Plan plan=e.getValue().getSelectedPlan();
+			for(PlanElement pl:plan.getPlanElements()) {
+				Leg l;
+				ArrayList<Id<Link>> links=new ArrayList<>();
+				
+				if(pl instanceof Leg) {
+					l=(Leg)pl;
+					String[] part=l.getRoute().getRouteDescription().split(" ");
+					for(String s:part) {
+						links.add(Id.createLinkId(s.trim()));
+					}
+					double time=l.getDepartureTime();
+					for(int i=1;i<links.size();i++) {
+						Id<LinkToLink> l2lId=Id.create(links.get(i-1)+"_"+links.get(i), LinkToLink.class);
+						int n=l2ls.getNumToLinkToLink().inverse().get(l2lId);
+						int t=l2ls.getTimeId(time);
+						String key=Integer.toString(n)+"_"+Integer.toString(t);
+						if(linkToLinksDemand.containsKey(key)) {
+							linkToLinksDemand.put(key, linkToLinksDemand.get(key)+1);
+						}else {
+							linkToLinksDemand.put(key,1.);
+						}
+						
+						time+=l2ls.getLinkToLink(l2lId).getFreeFlowTT();
+					}
+				}else {
+					continue;
+				}
+			}
+		});
+		
+		IntStream.rangeClosed(0,l2ls.getLinkToLinks().size()-1).parallel().forEach((n)->
+		{
+			IntStream.rangeClosed(0,l2ls.getTimeBean().size()-1).parallel().forEach((t)->{
+				String key=Integer.toString(n)+"_"+Integer.toString(t);
+				if(linkToLinksDemand.containsKey(key)) {
+					if(linkToLinksDemand.get(key)==Double.NaN) {
+						System.out.println();
+					}
+					X.putScalar(n,t,linkToLinksDemand.get(key));
+				}else {
+					X.putScalar(n,t,0);
+				}
+			});
+		});
+		return X;
+	}
 	
 }
 

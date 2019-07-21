@@ -44,7 +44,7 @@
 		Depending on the chosen mobsim, you'll have to add additional config modules to configure the corresponding mobsim.
 		For 'qsim', add a module 'qsim' to the config. -->
 		<param name="mobsim" value="qsim" />
-		<param name="outputDirectory" value="Network/ND/output0" />
+		<param name="outputDirectory" value="./output" />
 		<!-- Possible values: failIfDirectoryExists, overwriteExistingFiles, deleteDirectoryIfExists -->
 		<param name="overwriteFiles" value="failIfDirectoryExists" />
 		<!-- The type of routing (least cost path) algorithm used, may have the values: Dijkstra, FastDijkstra, AStarLandmarks or FastAStarLandmarks -->
@@ -85,8 +85,8 @@
 	<module name="facilities" >
 		<!-- This defines how facilities should be created. Possible values: none fromFile setInScenario onePerActivityLinkInPlansFile onePerActivityLocationInPlansFile  -->
 		<param name="facilitiesSource" value="none" />
-		<!-- A prefix to be used in activityFacility id. -->
-		<param name="idPrefix" value="" />
+		<!-- A prefix to be used for auto-generated IDs. -->
+		<param name="idPrefix" value="autogen_" />
 		<!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
 		<param name="inputCRS" value="null" />
 		<param name="inputFacilitiesFile" value="null" />
@@ -96,7 +96,7 @@
 		<param name="coordinateSystem" value="arbitrary" />
 		<param name="insistingOnDeprecatedConfigVersion" value="true" />
 		<!-- "global" number of threads.  This number is used, e.g., for replanning, but NOT in the mobsim.  This can typically be set to as many cores as you have available, or possibly even slightly more. -->
-		<param name="numberOfThreads" value="3" />
+		<param name="numberOfThreads" value="8" />
 		<param name="randomSeed" value="4711" />
 	</module>
 	<module name="households" >
@@ -113,7 +113,7 @@
 		<!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
 		<param name="inputCRS" value="null" />
 		<param name="inputChangeEventsFile" value="null" />
-		<param name="inputNetworkFile" value="Network/ND/ndNetwork.xml" />
+		<param name="inputNetworkFile" value="Network/SiouxFalls/siouxfallsNetwork.xml" />
 		<param name="laneDefinitionsFile" value="null" />
 		<param name="timeVariantNetwork" value="false" />
 	</module>
@@ -121,7 +121,7 @@
 		<!-- Estimated number of events during mobsim run. An optional optimization hint for the framework. -->
 		<param name="estimatedNumberOfEvents" value="null" />
 		<!-- Number of threads for parallel events handler. _null_ means the framework decides by itself. 0 is currently not possible. -->
-		<param name="numberOfThreads" value="2" />
+		<param name="numberOfThreads" value="8" />
 		<!-- If enabled, each event handler is assigned to its own thread. Note that enabling this feature disabled the numberOfThreads option! This feature is still experimental! -->
 		<param name="oneThreadPerHandler" value="false" />
 		<!-- If enabled, it is ensured that all events that are created during a time step of the mobility simulation are processed before the next time step is simulated. E.g. neccessary when within-day replanning is used. -->
@@ -222,30 +222,6 @@
 				<param name="typicalDuration" value="undefined" />
 				<param name="typicalDurationScoreComputation" value="relative" />
 			</parameterset>
-			<parameterset type="activityParams" >
-				<param name="activityType" value="Home1" />
-				<param name="closingTime" value="undefined" />
-				<param name="earliestEndTime" value="undefined" />
-				<param name="latestStartTime" value="undefined" />
-				<param name="minimalDuration" value="undefined" />
-				<param name="openingTime" value="undefined" />
-				<param name="priority" value="1.0" />
-				<param name="scoringThisActivityAtAll" value="true" />
-				<param name="typicalDuration" value="08:00:00" />
-				<param name="typicalDurationScoreComputation" value="relative" />
-			</parameterset>
-			<parameterset type="activityParams" >
-				<param name="activityType" value="Home2" />
-				<param name="closingTime" value="undefined" />
-				<param name="earliestEndTime" value="undefined" />
-				<param name="latestStartTime" value="undefined" />
-				<param name="minimalDuration" value="undefined" />
-				<param name="openingTime" value="undefined" />
-				<param name="priority" value="1.0" />
-				<param name="scoringThisActivityAtAll" value="true" />
-				<param name="typicalDuration" value="08:00:00" />
-				<param name="typicalDurationScoreComputation" value="relative" />
-			</parameterset>
 			<parameterset type="modeParams" >
 				<!-- [utils] alternative-specific constant.  Normally per trip, but that is probably buggy for multi-leg trips. -->
 				<param name="constant" value="0.0" />
@@ -313,9 +289,8 @@
 		<param name="activityDurationInterpretation" value="tryEndTimeThenDuration" />
 		<!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
 		<param name="inputCRS" value="null" />
-		<!-- Path to a file containing person attributes (required file format: ObjectAttributes). -->
 		<param name="inputPersonAttributesFile" value="null" />
-		<param name="inputPlansFile" value="Network/ND/population.xml" />
+		<param name="inputPlansFile" value="null" />
 		<!-- Defines how routes are stored in memory. Currently supported: LinkNetworkRoute, CompressedNetworkRoute. -->
 		<param name="networkRouteType" value="LinkNetworkRoute" />
 		<!-- (not tested) will remove plan attributes that are presumably not used, such as activityStartTime. default=false. Use with Caution! -->
@@ -393,7 +368,7 @@
 		<param name="endTime" value="24:00:00" />
 		<param name="flowCapacityFactor" value="1.0" />
 		<!-- decides if waiting vehicles enter the network after or before the already driving vehicles were moved. Default: false -->
-		<param name="insertingWaitingVehiclesBeforeDrivingVehicles" value="false" />
+		<param name="insertingWaitingVehiclesBeforeDrivingVehicles" value="true" />
 		<!-- If link dynamics is set as SeepageQ, set to false if all seep modes should perform seepage. Default is true (better option). -->
 		<param name="isRestrictingSeepage" value="true" />
 		<!-- If link dynamics is set as SeepageQ, set to true if seep mode do not consumes any space on the link. Default is false. -->
@@ -407,7 +382,7 @@
 		<!-- Shortens a link in the visualization, i.e. its start and end point are moved into towards the center. Does not affect traffic flow.  -->
 		<param name="nodeOffset" value="0.0" />
 		<!-- Number of threads used for the QSim.  Note that this setting is independent from the "global" threads setting.  In contrast to earlier versions, the non-parallel special version is no longer there. -->
-		<param name="numberOfThreads" value="3" />
+		<param name="numberOfThreads" value="8" />
 		<!-- Boolean. `true': stuck vehicles are removed, aborting the plan; `false': stuck vehicles are forced into the next link. `false' is probably the better choice. -->
 		<param name="removeStuckVehicles" value="false" />
 		<!-- If link dynamics is set as SeepageQ, set a seep mode. Default is bike. -->
@@ -531,7 +506,7 @@
 		<param name="travelTimeGetter" value="average" />
 	</module>
 	<module name="vehicles" >
-		<param name="vehiclesFile" value="Network/ND/vehicles.xml" />
+		<param name="vehiclesFile" value="null" />
 	</module>
 	<module name="vspExperimental" >
 		<!-- (do not use except of you have to) There was a problem with pt interaction scoring.  Some people solved it by overwriting the parameters of the pt interaction activity type.  Doing this now throws an Exception.  If you still insist on doing this, set the following to true. -->

@@ -15,12 +15,14 @@ public class DNLDataCollectionModule extends AbstractModule{
 	private String fileLoc;
 	private String keyPrefix;
 	private String keyFileLoc;
+	private boolean instantenious;
 	
-	public DNLDataCollectionModule(LinkToLinks l2ls,String fileLoc,String keyPrefix,String keyFileloc) {
+	public DNLDataCollectionModule(LinkToLinks l2ls,String fileLoc,String keyPrefix,String keyFileloc,boolean instantenious) {
 		this.l2ls=l2ls;
 		this.fileLoc=fileLoc;
 		this.keyPrefix=keyPrefix;
 		this.keyFileLoc=keyFileloc;
+		this.instantenious=instantenious;
 	}
 	
 	public void install() {
@@ -29,7 +31,8 @@ public class DNLDataCollectionModule extends AbstractModule{
 		bind(String.class).annotatedWith(Names.named("fileLoc")).toInstance(this.fileLoc);
 		bind(String.class).annotatedWith(Names.named("keyPrefix")).toInstance(this.keyPrefix);
 		bind(String.class).annotatedWith(Names.named("keyFileloc")).toInstance(this.keyFileLoc);
-//		this.addEventHandlerBinding().to(LinkToLinkTTRecorder.class).in(Singleton.class);
+		bind(boolean.class).annotatedWith(Names.named("instantenious")).toInstance(this.instantenious);
+		this.addEventHandlerBinding().to(LinkToLinkTTRecorder.class);
 		this.addControlerListenerBinding().to(DNLDataCollectionControlerListener.class).in(Singleton.class);
 		
 	}

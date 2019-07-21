@@ -44,6 +44,7 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 	private EventsManager eventManager;
 	@Inject
 	private TravelTimeCalculator ttCalculator;
+
 	
 	@Inject
 	private @Named("fileLoc") String fileLoc;
@@ -54,6 +55,8 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 	
 	private ArrayList<Data> dataset=new ArrayList<>();
 	private INDArray X;
+	@Inject
+	private @Named("instantenious") boolean instantenious; 
 	
 	@Inject
 	public DNLDataCollectionControlerListener(LinkToLinks l2ls) {
@@ -79,7 +82,11 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 				Y.putScalar(n,t,tt);
 			});
 		});
-		this.dataset.add(new Data(this.X,Y,this.keyPrefix+"_"+event.getIteration()));
+		if(instantenious==true) {
+			this.dataset.add(new Data(Nd4j.create(TTRecorder.getNumVehicle().toFloatMatrix()),Y,this.keyPrefix+"_"+event.getIteration()));
+		}else {
+			this.dataset.add(new Data(this.X,Y,this.keyPrefix+"_"+event.getIteration()));
+		}
 	}
 
 	@Override

@@ -51,11 +51,11 @@ import matsimIntegration.DNLDataCollectionModule;
 public class TrainingDataGenerator {
 	public static void main(String[] args) throws IOException {
 		Config config =ConfigUtils.createConfig();
-		GenerateNDNetwork("Network/ND/ndNodes.csv","Network/ND/ndLinks.csv","Network/ND/ndNetwork.xml");
-//		GenerateSiouxFallNetwork("Network/SiouxFalls/siouxfallsNodes.csv","Network/SiouxFalls/links.csv","Network/SiouxFalls/siouxfallsNetwork.xml");
+//		GenerateNDNetwork("Network/ND/ndNodes.csv","Network/ND/ndLinks.csv","Network/ND/ndNetwork.xml");
+		GenerateSiouxFallNetwork("Network/SiouxFalls/siouxfallsNodes.csv","Network/SiouxFalls/links.csv","Network/SiouxFalls/siouxfallsNetwork.xml");
 //		ConfigUtils.loadConfig(config, "Network/SiouxFalls/config.xml");
-//		config.network().setInputFile("Network/SiouxFalls/siouxfallsNetwork.xml");
-		config.network().setInputFile("Network/ND/ndNetwork.xml");
+		config.network().setInputFile("Network/SiouxFalls/siouxfallsNetwork.xml");
+//		config.network().setInputFile("Network/ND/ndNetwork.xml");
 		ArrayList<String> modes=new ArrayList<>();
 		modes.add("car");
 		config.plansCalcRoute().setNetworkModes(modes);
@@ -69,11 +69,11 @@ public class TrainingDataGenerator {
 //		config.controler().setLinkToLinkRoutingEnabled(true);
 		config.controler().setLastIteration(50);
 		config.global().setCoordinateSystem("arbitrary");
-		config.parallelEventHandling().setNumberOfThreads(3);
+		config.parallelEventHandling().setNumberOfThreads(8);
 		config.controler().setWritePlansInterval(50);
-		config.global().setNumberOfThreads(3);
-		config.qsim().setNumberOfThreads(3);
-		config.parallelEventHandling().setNumberOfThreads(2);
+		config.global().setNumberOfThreads(8);
+		config.qsim().setNumberOfThreads(8);
+		config.parallelEventHandling().setNumberOfThreads(8);
 		config.strategy().setFractionOfIterationsToDisableInnovation(0.8);
 		config.controler().setWriteEventsInterval(50);
 		config.strategy().addParam("ModuleProbability_1", "0.8");
@@ -89,8 +89,8 @@ public class TrainingDataGenerator {
 //
 		
 		//Generate the linkToLink
-		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
-		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
+		//Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
+		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsnetwork.xml");
 		SignalFlowReductionGenerator sg = null;
 		//config.network().setInputFile("Network/SiouxFalls/network.xml");
 		Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
@@ -98,25 +98,28 @@ public class TrainingDataGenerator {
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		new ConfigWriter(config).write("Network/ND/final_config.xml");
+		//new ConfigWriter(config).write("Network/ND/final_config.xml");
+		new ConfigWriter(config).write("Network/SiouxFalls/final_config.xml");
 //		
-		double[] ratio=new double[] {0.5,0.553,0.6053,0.658,0.71,0.76,0.816,0.868,0.921,0.974,1.026,1.079,1.132,1.184,1.237,1.289,1.342,1.395,1.447,1.5};
-		
-		for(int i=0;i<20;i++) {
+		double[] ratio=new double[] {0.5,.625,.75,.875,1,1.125,1.25,1.375,1.5};
+		String baseLoc="Network/SiouxFalls/largeDataset/";
+		for(int i=0;i<ratio.length;i++) {
 			Config configcurrent=ConfigUtils.createConfig();
-			ConfigUtils.loadConfig(configcurrent, "Network/ND/final_config.xml");
-			GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, "Network/ND",ratio[i]);
-			configcurrent.plans().setInputFile("Network/ND/population"+i+".xml");
-			configcurrent.vehicles().setVehiclesFile("Network/ND/vehicles.xml");
-			configcurrent.controler().setOutputDirectory("Network/ND/largeDataset/output"+i);
+			ConfigUtils.loadConfig(configcurrent, "Network/SiouxFalls/final_config.xml");
+			//GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, "Network/ND",ratio[i]);
+			GenerateRandomPopulation(i,configcurrent,"Network/SiouxFalls/SiouxFallDemand.csv", 5, "Network/SiouxFalls",ratio[i],network);
 			
+			configcurrent.plans().setInputFile("Network/SiouxFalls/population"+i+".xml");
+			configcurrent.vehicles().setVehiclesFile("Network/SiouxFalls/vehicles"+i+".xml");
+			configcurrent.controler().setOutputDirectory(baseLoc+"output"+i);
+			configcurrent.controler().setWritePlansInterval(1);
 			configcurrent.travelTimeCalculator().setCalculateLinkToLinkTravelTimes(true);
 			configcurrent.travelTimeCalculator().setTraveltimeBinSize(3600);
 			configcurrent.travelTimeCalculator().setSeparateModes(false);
 			//TravelTimeCalculator.Builder b;
 			Scenario scenario = ScenarioUtils.loadScenario(configcurrent);
 			Controler controler = new Controler(scenario);
-			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,"Network/ND/largeDataset/DataSet"+i+".txt",Double.toString(ratio[i]),"Network/ND/largeDataset/KeySet"+i+".csv"));
+			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,baseLoc+"DataSet"+i+".txt",Double.toString(ratio[i]),baseLoc+"KeySet"+i+".csv", false));
 			controler.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 			controler.run();
 		}
@@ -187,13 +190,14 @@ public class TrainingDataGenerator {
 		new NetworkWriter(network).write(netFileWriteLoc);
 	}
 	
-	public static void GenerateRandomPopulation(Config config,String demandFileLocaiton,double sdPercent,String writeLoc,double demandPercent) throws IOException {
+	public static void GenerateRandomPopulation(int counter,Config config,String demandFileLocaiton,double sdPercent,String writeLoc,double demandPercent,Network network) throws IOException {
 		Population p=PopulationUtils.createPopulation(config);
 		Vehicles vehicles=ScenarioUtils.loadScenario(config).getVehicles();
 		
 		VehicleType vt=vehicles.getFactory().createVehicleType(Id.create("car", VehicleType.class));
-		vehicles.addVehicleType(vt);
-		
+		if(!vehicles.getVehicleTypes().containsKey(vt.getId())) {
+			vehicles.addVehicleType(vt);
+		}
 		PopulationFactory popfac=p.getFactory();
 		BufferedReader bf=new BufferedReader(new FileReader(new File(demandFileLocaiton)));
 		String[] header=bf.readLine().split(",");//get rid of the header
@@ -219,11 +223,17 @@ public class TrainingDataGenerator {
 					Person person =popfac.createPerson(Id.createPersonId(originNodeId.toString()+"_"+destinationNodeId.toString()+"_"+hour+"_"+j));
 					Plan plan=popfac.createPlan();
 					Activity act1=popfac.createActivityFromLinkId("Home1", Id.createLinkId("O"+originNodeId.toString()+"_"+originNodeId.toString()));
+					if(network.getLinks().get(act1.getLinkId())==null) {
+						System.out.println();
+					}
 					double tripStartTime=hour*3600+30*60+random.nextGaussian()*30*60;
 					act1.setEndTime(tripStartTime);
 					Leg leg=popfac.createLeg("car");
 					leg.setDepartureTime(tripStartTime);
 					Activity act2=popfac.createActivityFromLinkId("Home2", Id.createLinkId(destinationNodeId.toString()+"_"+destinationNodeId.toString()+"D"));
+					if(network.getLinks().get(act2.getLinkId())==null) {
+						System.out.println();
+					}
 					plan.addActivity(act1);
 					plan.addLeg(leg);
 					plan.addActivity(act2);
@@ -241,8 +251,8 @@ public class TrainingDataGenerator {
 		act2.setTypicalDuration(8*60*60);
 		config.planCalcScore().addActivityParams(act2);
 		
-		new PopulationWriter(p).write(writeLoc+"/population.xml");
-		new VehicleWriterV1(vehicles).writeFile(writeLoc+"/vehicles.xml");
+		new PopulationWriter(p).write(writeLoc+"/population"+counter+".xml");
+		new VehicleWriterV1(vehicles).writeFile(writeLoc+"/vehicles"+counter+".xml");
 		new ConfigWriter(config).write(writeLoc+"/config.xml");
 	}
 	

@@ -388,6 +388,17 @@ public class LinkToLinks {
 		}
 		
 	}
+	public int getTimeId(double intime) {
+		if(intime==0) {
+			intime=1;
+		}
+		for(Entry<Integer,Tuple<Double,Double>> timeBean:this.timeBean.entrySet()) {
+			if(intime>timeBean.getValue().getFirst() && intime<=timeBean.getValue().getSecond()) {
+				return this.numToTimeBean.inverse().get(timeBean.getKey());
+			}
+		}
+		return this.timeBean.size()-1;
+	}
 	
 	
 }

@@ -17,8 +17,8 @@ import kriging.KrigingInterpolator;
 public class DataCleanUp {
 	public static void main(String[] args) {
 		List<Data> datasetFull=new ArrayList<>();
-		for(int i=0;i<20;i++) {
-			Map<Integer,Data> dset=DataIO.readDataSet("Network/ND/largeDataset/DataSet"+i+".txt","Network/ND/largeDataset/KeySet"+i+".csv");
+		for(int i=0;i<8;i++) {
+			Map<Integer,Data> dset=DataIO.readDataSet("Network/SiouxFalls/largeDataset/DataSet"+i+".txt","Network/SiouxFalls/largeDataset/KeySet"+i+".csv");
 			for(Data data:dset.values()) {
 				boolean isDuplicate=false;
 				for(Data currentData:datasetFull) {
@@ -39,13 +39,13 @@ public class DataCleanUp {
 //		for(Tuple<INDArray,INDArray> data:datasetFull) {
 //			
 //		}
-		DataIO.writeData(datasetFull, "Network/ND/largeDataset/DataSetNDFull.txt","Network/ND/largeDataset/KeySetNDFull.csv");
-		for(double i=.30;i<=.90;i=i+.10) {
+		DataIO.writeData(datasetFull, "Network/SiouxFalls/largeDataset/DataSetSiouxFallsFull.txt","Network/SiouxFalls/largeDataset/KeySetSiouxFallsFull.csv");
+		//for(double i=.30;i<=.90;i=i+.10) {
 		
-		TestAndTrainData testAndTrain=DataCleanUp.DevideDataInTestAndTrain(datasetFull, 1-i);
-		DataIO.writeData(testAndTrain.getTestData(), "Network/ND/largeDataset/DataSetNDTest"+Double.toString(i)+".txt","Network/ND/largeDataset/KeySetNDTest"+Double.toString(i)+".csv");
-		DataIO.writeData(testAndTrain.getTrainData(), "Network/ND/largeDataset/DataSetNDTrain"+Double.toString(i)+".txt", "Network/ND/largeDataset/KeySetNDTrain"+Double.toString(i)+".csv");
-		}
+		TestAndTrainData testAndTrain=DataCleanUp.DevideDataInTestAndTrain(datasetFull, (int)100);
+		DataIO.writeData(testAndTrain.getTestData(), "Network/SiouxFalls/largeDataset/DataSetSiouxFallsTest"+100+".txt","Network/SiouxFalls/largeDataset/KeySetSiouxFallsTest"+100+".csv");
+		DataIO.writeData(testAndTrain.getTrainData(), "Network/SiouxFalls/largeDataset/DataSetSiouxFallsTrain"+100+".txt", "Network/SiouxFalls/largeDataset/KeySetSiouxFallsTrain"+100+".csv");
+		//}
 		
 		
 	}
@@ -59,8 +59,8 @@ public class DataCleanUp {
 	public static TestAndTrainData DevideDataInTestAndTrain(Map<Integer,Data>fullData,double testRatio) {
 		return new TestAndTrainData(fullData,testRatio);
 	}
-	public static TestAndTrainData DevideDataInTestAndTrain(List<Data>fullData,double testRatio) {
-		return new TestAndTrainData(fullData,testRatio);
+	public static TestAndTrainData DevideDataInTestAndTrain(List<Data>fullData,int trainDataSize) {
+		return new TestAndTrainData(fullData,trainDataSize);
 	}
 }
 
@@ -70,6 +70,7 @@ class TestAndTrainData{
 	private Map<Integer,Data> testData=new HashMap<>();
 	private Map<Integer,Data> trainData=new HashMap<>();
 	private double testRatio=0.1;
+	private int trainDataSize=100;
 	public TestAndTrainData(Map<Integer,Data>fullData,double testRatio) {
 		List<Integer> testNumbers = new ArrayList<Integer>();
 		if(testRatio<1 && testRatio>0) {
@@ -111,6 +112,41 @@ class TestAndTrainData{
 			this.testRatio=testRatio;
 		}
 		double  numberOfNumbersYouWant = fullData.size()*this.testRatio; // This has to be less than 11
+		Random random = new Random();
+
+		do
+		{
+			int next = random.nextInt(fullData.size()-1);
+			if (!testNumbers.contains(next))
+			{
+				testNumbers.add(next);
+			}
+		} while (testNumbers.size() < numberOfNumbersYouWant);
+
+		int testData=0;
+		int trainData=0;
+
+		for(Entry<Integer, Data> dataPoint:fullData.entrySet()) {
+			if(testNumbers.contains(dataPoint.getKey())) {
+				this.testData.put(testData, dataPoint.getValue());
+				testData++;
+			}else {
+				this.trainData.put(trainData, dataPoint.getValue());
+				trainData++;
+			}
+		}
+	}
+	
+	public TestAndTrainData(List<Data>fullDataList,int trainDataSize) {
+		Map<Integer,Data>fullData=new HashMap<>();
+		for(int i=0;i<fullDataList.size();i++) {
+			fullData.put(i,fullDataList.get(i));
+		}
+		List<Integer> testNumbers = new ArrayList<Integer>();
+		if(trainDataSize<fullData.size()) {
+			this.trainDataSize=trainDataSize;
+		}
+		double  numberOfNumbersYouWant = fullData.size()-this.trainDataSize; // This has to be less than 11
 		Random random = new Random();
 
 		do

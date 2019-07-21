@@ -36,7 +36,11 @@ public class MeanBaseFunction implements BaseFunction{
 			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
 				double[] data=new double[trainingData.size()];
 				for(int i=0;i<trainingData.size();i++) {
-					data[i]=trainingData.get(i).getY().getDouble(n, t);
+					try {
+						data[i]=trainingData.get(i).getY().getDouble(n, t);
+					}catch(Exception e) {
+						System.out.println(e);
+					}
 				}
 				mean.putScalar(n, t, Arrays.stream(data).sum()/data.length);
 			});
@@ -54,8 +58,8 @@ public class MeanBaseFunction implements BaseFunction{
 	@Override
 	public void writeBaseFunctionInfo(Element baseFunction,String fileLoc) {
 		baseFunction.setAttribute("ClassName", this.getClass().getName());
-		baseFunction.setAttribute("meanFileLoc", fileLoc+"/meanBase.xml");
-		Nd4j.writeTxt(this.mean, fileLoc+"/meanBase.xml");
+		baseFunction.setAttribute("meanFileLoc", fileLoc+"/meanBase.txt");
+		Nd4j.writeTxt(this.mean, fileLoc+"/meanBase.txt");
 	}
 
 	public static BaseFunction parseBaseFunction(Attributes a) {

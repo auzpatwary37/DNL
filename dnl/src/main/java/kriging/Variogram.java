@@ -244,7 +244,7 @@ public class Variogram {
 			for(int jj=0;jj<i;jj++) {
 				if(ii!=jj) {
 					double dist=this.calcDistance(this.trainingDataSet.get(ii).getX(), ntTrainData.get(jj).getX(), n, t);
-					if(Transforms.abs(this.trainingDataSet.get(ii).getX().sub(ntTrainData.get(jj).getX()).mul(weight)).lt(1).all()){
+					if(Transforms.abs(this.trainingDataSet.get(ii).getX().sub(ntTrainData.get(jj).getX()).mul(weight)).norm2Number().doubleValue()<1.0){
 						repeat=true;
 						break;
 					}else {
