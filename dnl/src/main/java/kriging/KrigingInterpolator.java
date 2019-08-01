@@ -33,6 +33,7 @@ import org.nd4j.linalg.api.blas.impl.BaseLapack;
 import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.buffer.util.DataTypeUtil;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.cpu.nativecpu.blas.CpuLapack;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
@@ -198,14 +199,20 @@ public class KrigingInterpolator{
 		//This is m(x_0);
 		INDArray Y_b=this.baseFunction.getY(X);
 		INDArray Z_MB=info.getZ_MB();
-		
+
 		Map<String,INDArray> varianceVectorAll=this.variogram.calculateVarianceVectorAll(X, theta);
-		IntStream.rangeClosed(0,Math.toIntExact(X.size(0))-1).parallel().forEach((n)->
-		{
-			IntStream.rangeClosed(0,Math.toIntExact(X.size(1))-1).parallel().forEach((t)->{
-				if(this.variogram.getSigmaMatrix().getDouble(n,t)==0) {
-					Y.putScalar(n,t,Y_b.getDouble(n,t));
-				}else {
+		List<String>n_tlist=new ArrayList<>();
+		for(int n=0;n<N;n++) {
+			for(int t=0;t<T;t++) {
+				n_tlist.add(Integer.toString(n)+"_"+Integer.toString(t));
+			}
+		}
+		n_tlist.parallelStream().forEach((e)->{
+			int n=Integer.parseInt(e.split("_")[0]);
+			int t=Integer.parseInt(e.split("_")[1]);
+			if(this.variogram.getSigmaMatrix().getDouble(n,t)==0) {
+				Y.putScalar(n,t,Y_b.getDouble(n,t));
+			}else {
 				String key=Integer.toString(n)+"_"+Integer.toString(t);
 				INDArray z_mb=Nd4j.create(this.variogram.getNtSpecificTrainingSet().get(key).size(),1);
 				INDArray KInverse=info.getVarianceMatrixInverseAll().get(key);
@@ -215,8 +222,8 @@ public class KrigingInterpolator{
 				double y=Y_b.getDouble(n,t)*beta.getDouble(n,t)+
 						varianceVectorAll.get(key).transpose().mmul(KInverse).mmul(z_mb).getDouble(0,0)/this.variogram.getTtScale().getDouble(n,t);//Fix the Z_MB part!!!
 				Y.putScalar(n,t,y);
-				}
-			});
+			}
+
 		});
 		return Y;
 	}
@@ -366,7 +373,7 @@ public class KrigingInterpolator{
 		}catch(Exception e) {
 			System.out.println(n);
 			System.out.println(t);
-			INDArray weight=this.variogram.getL2ls().getWeightMatrix(n, t);
+			INDArray weight=CheckUtil.convertFromApacheMatrix(this.variogram.getL2ls().getWeightMatrix(n, t),DataType.DOUBLE);
 			INDArray variance=info.getVarianceMatrixAll().get(Integer.toString(n)+"_"+Integer.toString(t));
 			this.writeINDArray(variance, "variancefor"+n+"_"+t+".csv");
 			this.writeINDArray(weight, "weightfor"+n+"_"+t+".csv");
@@ -523,6 +530,68 @@ public class KrigingInterpolator{
 			
 		System.out.println("Total time for training for "+N+" links and "+T+" time setps = "+Double.toString(this.trainingTime));
 	}
+	
+	
+	public void trainKrigingWithoutbeta() {
+		long startTime=System.currentTimeMillis();
+
+		List<String> n_tlist=new ArrayList<>();
+		for(int n=0;n<N;n++) {
+			for(int t=0;t<T;t++) {
+				n_tlist.add(Integer.toString(n)+"_"+Integer.toString(t));
+				}
+			}
+		this.numDone=0;
+		n_tlist.parallelStream().forEach((key)->{
+		//for(String key:n_tlist) {
+			int n=Integer.parseInt(key.split("_")[0]);
+			int t=Integer.parseInt(key.split("_")[1]);
+			if(this.variogram.getSigmaMatrix().getDouble(n,t)==0) {
+				//continue;
+				return;
+			}
+			//double initialBeta=this.beta.getDouble(n,t);
+			if(this.variogram.getDistances().get(key).maxNumber().doubleValue()==0) {
+				KrigingInterpolator.writeINDArray(this.variogram.getDistances().get(key),key+"distance.csv");
+			}
+			double initialTheta=1/this.variogram.getDistances().get(key).maxNumber().doubleValue()*10;
+				Calcfc calcfc = new Calcfc() {
+					int it=0;
+
+					@Override
+					public double compute(int N, int m, double[] x, double[] con) {
+						double theta=initialTheta+initialTheta*x[0]/100;
+						//double beta=initialBeta+initialBeta*x[1]/100;
+						//double beta=1;
+						double obj=KrigingInterpolator.this.calcNtSpecificLogLikelihood(n, t, theta, beta.getDouble(n,t),info);
+						if(theta==0) {
+							obj=10000000000000.;
+						}
+						con[0]=100*(theta-0.0000001);
+						
+
+						it++;
+
+						return -1*obj;
+					}
+				};
+				
+				double[] x = {1};
+				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 1, 1, x, 2, .01, 1, 500);
+				//this.beta.putScalar(n, t,initialBeta+initialBeta*x[1]/100);
+				this.variogram.gettheta().putScalar(n,t,initialTheta+initialTheta*x[0]/100);
+				this.numDone++;
+				//System.out.println("current total liklihood after "+key+" = "+this.calcCombinedLogLikelihood());
+				System.out.println("Finished training "+this.numDone+" out of "+n_tlist.size());
+
+		});
+//		}
+		this.trainingTime=System.currentTimeMillis()-startTime;
+		KrigingModelWriter writer=new KrigingModelWriter(this);
+			
+		System.out.println("Total time for training for "+N+" links and "+T+" time setps = "+Double.toString(this.trainingTime));
+	}
+	
 	public void deepTrainKriging() {
 		long startTime=System.currentTimeMillis();
 		List<String> n_tlist=new ArrayList<>();
@@ -595,6 +664,80 @@ public class KrigingInterpolator{
 		this.trainingTime=(double)(System.currentTimeMillis()-startTime);
 		System.out.println("Total time for training for "+N+" links and "+T+" time setps = "+Long.toString(System.currentTimeMillis()-startTime));
 	}
+	
+	
+	public void deepTrainKrigingBPR() {
+		long startTime=System.currentTimeMillis();
+		List<String> n_tlist=new ArrayList<>();
+		for(int n=0;n<N;n++) {
+			for(int t=0;t<T;t++) {
+				n_tlist.add(Integer.toString(n)+"_"+Integer.toString(t));
+				}
+			}
+		BPRBaseFunction base=(BPRBaseFunction)this.baseFunction;
+		this.numDone=0;
+		n_tlist.parallelStream().forEach((key)->{
+		//for(String key:n_tlist) {
+			long startTiment=System.currentTimeMillis();
+			int n=Integer.parseInt(key.split("_")[0]);
+			int t=Integer.parseInt(key.split("_")[1]);
+			if(this.variogram.getSigmaMatrix().getDouble(n,t)==0) {
+				//continue;
+				return;
+			}
+			
+			double initialBeta=this.beta.getDouble(n,t);
+			double initialTheta=1/this.variogram.getDistances().get(key).maxNumber().doubleValue()*10;
+			double initialBPR1=.15;
+			double initialBPR2=4;
+				Calcfc calcfc = new Calcfc() {
+					
+					int it=0;
+
+					@Override
+					public double compute(int N, int m, double[] x, double[] con) {
+						double theta=initialTheta+initialTheta*x[0]/100;
+						double beta=initialBeta+initialBeta*x[1]/100;
+						double bpr1=initialBPR1+initialBPR1*x[2]/100;
+						double bpr2=initialBPR2+initialBPR2*x[3]/20;
+						base.setAlphaBetaNTSpecific(bpr1, bpr2, n, t);
+						double obj=0;
+						if(theta<=0) {
+							obj=10000000000000.;
+						}else {
+							obj=KrigingInterpolator.this.calcNtSpecificLogLikelihood(n, t, theta, beta,info);
+						}
+						con[0]=100*(theta-0.0000001);
+						con[1]=initialBPR1+initialBPR1*x[2]/100;
+						con[2]=initialBPR2+initialBPR2*x[3]/100;
+						//con[1]=-1*info.getVarianceMatrixCondNum().get(key)+10000;
+						it++;
+						if(it==1) {
+							System.out.println("initial obj = "+-1*obj);
+						}
+						return -1*obj;
+					}
+				};
+				
+				double[] x = {1,1,1,1};
+				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 4, 3, x, 2, .01, 1,400);
+				this.beta.putScalar(n, t,initialBeta+initialBeta*x[1]/100);
+				this.variogram.gettheta().putScalar(n,t,initialTheta+initialTheta*x[0]/100);
+				double bpr1=initialBPR1+initialBPR1*x[2]/100;
+				double bpr2=initialBPR2+initialBPR2*x[3]/20;
+				base.setAlphaBetaNTSpecific(bpr1, bpr2, n, t);
+				this.numDone++;
+				//System.out.println("current total liklihood after "+key+" = "+this.calcCombinedLogLikelihood());
+				System.out.println("optim time for case "+key+" "+Long.toString(System.currentTimeMillis()-startTiment));
+				System.out.println("Finished training "+this.numDone+" out of "+n_tlist.size());
+				
+		});
+		//}
+		
+		this.trainingTime=(double)(System.currentTimeMillis()-startTime);
+		System.out.println("Total time for training for "+N+" links and "+T+" time setps = "+Long.toString(System.currentTimeMillis()-startTime));
+	}
+	
 	private VarianceInfoHolder preProcessData() {
 		return this.preProcessData(this.beta,this.variogram.gettheta());
 	}

@@ -15,7 +15,8 @@ import org.xml.sax.Attributes;
 import linktolinkBPR.LinkToLinks;
 
 public class BPRBaseFunction implements BaseFunction{
-
+	private INDArray alpha;
+	private INDArray beta;
 	public static int no=0;
 	private Map<Integer,Link2LinkInfoHolder> link2LinkInfo=new ConcurrentHashMap<>();
 	private Map<Integer,Double> timeBeanLength=new HashMap<>();
@@ -28,11 +29,15 @@ public class BPRBaseFunction implements BaseFunction{
 			Tuple<Double,Double>tb=l2ls.getTimeBean().get(timeMap.getValue());
 			this.timeBeanLength.put(timeMap.getKey(),tb.getSecond()-tb.getFirst());
 		}
+		alpha=Nd4j.ones(this.link2LinkInfo.size(),this.timeBeanLength.size()).muli(.15);
+		beta=Nd4j.ones(alpha.shape()).muli(4);
 	}
 	
-	private BPRBaseFunction(Map<Integer,Link2LinkInfoHolder> link2LinkInfo,Map<Integer,Double>timeBeanLength) {
+	private BPRBaseFunction(Map<Integer,Link2LinkInfoHolder> link2LinkInfo,Map<Integer,Double>timeBeanLength,INDArray alpha,INDArray beta) {
 		this.link2LinkInfo=link2LinkInfo;
 		this.timeBeanLength=timeBeanLength;
+		this.alpha=alpha;
+		this.beta=beta;
 	}
 	
 	@Override
@@ -45,7 +50,7 @@ public class BPRBaseFunction implements BaseFunction{
 		
 		for(int n=0;n<X.size(0);n++) {
 			for(int t=0;t<X.size(1);t++) {
-				double tt=this.getLinkToLinkBPRDelay(X.getDouble(n, t), n,this.timeBeanLength.get(t));
+				double tt=this.getLinkToLinkBPRDelay(X.getDouble(n, t), n,this.timeBeanLength.get(t),alpha.getDouble(n,t),beta.getDouble(n,t));
 				Y.putScalar(n, t, tt);
 				if(Y.cond(Conditions.isInfinite()).any()||Y.cond(Conditions.isNan()).any()) {
 					System.out.println("Z is nan or inf!!!");
@@ -63,6 +68,13 @@ public class BPRBaseFunction implements BaseFunction{
 	private double getLinkToLinkBPRDelay(double demand, int n,double timeLength) {
 		Link2LinkInfoHolder l2l=this.link2LinkInfo.get(n);
 		Double delay=l2l.getFromLinkFreeFlowTime()*(1+0.15*Math.pow((demand/(l2l.getSaturationFlow()*l2l.getG_cRatio()*timeLength)),4));
+		
+		return delay;
+	}
+	
+	private double getLinkToLinkBPRDelay(double demand, int n,double timeLength,double alpha,double beta) {
+		Link2LinkInfoHolder l2l=this.link2LinkInfo.get(n);
+		Double delay=l2l.getFromLinkFreeFlowTime()*(1+alpha*Math.pow((demand/(l2l.getSaturationFlow()*l2l.getG_cRatio()*timeLength)),beta));
 		
 		return delay;
 	}
@@ -87,13 +99,19 @@ public class BPRBaseFunction implements BaseFunction{
         String s = sb.toString();
 		
 		baseFunction.setAttribute("timeLength", s);
+		
+		Nd4j.writeTxt(this.alpha,  fileLoc+"/bprAlpha.txt");
+		baseFunction.setAttribute("alphaLocation", fileLoc+"/bprAlpha.txt");
+		
+		Nd4j.writeTxt(this.beta,  fileLoc+"/bprBeta.txt");
+		baseFunction.setAttribute("betaLocation", fileLoc+"/bprBeta.txt");
 	}
 	
 	public static BaseFunction parseBaseFunction(Attributes a) {
 		Map<Integer,Link2LinkInfoHolder> link2LinkInfo=new ConcurrentHashMap<>();
 		Map<Integer,Double> timeLength=new HashMap<>();
 		for(int i=0;i<a.getLength();i++) {
-			if(!a.getQName(i).equals("ClassName") && !a.getQName(i).equals("timeLength")) {
+			if(!a.getQName(i).equals("ClassName") && !a.getQName(i).equals("timeLength")&& !a.getQName(i).equals("alphaLocation")&& !a.getQName(i).equals("betaLocation")) {
 				Link2LinkInfoHolder l2l=Link2LinkInfoHolder.createLinkToLinkInfo(a.getValue(i));
 				link2LinkInfo.put(l2l.getN(), l2l);
 			}else if(a.getQName(i).equals("timeLength")) {
@@ -103,13 +121,42 @@ public class BPRBaseFunction implements BaseFunction{
 				}
 			}
 		}
-		return new BPRBaseFunction(link2LinkInfo,timeLength);
+		INDArray alpha;
+		INDArray beta;
+		if(a.getValue("alphaLocation")!=null) {
+			alpha=Nd4j.readTxt(a.getValue("alphaLocation"));
+			beta=Nd4j.readTxt(a.getValue("betaLocation"));
+		}else {
+			alpha=Nd4j.ones(link2LinkInfo.size(),timeLength.size()).muli(.15);
+			beta=Nd4j.ones(alpha.shape()).muli(4);
+		}
+		return new BPRBaseFunction(link2LinkInfo,timeLength,alpha,beta);
 	}
 
 	@Override
 	public double getntSpecificY(INDArray X, int n, int t) {
-		double tt=this.getLinkToLinkBPRDelay(X.getDouble(n, t), n,this.timeBeanLength.get(t));
+		double tt=this.getLinkToLinkBPRDelay(X.getDouble(n, t), n,this.timeBeanLength.get(t),alpha.getDouble(n,t),beta.getDouble(n,t));
 		return tt;
 	}
 
+	public INDArray getAlpha() {
+		return alpha;
+	}
+
+	public void setAlpha(INDArray alpha) {
+		this.alpha = alpha;
+	}
+
+	public INDArray getBeta() {
+		return beta;
+	}
+
+	public void setBeta(INDArray beta) {
+		this.beta = beta;
+	}
+	
+	public void setAlphaBetaNTSpecific(double alpha, double beta,int n,int t) {
+		this.alpha.put(n, t,alpha);
+		this.beta.put(n,t, beta);
+	}
 }

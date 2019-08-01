@@ -45,8 +45,9 @@ public class trainingAndTiming {
 	public static void main(String[] args) {
 		
 		
-		String modelFolderName="largeDataset";
-		String modelName="BPRModel";
+		String modelFolderName="newLargeDataSet";
+		String modelName="BPRModelErScWithoutBeta";
+		String modelOtherFolderName="largeDataset";
 		int N=33;
 		int T=9;
 		String logfileloc="Network/ND/"+modelFolderName+"/ExperimentLog.csv";
@@ -65,21 +66,25 @@ public class trainingAndTiming {
 		}//header
 		
 		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
+		//network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
 		SignalFlowReductionGenerator sg = null;
 		Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
 		
 		for(int i=15;i<24;i++) {
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
+		long time=System.currentTimeMillis();
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
+		System.out.println(System.currentTimeMillis()-time);
 		
 		DataTypeUtil.setDTypeForContext(DataType.DOUBLE);
 		Nd4j.setDefaultDataTypes(DataType.DOUBLE, DataType.DOUBLE);
 		
-		Map<Integer,Data> trainingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetNDTrain"+100+".txt","Network/ND/"+modelFolderName+"/KeySetNDTrain"+100+".csv");
-		Map<Integer,Data> testingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetNDTest"+100+".txt","Network/ND/"+modelFolderName+"/KeySetNDTest"+100+".csv");
+		Map<Integer,Data> trainingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetTrain"+100+".txt","Network/ND/"+modelFolderName+"/KeySetTrain"+100+".csv");
+		Map<Integer,Data> testingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetTest"+100+".txt","Network/ND/"+modelFolderName+"/KeySetTest"+100+".csv");
+		Map<Integer,Data> testingDataConst=DataIO.readDataSet("Network/ND/"+modelOtherFolderName+"/DataSetTest"+100+".txt","Network/ND/"+modelOtherFolderName+"/KeySetTest"+100+".csv");
 		
-		for(int i=100;i<=400;i=i+50) {
+		for(int i=100;i<=800;i=i+50) {
 		String fullModelName=modelName+"_"+i+"_"+T;
 		File file =new File("Network/ND/"+modelFolderName+"/"+fullModelName);
 		KrigingInterpolator kriging=null;
@@ -93,7 +98,8 @@ public class trainingAndTiming {
 			file.mkdir();
 			kriging=new KrigingInterpolator(trainingData, l2ls, new BPRBaseFunction(l2ls));//change of u want to change the base function
 			initialLL=kriging.calcCombinedLogLikelihood();
-			kriging.trainKriging();
+			kriging.trainKrigingWithoutbeta();
+			//kriging.deepTrainKrigingBPR();
 			new KrigingModelWriter(kriging).writeModel(file.getPath());
 		}
 		
@@ -125,6 +131,9 @@ public class trainingAndTiming {
 		}
 		
 		Map<Integer,Double> errorMap=new HashMap<>();
+		realAndModelOutput rm=new realAndModelOutput();
+		INDArray errorscore=Nd4j.create(testingData.size(),1);
+		int k=0;
 		for(Entry<Integer, Data> testDataEntry:testingData.entrySet()) {
 			Data testData=testDataEntry.getValue();
 			INDArray Yreal=testData.getY();
@@ -132,26 +141,30 @@ public class trainingAndTiming {
 			
 			INDArray Y=kriging.getY(testData.getX());
 			totalTime+=System.currentTimeMillis()-startTime;
+			rm.addDatapair(Yreal, Y);
 			INDArray errorArray=Yreal.sub(Y).div(Yreal).mul(100);
+			double errorScore=Yreal.sub(Y).norm2Number().doubleValue()/Yreal.norm2Number().doubleValue()*100;
 			try {
 				fw.append(testData.getKey()+","+errorArray.norm2Number().floatValue()+"\n");
-				errorMap.put(testDataEntry.getKey(), errorArray.norm2Number().doubleValue());
+				errorMap.put(testDataEntry.getKey(), errorScore);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+			errorscore.put(k,1, errorScore);
 			errorArray=Transforms.abs(errorArray);
 			averageError.addi(errorArray);
-			
+			k++;
 		}
 		averageError.divi(testingData.size());
 		Nd4j.writeTxt(averageError, file.getPath()+"/averagePredictionError.txt");
+		rm.writeCsv(file.getPath()+"/yrealvsymodel.csv");
 		totalTime=totalTime/testingData.size();
 		try {
 			fw.flush();
 			fw.close();
-			logfw.append(Double.toString(averageError.sumNumber().doubleValue()/(N*T))+","+totalTime+","+averageError.maxNumber().doubleValue());
+			//logfw.append(Double.toString(averageError.sumNumber().doubleValue()/(N*T))+","+totalTime+","+averageError.maxNumber().doubleValue());
+			logfw.append(Double.toString(errorscore.sumNumber().doubleValue()/(testingData.size()))+","+totalTime+","+errorscore.maxNumber().doubleValue());
 			logfw.append("\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -181,6 +194,32 @@ public class trainingAndTiming {
 			 if(ii==50)break;
 			
 		 }
+		 //This is for testing purpose only
+		 k=0;
+		 realAndModelOutput rmNew=new realAndModelOutput();
+		 INDArray averageErrorNew=Nd4j.create(N,T);
+		 INDArray errorscoreNew=Nd4j.create(testingDataConst.size(),1);
+		 for(Entry<Integer, Data> testDataEntry:testingDataConst.entrySet()) {
+			 Data testData=testDataEntry.getValue();
+			 INDArray Yreal=testData.getY();
+			 //long startTime=System.currentTimeMillis();
+
+			 INDArray Y=kriging.getY(testData.getX());
+			 //totalTime+=System.currentTimeMillis()-startTime;
+			 rmNew.addDatapair(Yreal, Y);
+			 INDArray errorArray=Yreal.sub(Y).div(Yreal).mul(100);
+			 double errorScore=Yreal.sub(Y).norm2Number().doubleValue()/Yreal.norm2Number().doubleValue()*100;
+			 errorscoreNew.put(k,1, errorScore);
+			 errorArray=Transforms.abs(errorArray);
+			 averageErrorNew.addi(errorArray);
+			 k++;
+		 }
+		 averageErrorNew.divi(testingDataConst.size());
+		 Nd4j.writeTxt(averageErrorNew, file.getPath()+"/averagePredictionErrorConst.txt");
+		 rmNew.writeCsv(file.getPath()+"/yrealvsymodelConst.csv");
+		 KrigingInterpolator.writeINDArray(errorscoreNew, file.getPath()+"/errorScoreConst.csv");
+		 //Test End
+		 
 		 System.out.println("trainingDataSize = "+trainingData.size()+" and testing data size = "+testingData.size());
 		}
 		try {
@@ -343,4 +382,35 @@ public class trainingAndTiming {
 		PopulationUtils.readPopulation(population, baseFolderLoc+"/output"+simIter+"/Iters/it."+iter+"/"+iter+".plans.xml.gz");
 		return population;
 	}
+	
+	
+}
+
+
+class realAndModelOutput{
+	private INDArray realOutputVsModelOutput;
+	private int pointRecorded=0;
+	public realAndModelOutput() {
+		this.realOutputVsModelOutput=null;
+	}
+	
+	public void addDatapair(INDArray real,INDArray model) {
+		INDArray realvector=real.reshape(real.length());
+		INDArray modelvector=model.reshape(model.length());
+		INDArray ar=Nd4j.create(realvector.length(),2);
+		ar.putColumn(0, realvector);
+		ar.putColumn(1, modelvector);
+		if(pointRecorded==0) {
+			this.realOutputVsModelOutput=ar;
+		}else {
+			this.realOutputVsModelOutput=Nd4j.concat(0, this.realOutputVsModelOutput,ar);
+		}
+		this.pointRecorded++;
+	}
+	
+	
+	public void writeCsv(String fileLoc) {
+		KrigingInterpolator.writeINDArray(this.realOutputVsModelOutput, fileLoc);
+	}
+	
 }

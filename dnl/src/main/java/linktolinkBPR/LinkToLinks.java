@@ -181,7 +181,7 @@ public class LinkToLinks {
 	 * @param ct
 	 * @return
 	 */
-	public INDArray generateWeightMatrix(int n,int t, double cn, double ct) {
+	public RealMatrix generateWeightMatrix(int n,int t, double cn, double ct) {
 		return this.generateWeightMatrix(n, t, this.kn,this.kt, cn, ct);
 	}
 	/**
@@ -195,9 +195,9 @@ public class LinkToLinks {
 	 * @param ct
 	 * @return
 	 */
-	private INDArray generateWeightMatrix(int n,int t,int kn,int kt,double cn, double ct){
+	private RealMatrix generateWeightMatrix(int n,int t,int kn,int kt,double cn, double ct){
 		LinkToLink l2l=this.linkToLinks.get(n);
-		INDArray we=Nd4j.create(this.linkToLinks.size(), this.timeBean.size());
+		RealMatrix we=new OpenMapRealMatrix(this.linkToLinks.size(), this.timeBean.size());
 		for(Entry<Integer,Set<Integer>> linkToLinks:l2l.getProximityMap().entrySet()) {
 			double wk;
 			if(linkToLinks.getKey()==0) {
@@ -214,7 +214,8 @@ public class LinkToLinks {
 						wt=1f/(1+(float)ct*Math.abs(tt-t));
 					}
 					//weight[l2lIndex][tt]=wk*wt;
-					we.putScalar(l2lIndex, tt, wk*wt);
+					we.setEntry(l2lIndex, tt, wk*wt);
+					//we.putScalar(l2lIndex, tt, wk*wt);
 				}
 			}
 		}
@@ -310,7 +311,7 @@ public class LinkToLinks {
 	 * @param t
 	 * @return
 	 */
-	public INDArray getWeightMatrix(int n, int t){
+	public RealMatrix getWeightMatrix(int n, int t){
 		return this.generateWeightMatrix(n, t,1,1);
 	}
 	
@@ -320,8 +321,8 @@ public class LinkToLinks {
 	 * More efficient data structure
 	 * @return
 	 */
-	public Map<String,INDArray> getWeightMatrices(){
-		Map<String,INDArray> weights=new HashMap<>(); 
+	public Map<String,RealMatrix> getWeightMatrices(){
+		Map<String,RealMatrix> weights=new HashMap<>(); 
 		for(int n=0;n<this.linkToLinks.size();n++) { 
 			for(int t=0;t<timeBean.size();t++) {
 				weights.put(Integer.toString(n)+"_"+Integer.toString(t),this.generateWeightMatrix(n, t,1,1));
@@ -338,8 +339,8 @@ public class LinkToLinks {
 	 * @param Ct
 	 * @return
 	 */
-	public Map<String,INDArray> getWeightMatrices(INDArray Cn,INDArray Ct){
-		Map<String,INDArray> weights=new HashMap<>(); 
+	public Map<String,RealMatrix> getWeightMatrices(INDArray Cn,INDArray Ct){
+		Map<String,RealMatrix> weights=new HashMap<>(); 
 		for(int n=0;n<this.linkToLinks.size();n++) { 
 			for(int t=0;t<timeBean.size();t++) {
 				weights.put(Integer.toString(n)+"_"+Integer.toString(t),this.generateWeightMatrix(n, t,Cn.getDouble(n,t),Ct.getDouble(n,t)));

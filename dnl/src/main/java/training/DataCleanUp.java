@@ -17,8 +17,9 @@ import kriging.KrigingInterpolator;
 public class DataCleanUp {
 	public static void main(String[] args) {
 		List<Data> datasetFull=new ArrayList<>();
-		for(int i=0;i<8;i++) {
-			Map<Integer,Data> dset=DataIO.readDataSet("Network/SiouxFalls/largeDataset/DataSet"+i+".txt","Network/SiouxFalls/largeDataset/KeySet"+i+".csv");
+		String baseloc="Network/ND/newLargeDataSet/";
+		for(int i=0;i<27;i++) {
+			Map<Integer,Data> dset=DataIO.readDataSet(baseloc+"DataSet"+i+".txt",baseloc+"KeySet"+i+".csv");
 			for(Data data:dset.values()) {
 				boolean isDuplicate=false;
 				for(Data currentData:datasetFull) {
@@ -39,12 +40,12 @@ public class DataCleanUp {
 //		for(Tuple<INDArray,INDArray> data:datasetFull) {
 //			
 //		}
-		DataIO.writeData(datasetFull, "Network/SiouxFalls/largeDataset/DataSetSiouxFallsFull.txt","Network/SiouxFalls/largeDataset/KeySetSiouxFallsFull.csv");
+		DataIO.writeData(datasetFull, baseloc+"DataSetFull.txt",baseloc+"KeySetFull.csv");
 		//for(double i=.30;i<=.90;i=i+.10) {
 		
 		TestAndTrainData testAndTrain=DataCleanUp.DevideDataInTestAndTrain(datasetFull, (int)100);
-		DataIO.writeData(testAndTrain.getTestData(), "Network/SiouxFalls/largeDataset/DataSetSiouxFallsTest"+100+".txt","Network/SiouxFalls/largeDataset/KeySetSiouxFallsTest"+100+".csv");
-		DataIO.writeData(testAndTrain.getTrainData(), "Network/SiouxFalls/largeDataset/DataSetSiouxFallsTrain"+100+".txt", "Network/SiouxFalls/largeDataset/KeySetSiouxFallsTrain"+100+".csv");
+		DataIO.writeData(testAndTrain.getTestData(), baseloc+"DataSetTest"+100+".txt",baseloc+"KeySetTest"+100+".csv");
+		DataIO.writeData(testAndTrain.getTrainData(), baseloc+"DataSetTrain"+100+".txt", baseloc+"KeySetTrain"+100+".csv");
 		//}
 		
 		

@@ -8,11 +8,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 
+import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.matsim.core.utils.collections.Tuple;
+import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.api.ops.Op;
 import org.nd4j.linalg.api.ops.impl.reduce.longer.MatchCondition;
+import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.conditions.Conditions;
 import org.nd4j.linalg.ops.transforms.Transforms;
@@ -30,7 +33,7 @@ public class Variogram {
 	
 	private final Map<Integer,Data> trainingDataSet;
 	private final INDArray sigmaMatrix;
-	private final Map<String,INDArray> weights;
+	private final Map<String,RealMatrix> weights;
 	private INDArray theta;
 	private Map<String,INDArray> varianceMapAll;
 	private final int N;
@@ -69,7 +72,7 @@ public class Variogram {
 	}
 	
 	//TODO: fix the scales
-	public Variogram(Map<Integer,Data>trainingDataSet,Map<String,INDArray>weights,INDArray theta) {
+	public Variogram(Map<Integer,Data>trainingDataSet,Map<String,RealMatrix>weights,INDArray theta) {
 		this.trainingDataSet=trainingDataSet;
 		this.N=Math.toIntExact(trainingDataSet.get(0).getX().size(0));
 		this.T=Math.toIntExact(trainingDataSet.get(0).getX().size(1));
@@ -132,7 +135,7 @@ public class Variogram {
 	}
 	
 	public double calcDistance(INDArray a,INDArray b,int n,int t) {
-		INDArray weight=this.weights.get(Integer.toString(n)+"_"+Integer.toString(t));
+		INDArray weight=CheckUtil.convertFromApacheMatrix(this.weights.get(Integer.toString(n)+"_"+Integer.toString(t)),DataType.DOUBLE);
 		INDArray aa=a.sub(b).mul(weight);
 		double distance= aa.norm2Number().doubleValue();
 		return distance;
@@ -231,7 +234,7 @@ public class Variogram {
 	}
 	private INDArray calcDistanceMatrix(int n, int t) {
 		
-		INDArray weight = this.weights.get(Integer.toString(n)+"_"+Integer.toString(t));
+		INDArray weight = CheckUtil.convertFromApacheMatrix(this.weights.get(Integer.toString(n)+"_"+Integer.toString(t)),DataType.DOUBLE);
 		this.ntSpecificTrainingSet.put(Integer.toString(n)+"_"+Integer.toString(t), new HashMap<>());
 		Map<Integer,Data> ntTrainData=this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t));
 		int i=0;
@@ -286,8 +289,9 @@ public class Variogram {
 	}
 
 	public void calcDistanceMatrix(int n, int t,double cn, double ct) {
-		INDArray weights=this.l2ls.generateWeightMatrix(n, t, cn, ct);//The only difference
-		this.weights.put(Integer.toString(n)+"_"+Integer.toString(t), weights);
+		RealMatrix weightss=this.l2ls.generateWeightMatrix(n, t, cn, ct);
+		INDArray weights=CheckUtil.convertFromApacheMatrix(this.l2ls.generateWeightMatrix(n, t, cn, ct),DataType.DOUBLE);//The only difference
+		this.weights.put(Integer.toString(n)+"_"+Integer.toString(t), weightss);
 		this.ntSpecificTrainingSet.put(Integer.toString(n)+"_"+Integer.toString(t), new HashMap<>());
 		int i=0;
 		Map<String,Double>distMap=new HashMap<>();
@@ -349,14 +353,15 @@ public class Variogram {
 	 */
 	public INDArray calcVarianceVector(int n, int t,INDArray X, INDArray theta){
 		double sigma=sigmaMatrix.getDouble(n, t);
-		INDArray K=Nd4j.create(this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).size(),1);
+		Map<Integer,Data> dataset=this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t));
 		int i=0;
-		for(Data dataPair:this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t)).values()) {
+		double[][] k=new double[dataset.size()][1]; 
+		for(Data dataPair:dataset.values()) {
 			double v=sigma*Math.exp(-1*this.calcDistance(X, dataPair.getX(), n, t)*theta.getDouble(n, t)*this.distanceScale.getDouble(n,t));
-			K.putScalar(i, 1, v);
+			k[i][0]=v;
 			i++;
 		}
-		return K;
+		return Nd4j.create(k);
 	}
 	
 	/**
@@ -389,12 +394,18 @@ public class Variogram {
 	 */
 	public Map<String,INDArray>calculateVarianceVectorAll(INDArray X,INDArray theta){
 		Map<String,INDArray> varianceVectorAll=new ConcurrentHashMap<>();
-		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
-		{
-			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
-				varianceVectorAll.put(Integer.toString(n)+"_"+Integer.toString(t),this.calcVarianceVector(n, t, X, theta));
+		List<String>n_tlist=new ArrayList<>();
+		for(int n=0;n<N;n++) {
+			for(int t=0;t<T;t++) {
+				n_tlist.add(Integer.toString(n)+"_"+Integer.toString(t));
+				}
+			}
+			n_tlist.parallelStream().forEach((e)->{
+				int n=Integer.parseInt(e.split("_")[0]);
+				int t=Integer.parseInt(e.split("_")[1]);
+			varianceVectorAll.put(e,this.calcVarianceVector(n, t, X, theta));
 			});
-		});
+		
 		return varianceVectorAll;
 	}
 	/**
@@ -422,7 +433,7 @@ public class Variogram {
 	}
 
 
-	public Map<String, INDArray> getWeights() {
+	public Map<String, RealMatrix> getWeights() {
 		return weights;
 	}
 
