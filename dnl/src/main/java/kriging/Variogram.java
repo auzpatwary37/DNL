@@ -137,7 +137,7 @@ public class Variogram {
 	public double calcDistance(INDArray a,INDArray b,int n,int t) {
 		INDArray weight=CheckUtil.convertFromApacheMatrix(this.weights.get(Integer.toString(n)+"_"+Integer.toString(t)),DataType.DOUBLE);
 		INDArray aa=a.sub(b).mul(weight);
-		double distance= aa.norm2Number().doubleValue();
+		double distance= Math.pow(aa.norm2Number().doubleValue(),2);
 		return distance;
 	}
 	
