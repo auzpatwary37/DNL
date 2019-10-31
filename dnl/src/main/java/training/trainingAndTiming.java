@@ -46,7 +46,7 @@ public class trainingAndTiming {
 		
 		
 		String modelFolderName="newLargeDataSet";
-		String modelName="BPRModelErScWithoutBeta";
+		String modelName="BPRModelErSc_aug";
 		String modelOtherFolderName="largeDataset";
 		int N=33;
 		int T=9;
@@ -98,8 +98,8 @@ public class trainingAndTiming {
 			file.mkdir();
 			kriging=new KrigingInterpolator(trainingData, l2ls, new BPRBaseFunction(l2ls));//change of u want to change the base function
 			initialLL=kriging.calcCombinedLogLikelihood();
-			kriging.trainKrigingWithoutbeta();
-			//kriging.deepTrainKrigingBPR();
+			//kriging.trainKrigingWithoutbeta();
+			kriging.trainKriging();
 			new KrigingModelWriter(kriging).writeModel(file.getPath());
 		}
 		
