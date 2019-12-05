@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 
@@ -29,6 +30,9 @@ import linktolinkBPR.LinkToLinks;
  * @author Ashraf
  *
  */
+
+//TODO: take n_t specific training dataset generation outside of the main variogram class
+
 public class Variogram {
 	
 	private final Map<Integer,Data> trainingDataSet;
@@ -53,34 +57,38 @@ public class Variogram {
 	 * @param trainingData
 	 * @param l2ls
 	 */
-	public Variogram(Map<Integer, Data> trainingData,LinkToLinks l2ls) {
+	public Variogram(Map<Integer, Data> trainingData,LinkToLinks l2ls,Map<String,List<Integer>>n_tSpecificTrainingIndices) {
 		long starttime=System.currentTimeMillis();
 		this.trainingDataSet=trainingData;
+		this.ntSpecificOriginalIndices=n_tSpecificTrainingIndices;
 		this.weights=l2ls.getWeightMatrices();
 		this.N=Math.toIntExact(trainingData.get(0).getX().size(0));
 		this.T=Math.toIntExact(trainingData.get(0).getX().size(1));
 		this.distanceScale=Nd4j.ones(N,T);
 		this.ttScale=Nd4j.ones(N,T);
-		this.sigmaMatrix=this.calcSigmaMatrix(trainingData);
+		
 		//Initialize theta to a nxt matrix of one
 		this.theta=Nd4j.zeros(N,T).addi(.1);
 		this.l2ls=l2ls;
 		this.calcDistances();
+		this.sigmaMatrix=this.calcSigmaMatrix(trainingData);
 		//this.varianceMapAll=this.calculateVarianceMatrixAll(this.theta);
 		System.out.println("Finished setting up initial variogram. Total required time = "+Long.toString(System.currentTimeMillis()-starttime));
 		
 	}
 	
 	//TODO: fix the scales
-	public Variogram(Map<Integer,Data>trainingDataSet,Map<String,RealMatrix>weights,INDArray theta) {
+	public Variogram(Map<Integer,Data>trainingDataSet,Map<String,RealMatrix>weights,INDArray theta,Map<String,List<Integer>>n_tSpecificTrainingIndices) {
 		this.trainingDataSet=trainingDataSet;
+		this.ntSpecificOriginalIndices=n_tSpecificTrainingIndices;
 		this.N=Math.toIntExact(trainingDataSet.get(0).getX().size(0));
 		this.T=Math.toIntExact(trainingDataSet.get(0).getX().size(1));
 		this.weights=weights;
-		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
+		
 		//Initialize theta to a nxt matrix of one
 		this.theta=theta;
 		this.calcDistances();
+		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
 		//Will be fixed later
 		this.distanceScale=Nd4j.ones(N,T);
 		this.ttScale=Nd4j.ones(N,T);
@@ -88,8 +96,9 @@ public class Variogram {
 		
 	}
 	
-	public Variogram(Map<Integer,Data>trainingDataSet,LinkToLinks l2ls,INDArray theta,INDArray Cn,INDArray Ct) {
+	public Variogram(Map<Integer,Data>trainingDataSet,LinkToLinks l2ls,INDArray theta,INDArray Cn,INDArray Ct,Map<String,List<Integer>>n_tSpecificTrainingIndices) {
 		this.trainingDataSet=trainingDataSet;
+		this.ntSpecificOriginalIndices=n_tSpecificTrainingIndices;
 		this.l2ls=l2ls;
 		this.weights=l2ls.getWeightMatrices(Cn,Ct);
 		this.theta=theta;
@@ -97,8 +106,9 @@ public class Variogram {
 		this.T=(int) this.trainingDataSet.get(0).getY().size(1);
 		this.distanceScale=Nd4j.ones(N,T);		
 		this.ttScale=Nd4j.ones(N,T);
-		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
+		
 		this.calcDistances();
+		this.sigmaMatrix=this.calcSigmaMatrix(trainingDataSet);
 	}
 	/**
 	 * 
@@ -142,13 +152,12 @@ public class Variogram {
 	}
 	
 	//For now this function is useless but it can be later used to make the weights trainable
-	public double calcDistance(INDArray a,INDArray b,Map<String,INDArray> weights,int n,int t) {
+	public static double calcDistance(INDArray a,INDArray b,Map<String,INDArray> weights,int n,int t) {
 		return a.sub(b).mul(weights.get(Integer.toString(n)+"_"+Integer.toString(t))).norm2Number().doubleValue();
 		//return distance;
 	}
 	
-	public double calcDistance(INDArray a,INDArray b,int n,int t,INDArray weights) {
-		
+	public static double calcDistance(INDArray a,INDArray b,int n,int t,INDArray weights) {
 		double aa=a.sub(b).mul(weights).norm2Number().doubleValue();
 		return aa;
 		 //return distance;
@@ -233,7 +242,9 @@ public class Variogram {
 		});
 	}
 	private INDArray calcDistanceMatrix(int n, int t) {
-		
+		if(this.ntSpecificOriginalIndices==null) {
+			this.ntSpecificOriginalIndices=new HashMap<>();
+		}
 		INDArray weight = CheckUtil.convertFromApacheMatrix(this.weights.get(Integer.toString(n)+"_"+Integer.toString(t)),DataType.DOUBLE);
 		this.ntSpecificTrainingSet.put(Integer.toString(n)+"_"+Integer.toString(t), new HashMap<>());
 		Map<Integer,Data> ntTrainData=this.ntSpecificTrainingSet.get(Integer.toString(n)+"_"+Integer.toString(t));
@@ -241,24 +252,46 @@ public class Variogram {
 		Map<String,Double>distMap=new HashMap<>();
 		List<Integer> intMap=new ArrayList<>();
 		//INDArray boolArray;
-		for(int ii=0;ii<this.trainingDataSet.size();ii++) {
-			
-			boolean repeat=false;
-			for(int jj=0;jj<i;jj++) {
-				if(ii!=jj) {
-					double dist=this.calcDistance(this.trainingDataSet.get(ii).getX(), ntTrainData.get(jj).getX(), n, t);
-					if(Transforms.abs(this.trainingDataSet.get(ii).getX().sub(ntTrainData.get(jj).getX()).mul(weight)).norm2Number().doubleValue()<1.0){
-						repeat=true;
-						break;
-					}else {
-						distMap.put(Integer.toString(i)+"_"+Integer.toString(jj), dist);
-					}	
+		if(this.ntSpecificOriginalIndices.get(Integer.toString(n)+"_"+Integer.toString(t))!=null) {
+			for(int ii:this.ntSpecificOriginalIndices.get(Integer.toString(n)+"_"+Integer.toString(t))) {
+				boolean repeat=false;
+				for(int jj=0;jj<i;jj++) {
+					//if(ii!=jj) {// maybe an unnecessary check.... ii will never reach jj as ii>=i and jj<i only in case of ordered index of n_t specific training set
+						double dist=this.calcDistance(this.trainingDataSet.get(ii).getX(), ntTrainData.get(jj).getX(), n, t);
+						if(Transforms.abs(this.trainingDataSet.get(ii).getX().sub(ntTrainData.get(jj).getX()).mul(weight)).norm2Number().doubleValue()<1.0){
+							repeat=true;
+							break;
+						}else {
+							distMap.put(Integer.toString(i)+"_"+Integer.toString(jj), dist);
+						}	
+					//}
+				}
+				if(repeat==false) {
+					intMap.add(ii);
+					ntTrainData.put(i, this.trainingDataSet.get(ii));
+					i++;
 				}
 			}
-			if(repeat==false) {
-				intMap.add(ii);
-				ntTrainData.put(i, this.trainingDataSet.get(ii));
-				i++;
+		}else {
+			
+			for(int ii=0;ii<this.trainingDataSet.size();ii++) {
+				boolean repeat=false;
+				for(int jj=0;jj<i;jj++) {
+					if(ii!=jj) {// maybe an unnecessary check.... ii will never reach jj as ii>=i and jj<i
+						double dist=this.calcDistance(this.trainingDataSet.get(ii).getX(), ntTrainData.get(jj).getX(), n, t);
+						if(Transforms.abs(this.trainingDataSet.get(ii).getX().sub(ntTrainData.get(jj).getX()).mul(weight)).norm2Number().doubleValue()<1.0){
+							repeat=true;
+							break;
+						}else {
+							distMap.put(Integer.toString(i)+"_"+Integer.toString(jj), dist);
+						}	
+					}
+				}
+				if(repeat==false) {
+					intMap.add(ii);
+					ntTrainData.put(i, this.trainingDataSet.get(ii));
+					i++;
+				}
 			}
 		}
 		this.ntSpecificOriginalIndices.put(Integer.toString(n)+"_"+Integer.toString(t), intMap);
@@ -286,6 +319,12 @@ public class Variogram {
 		}
 		//KrigingInterpolator.writeINDArray(K, Integer.toString(n)+"_"+Integer.toString(t)+"distance.csv");
 		return K;
+	}
+	
+	
+
+	public void setNtSpecificOriginalIndices(Map<String, List<Integer>> ntSpecificOriginalIndices) {
+		this.ntSpecificOriginalIndices = ntSpecificOriginalIndices;
 	}
 
 	public void calcDistanceMatrix(int n, int t,double cn, double ct) {
@@ -461,7 +500,33 @@ public class Variogram {
 		return l2ls;
 	}
 	
+	public String writeN_T_SpecificIndices() {
+		String s="";
+		String elementSeperator="";
+		for(Entry<String, List<Integer>> d:this.ntSpecificOriginalIndices.entrySet()) {
+			s=s+elementSeperator+d.getKey()+"___";
+			String e="";
+			for(int i:d.getValue()) {
+				s=s+e+i;
+				e=",";
+			}
+			elementSeperator=" ";
+		}
+		return s;
+	}
 	
+	public static Map<String,List<Integer>> parseN_T_SpecificIndicies(String s){
+		Map<String,List<Integer>> n_tSpecificIndices=new HashMap<>();
+		for(String e1:s.split(" ")) {
+			String key = e1.split("___")[0];
+			ArrayList<Integer> list = new ArrayList<>();
+			for(String e2:e1.split("___")[1].split(",")) {
+				list.add(Integer.parseInt(e2));
+			}
+			n_tSpecificIndices.put(key, list);
+		}
+		return n_tSpecificIndices;
+	}
 	
 }
 

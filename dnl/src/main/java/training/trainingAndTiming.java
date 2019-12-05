@@ -80,9 +80,9 @@ public class trainingAndTiming {
 		DataTypeUtil.setDTypeForContext(DataType.DOUBLE);
 		Nd4j.setDefaultDataTypes(DataType.DOUBLE, DataType.DOUBLE);
 		
-		Map<Integer,Data> trainingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetTrain"+100+".txt","Network/ND/"+modelFolderName+"/KeySetTrain"+100+".csv");
+		Map<Integer,Data> trainingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetTrain"+800+".txt","Network/ND/"+modelFolderName+"/KeySetTrain"+800+".csv");
 		Map<Integer,Data> testingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetTest"+100+".txt","Network/ND/"+modelFolderName+"/KeySetTest"+100+".csv");
-		Map<Integer,Data> testingDataConst=DataIO.readDataSet("Network/ND/"+modelOtherFolderName+"/DataSetTest"+100+".txt","Network/ND/"+modelOtherFolderName+"/KeySetTest"+100+".csv");
+		Map<Integer,Data> testingDataConst=DataIO.readDataSet("Network/ND/"+modelOtherFolderName+"/DataSetTest"+800+".txt","Network/ND/"+modelOtherFolderName+"/KeySetTest"+800+".csv");
 		
 		for(int i=100;i<=800;i=i+50) {
 		String fullModelName=modelName+"_"+i+"_"+T;
@@ -90,13 +90,13 @@ public class trainingAndTiming {
 		KrigingInterpolator kriging=null;
 		double initialLL=0;
 		if(file.exists() && file.list().length!=0) {
-			KrigingInterpolator kg=new KrigingInterpolator(trainingData, l2ls, new BPRBaseFunction(l2ls));//change of u want to change the base function
+			KrigingInterpolator kg=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData));//change of u want to change the base function
 			kriging=new KrigingModelReader().readModel(file.getPath()+"/modelDetails.xml");
 			initialLL=kg.calcCombinedLogLikelihood();
 			
 		}else {
 			file.mkdir();
-			kriging=new KrigingInterpolator(trainingData, l2ls, new BPRBaseFunction(l2ls));//change of u want to change the base function
+			kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData));//change of u want to change the base function
 			initialLL=kriging.calcCombinedLogLikelihood();
 			//kriging.trainKrigingWithoutbeta();
 			kriging.trainKriging();

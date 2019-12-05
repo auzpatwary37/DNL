@@ -49,6 +49,7 @@ import linktolinkBPR.SignalFlowReductionGenerator;
 import training.DataIO;
 import training.Evaluator;
 import training.FunctionSPSA;
+import training.TrainingController;
 
 /**
  * 
@@ -70,10 +71,10 @@ public class KrigingInterpolator{
 	private double trainingTime=0;
 	private double averagePredictionTime=0;
 	
-	public KrigingInterpolator(Map<Integer, Data> trainingData, LinkToLinks l2ls,BaseFunction bf) {
+	public KrigingInterpolator(Map<Integer, Data> trainingData, LinkToLinks l2ls,BaseFunction bf,Map<String,List<Integer>>n_tSpecificTrainingIndices) {
 		this.trainingDataSet=trainingData;
 		this.baseFunction=bf;
-		this.variogram=new Variogram(trainingData, l2ls);
+		this.variogram=new Variogram(trainingData, l2ls,n_tSpecificTrainingIndices);
 		this.N=Math.toIntExact(trainingData.get(0).getX().size(0));
 		this.T=Math.toIntExact(trainingData.get(0).getX().size(1));
 		this.beta=Nd4j.zeros(N,T).addi(1);
@@ -438,7 +439,9 @@ public class KrigingInterpolator{
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData));
+		TrainingController tc=new TrainingController(l2ls, trainingData);
+		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData),tc.createN_TSpecificTrainingSet(trainingData.size()));
+		System.out.println("Model created");
 		System.out.println(kriging.calcCombinedLogLikelihood());
 		System.out.println("Finished!!!");
 		System.out.println(kriging.calcCombinedLogLikelihood());

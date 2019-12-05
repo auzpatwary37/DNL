@@ -35,6 +35,7 @@ public class KrigingModelWriter {
 	private INDArray Cn;
 	private INDArray Ct;
 	private LinkToLinks l2ls;
+	private final String n_tSpecificIndices;
 	
 	public KrigingModelWriter(KrigingInterpolator model) {
 		this.krigingModel=model;
@@ -45,7 +46,7 @@ public class KrigingModelWriter {
 		this.baseFunction=model.getBaseFunction();
 		this.Cn=model.getCn();
 		this.Ct=model.getCt();
-		
+		this.n_tSpecificIndices=model.getVariogram().writeN_T_SpecificIndices();
 	}
 	
 	/**
@@ -67,6 +68,7 @@ public class KrigingModelWriter {
 			metaData.setAttribute("T", Long.toString(this.trainingDataSet.get(0).getX().size(1)));
 			metaData.setAttribute("I", Integer.toString(this.trainingDataSet.size()));
 			metaData.setAttribute("TrainingTime", Double.toString(this.krigingModel.getTrainingTime()));
+			metaData.setAttribute("n_tSpecificTraningIndices", this.n_tSpecificIndices);
 			rootEle.appendChild(metaData);
 			
 			Element trainingDataSet=document.createElement("trainingDataSet");	
