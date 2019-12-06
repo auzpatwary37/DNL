@@ -128,7 +128,7 @@ public class Variogram {
 		{
 			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
 				double[] data=new double[trainingDataSet.size()];
-				for(int i=0;i<trainingDataSet.size();i++) {
+				for(int i:this.ntSpecificOriginalIndices.get(Integer.toString(n)+"_"+Integer.toString(t))) {
 					data[i]=trainingDataSet.get(i).getY().getDouble(n, t);
 				}
 				INDArray dat=Nd4j.create(data);

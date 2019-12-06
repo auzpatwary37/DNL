@@ -124,6 +124,11 @@ public class KrigingInterpolator{
 		return this.getY(X, this.beta, this.variogram.gettheta(),info);
 	}
 	
+	public double getY(INDArray X,int n, int t) {
+		return this.getY(X, this.beta, this.variogram.gettheta(),info,n,t);
+	}
+	
+	
 	public VarianceInfoHolder preProcessData(INDArray beta,INDArray theta) {
 		long startTime=System.currentTimeMillis();
 		//This is the Z-MB
@@ -227,6 +232,29 @@ public class KrigingInterpolator{
 
 		});
 		return Y;
+	}
+	
+	
+	public double getY(INDArray X,INDArray beta,INDArray theta,VarianceInfoHolder info, int n, int t) {
+		
+		//This is m(x_0);
+		INDArray Y_b=this.baseFunction.getY(X);
+		INDArray varianceVector=this.variogram.calcVarianceVector(n, t, X, theta);
+		INDArray Z_MB=info.getZ_MB();
+		if(this.variogram.getSigmaMatrix().getDouble(n,t)==0) {
+			return Y_b.getDouble(n,t);
+		}else {
+			String key=Integer.toString(n)+"_"+Integer.toString(t);
+			INDArray z_mb=Nd4j.create(this.variogram.getNtSpecificTrainingSet().get(key).size(),1);
+			INDArray KInverse=info.getVarianceMatrixInverseAll().get(key);
+			for(int i=0;i<z_mb.size(0);i++) {
+				z_mb.putScalar(i, 0,Z_MB.getDouble(n,t,this.variogram.getNtSpecificOriginalIndices().get(key).get(i)));
+			}
+			double y=Y_b.getDouble(n,t)*beta.getDouble(n,t)+
+					varianceVector.transpose().mmul(KInverse).mmul(z_mb).getDouble(0,0)/this.variogram.getTtScale().getDouble(n,t);//Fix the Z_MB part!!!
+			return y;
+		}
+		
 	}
 	
 	public Tuple<INDArray,INDArray> getXYIterative(Population population){
@@ -442,12 +470,12 @@ public class KrigingInterpolator{
 		TrainingController tc=new TrainingController(l2ls, trainingData);
 		KrigingInterpolator kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData),tc.createN_TSpecificTrainingSet(trainingData.size()));
 		System.out.println("Model created");
-		System.out.println(kriging.calcCombinedLogLikelihood());
-		System.out.println("Finished!!!");
-		System.out.println(kriging.calcCombinedLogLikelihood());
-		//kriging.deepTrainKriging();
 		//System.out.println(kriging.calcCombinedLogLikelihood());
-		//new KrigingModelWriter(kriging).writeModel("Network/ND/"+modelFolderName+"/");
+		//System.out.println("Finished!!!");
+		System.out.println(kriging.calcCombinedLogLikelihood());
+		kriging.trainKriging();
+		System.out.println(kriging.calcCombinedLogLikelihood());
+		new KrigingModelWriter(kriging).writeModel("Network/ND/"+modelFolderName+"/");
 		KrigingInterpolator krigingnew=new KrigingModelReader().readModel("Network/ND/"+modelFolderName+"/modelDetails.xml");
 		System.out.println(krigingnew.calcCombinedLogLikelihood());
 		Map<Integer,Data> testingData=DataIO.readDataSet("Network/ND/DataSetNDTest.txt","Network/ND/KeySetNDTest.csv");
@@ -496,20 +524,21 @@ public class KrigingInterpolator{
 			if(this.variogram.getDistances().get(key).maxNumber().doubleValue()==0) {
 				KrigingInterpolator.writeINDArray(this.variogram.getDistances().get(key),key+"distance.csv");
 			}
-			double initialTheta=1/this.variogram.getDistances().get(key).maxNumber().doubleValue()*10;
-				Calcfc calcfc = new Calcfc() {
+			double initialTheta=1/this.variogram.getDistances().get(key).maxNumber().doubleValue()*100;
+			//double initialTheta=.1;
+			Calcfc calcfc = new Calcfc() {
 					int it=0;
 
 					@Override
 					public double compute(int N, int m, double[] x, double[] con) {
-						double theta=initialTheta+initialTheta*x[0]/100;
+  						double theta=initialTheta+initialTheta*x[0]/100;
 						double beta=initialBeta+initialBeta*x[1]/100;
 						//double beta=1;
 						double obj=KrigingInterpolator.this.calcNtSpecificLogLikelihood(n, t, theta, beta,info);
 						if(theta==0) {
-							obj=10000000000000.;
+							obj=-10000000000000.;
 						}
-						con[0]=100*(theta-0.0000001);
+						con[0]=1000*(theta-0.0001);
 						
 
 						it++;
@@ -519,7 +548,7 @@ public class KrigingInterpolator{
 				};
 				
 				double[] x = {1,1};
-				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 2, 1, x, 2, .01, 1, 500);
+				CobylaExitStatus result = Cobyla.findMinimum(calcfc, 2, 1, x, .5, .00001, 1, 500);
 				this.beta.putScalar(n, t,initialBeta+initialBeta*x[1]/100);
 				this.variogram.gettheta().putScalar(n,t,initialTheta+initialTheta*x[0]/100);
 				this.numDone++;

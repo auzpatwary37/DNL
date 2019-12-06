@@ -44,14 +44,14 @@ public class FarthestPointSampler {
 		outIndex.add(colInd);
 		distance.putRow(0, distanceMatrix.getRow(rowInd));
 		distance.putRow(1, distanceMatrix.getRow(colInd));
-		distance.getColumn(rowInd).muli(Double.NEGATIVE_INFINITY);
-		distance.getColumn(colInd).muli(Double.NEGATIVE_INFINITY);
+		distance.getColumn(rowInd).muli(Double.MIN_VALUE);
+		distance.getColumn(colInd).muli(Double.MIN_VALUE);
 		
-		for(int i=2;i<=k;i++) {
+		for(int i=2;i<k;i++) {
 			int newInd=distance.min(0).argMax().toIntVector()[0];
 			outIndex.add(newInd);
 			distance.putRow(i, distanceMatrix.getRow(newInd));
-			distance.getColumn(newInd).muli(Double.NEGATIVE_INFINITY);
+			distance.getColumn(newInd).muli(Double.MIN_VALUE);
 		}
 //		INDArray newDistanceMatrix=Nd4j.create(k,k);
 //		for(int i=0;i<outIndex.size();i++) {
@@ -129,18 +129,18 @@ public class FarthestPointSampler {
 		INDArray distance=Nd4j.create(outIndex.size()+k,distanceMatrix.shape()[1]);
 		for(int i=0;i<outIndex.size();i++) {
 			distance.putRow(i, distanceMatrix.getRow(outIndex.get(i)));
-			distance.getColumn(outIndex.get(i)).muli(Double.NEGATIVE_INFINITY);
+			distance.getColumn(outIndex.get(i)).muli(Double.MIN_VALUE);
 		}
 		for(int i=0;i<k;i++) {
 			INDArray minDistances=distance.min(0);
 			for(Entry<Integer, Double> d:errorMultiplier.entrySet()) {
 				minDistances.put(0, d.getKey(),minDistances.getDouble(0,d.getKey())*d.getValue());
 			}
-			int newInd=minDistances.max(1).toIntVector()[0];
+			int newInd=minDistances.argMax().toIntVector()[0];
 			outIndex.add(newInd);
 			int index=outIndex.size()-1;
 			distance.putRow(index, distanceMatrix.getRow(newInd));
-			distance.getColumn(newInd).muli(Double.NEGATIVE_INFINITY);
+			distance.getColumn(newInd).muli(Double.MIN_VALUE);
 		}
 		
 		return outIndex;

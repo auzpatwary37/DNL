@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
+
 import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.checkutil.CheckUtil;
@@ -38,8 +40,9 @@ public class TrainingController {
 	
 
 	private void calculateDistanceMatrix() {
-		for(int n=0;n<this.N;n++) {
-			for(int t=0;t<this.T;t++) {
+		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
+		{
+			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
 				double[][] distanceMatrix=new double[this.trainingData.size()][this.trainingData.size()];
 				for(int i=0;i<this.trainingData.size();i++) {
 					for(int j=0;j<=i;j++) {
@@ -54,13 +57,14 @@ public class TrainingController {
 				}
 				this.fullDistanceMatrixMap.put(Integer.toString(n)+"_"+Integer.toString(t), Nd4j.create(distanceMatrix));
 				
-			}
-		}
+			});
+		});
 	}
 	
 	private void calculateDistanceMatrixY() {
-		for(int n=0;n<this.N;n++) {
-			for(int t=0;t<this.T;t++) {
+		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
+		{
+			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
 				double[][] distanceMatrix=new double[this.trainingData.size()][this.trainingData.size()];
 				for(int i=0;i<this.trainingData.size();i++) {
 					for(int j=0;j<=i;j++) {
@@ -74,8 +78,8 @@ public class TrainingController {
 					}
 				}
 				this.fullDistanceMatrixMapY.put(Integer.toString(n)+"_"+Integer.toString(t), Nd4j.create(distanceMatrix));
-			}
-		}
+			});
+		});
 	}
 	
 	/**

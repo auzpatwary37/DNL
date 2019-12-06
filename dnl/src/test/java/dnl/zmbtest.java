@@ -41,7 +41,7 @@ class zmbtest {
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		this.kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData));
+		this.kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData),null);
 	
 	}
 

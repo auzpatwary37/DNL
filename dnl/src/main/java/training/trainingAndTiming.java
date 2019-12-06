@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,7 +47,7 @@ public class trainingAndTiming {
 		
 		
 		String modelFolderName="newLargeDataSet";
-		String modelName="BPRModelErSc_aug";
+		String modelName="MeanModelFS_Dec";
 		String modelOtherFolderName="largeDataset";
 		int N=33;
 		int T=9;
@@ -75,28 +76,40 @@ public class trainingAndTiming {
 		}
 		long time=System.currentTimeMillis();
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
+		
 		System.out.println(System.currentTimeMillis()-time);
 		
 		DataTypeUtil.setDTypeForContext(DataType.DOUBLE);
 		Nd4j.setDefaultDataTypes(DataType.DOUBLE, DataType.DOUBLE);
 		
 		Map<Integer,Data> trainingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetTrain"+800+".txt","Network/ND/"+modelFolderName+"/KeySetTrain"+800+".csv");
-		Map<Integer,Data> testingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetTest"+100+".txt","Network/ND/"+modelFolderName+"/KeySetTest"+100+".csv");
-		Map<Integer,Data> testingDataConst=DataIO.readDataSet("Network/ND/"+modelOtherFolderName+"/DataSetTest"+800+".txt","Network/ND/"+modelOtherFolderName+"/KeySetTest"+800+".csv");
+		Map<Integer,Data> testingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetTest"+800+".txt","Network/ND/"+modelFolderName+"/KeySetTest"+800+".csv");
+	//	Map<Integer,Data> testingDataConst=DataIO.readDataSet("Network/ND/"+modelOtherFolderName+"/DataSetTest"+800+".txt","Network/ND/"+modelOtherFolderName+"/KeySetTest"+800+".csv");
+		
+		TrainingController tc=new TrainingController(l2ls, trainingData);
+		Map<String,List<Integer>> n_tindex=null;
+		Map<String,Map<Integer,Double>> errorMap=new HashMap<>();
 		
 		for(int i=100;i<=800;i=i+50) {
 		String fullModelName=modelName+"_"+i+"_"+T;
 		File file =new File("Network/ND/"+modelFolderName+"/"+fullModelName);
 		KrigingInterpolator kriging=null;
 		double initialLL=0;
+		
+		if(i==100) {
+			n_tindex=tc.createN_TSpecificTrainingSet(100);
+		}else {
+			tc.createAdditionalN_TSpecificTrainingSetWithErrorWeight(n_tindex, 50, errorMap);
+		}
+		
 		if(file.exists() && file.list().length!=0) {
-			KrigingInterpolator kg=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData));//change of u want to change the base function
+			KrigingInterpolator kg=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData),n_tindex);//change if u want to change the base function
 			kriging=new KrigingModelReader().readModel(file.getPath()+"/modelDetails.xml");
 			initialLL=kg.calcCombinedLogLikelihood();
 			
 		}else {
 			file.mkdir();
-			kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData));//change of u want to change the base function
+			kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData),n_tindex);//change of u want to change the base function
 			initialLL=kriging.calcCombinedLogLikelihood();
 			//kriging.trainKrigingWithoutbeta();
 			kriging.trainKriging();
@@ -130,7 +143,7 @@ public class trainingAndTiming {
 			e.printStackTrace();
 		}
 		
-		Map<Integer,Double> errorMap=new HashMap<>();
+		
 		realAndModelOutput rm=new realAndModelOutput();
 		INDArray errorscore=Nd4j.create(testingData.size(),1);
 		int k=0;
@@ -146,7 +159,7 @@ public class trainingAndTiming {
 			double errorScore=Yreal.sub(Y).norm2Number().doubleValue()/Yreal.norm2Number().doubleValue()*100;
 			try {
 				fw.append(testData.getKey()+","+errorArray.norm2Number().floatValue()+"\n");
-				errorMap.put(testDataEntry.getKey(), errorScore);
+				//errorMap.put(testDataEntry.getKey(), errorScore);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -179,46 +192,70 @@ public class trainingAndTiming {
 			e.printStackTrace();
 		}
 		System.out.println("fisnished training and testing of "+fullModelName);
+		//This part now will calculate nt specific error for the training database.
+		INDArray errorArrayAverage=Nd4j.create(N,T);
+		INDArray errorArrayMax=Nd4j.create(N,T);
 		
-		 Map<Integer,Double> sortedError = errorMap
-			        .entrySet()
-			        .stream()
-			        .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
-			        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
-			                LinkedHashMap::new));
-		 int ii=0;
-		 int initialSize=trainingData.size();
-		 for(Integer key:sortedError.keySet()) {
-			 trainingData.put(initialSize+ii,testingData.remove(key));
-			 ii++;
-			 if(ii==50)break;
+		realAndModelOutput rmNew=new realAndModelOutput();
+		final KrigingInterpolator kriging1=kriging;
+		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
+		{
+			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
+				double totalError=0;
+				double maxError=0;
+				
+				String key = Integer.toString(n)+"_"+Integer.toString(t);
+				errorMap.put(key,new HashMap<>());
+				Map<Integer,Double> errornt=errorMap.get(key);
+				List<Integer> indices=kriging1.getVariogram().getNtSpecificOriginalIndices().get(key);
+				for(int ii=0;ii<trainingData.size();ii++) {
+					if(!indices.contains(ii)) {
+						double yReal=trainingData.get(ii).getY().getDouble(n,t);
+						double yKriging=kriging1.getY(trainingData.get(ii).getX(), n, t);
+						double error=(yReal-yKriging)/yReal*100;
+						errornt.put(ii, error);
+						rmNew.addDatapair(yReal,yKriging);
+						totalError+=error;
+						if(maxError<error) {
+							maxError=error;
+						}
+					}
+				}
+				errorArrayAverage.putScalar(n, t,totalError/(trainingData.size()-indices.size()));
+				errorArrayMax.putScalar(n,t,maxError);
+				
+			});
 			
-		 }
-		 //This is for testing purpose only
-		 k=0;
-		 realAndModelOutput rmNew=new realAndModelOutput();
-		 INDArray averageErrorNew=Nd4j.create(N,T);
-		 INDArray errorscoreNew=Nd4j.create(testingDataConst.size(),1);
-		 for(Entry<Integer, Data> testDataEntry:testingDataConst.entrySet()) {
-			 Data testData=testDataEntry.getValue();
-			 INDArray Yreal=testData.getY();
-			 //long startTime=System.currentTimeMillis();
-
-			 INDArray Y=kriging.getY(testData.getX());
-			 //totalTime+=System.currentTimeMillis()-startTime;
-			 rmNew.addDatapair(Yreal, Y);
-			 INDArray errorArray=Yreal.sub(Y).div(Yreal).mul(100);
-			 double errorScore=Yreal.sub(Y).norm2Number().doubleValue()/Yreal.norm2Number().doubleValue()*100;
-			 errorscoreNew.put(k,1, errorScore);
-			 errorArray=Transforms.abs(errorArray);
-			 averageErrorNew.addi(errorArray);
-			 k++;
-		 }
-		 averageErrorNew.divi(testingDataConst.size());
-		 Nd4j.writeTxt(averageErrorNew, file.getPath()+"/averagePredictionErrorConst.txt");
-		 rmNew.writeCsv(file.getPath()+"/yrealvsymodelConst.csv");
-		 KrigingInterpolator.writeINDArray(errorscoreNew, file.getPath()+"/errorScoreConst.csv");
-		 //Test End
+		});
+		rmNew.writeCsv(file.getPath()+"/yrealvsymodelTrainingData.csv");
+		KrigingInterpolator.writeINDArray(errorArrayAverage, file.getPath()+"/trainingDataErrorAverage.csv");
+		KrigingInterpolator.writeINDArray(errorArrayAverage, file.getPath()+"/trainingDataErrorMax.csv");
+		
+//		 //This is for testing purpose only
+//		 k=0;
+//		 realAndModelOutput rmNew=new realAndModelOutput();
+//		 INDArray averageErrorNew=Nd4j.create(N,T);
+//		 INDArray errorscoreNew=Nd4j.create(testingData.size(),1);
+//		 for(Entry<Integer, Data> testDataEntry:testingData.entrySet()) {
+//			 Data testData=testDataEntry.getValue();
+//			 INDArray Yreal=testData.getY();
+//			 //long startTime=System.currentTimeMillis();
+//
+//			 INDArray Y=kriging.getY(testData.getX());
+//			 //totalTime+=System.currentTimeMillis()-startTime;
+//			 rmNew.addDatapair(Yreal, Y);
+//			 INDArray errorArray=Yreal.sub(Y).div(Yreal).mul(100);
+//			 double errorScore=Yreal.sub(Y).norm2Number().doubleValue()/Yreal.norm2Number().doubleValue()*100;
+//			 errorscoreNew.put(k,1, errorScore);
+//			 errorArray=Transforms.abs(errorArray);
+//			 averageErrorNew.addi(errorArray);
+//			 k++;
+//		 }
+//		 averageErrorNew.divi(testingData.size());
+//		 Nd4j.writeTxt(averageErrorNew, file.getPath()+"/averagePredictionErrorConst.txt");
+//		 rmNew.writeCsv(file.getPath()+"/yrealvsymodelConst.csv");
+//		 KrigingInterpolator.writeINDArray(errorscoreNew, file.getPath()+"/errorScoreConst.csv");
+//		 //Test End
 		 
 		 System.out.println("trainingDataSize = "+trainingData.size()+" and testing data size = "+testingData.size());
 		}
@@ -389,11 +426,24 @@ public class trainingAndTiming {
 
 class realAndModelOutput{
 	private INDArray realOutputVsModelOutput;
+	private INDArray realOutput=null;
+	private INDArray modelOutput=null;
 	private int pointRecorded=0;
 	public realAndModelOutput() {
 		this.realOutputVsModelOutput=null;
 	}
 	
+	public void addDatapair(double yReal, double yKriging) {
+		if(pointRecorded==0) {
+			this.realOutput=Nd4j.create(new double[] {yReal});
+			this.modelOutput=Nd4j.create(new double[] {yKriging});
+		}else {
+			this.realOutput=Nd4j.concat(0, this.realOutput,Nd4j.create(new double[] {yReal}));
+			this.modelOutput=Nd4j.concat(0,this.modelOutput,Nd4j.create(new double[] {yKriging}));
+		}
+		this.pointRecorded++;
+	}
+
 	public void addDatapair(INDArray real,INDArray model) {
 		INDArray realvector=real.reshape(real.length());
 		INDArray modelvector=model.reshape(model.length());
@@ -410,6 +460,11 @@ class realAndModelOutput{
 	
 	
 	public void writeCsv(String fileLoc) {
+		if(this.realOutputVsModelOutput==null) {
+			this.realOutputVsModelOutput=Nd4j.create(this.realOutput.size(0),2);
+			this.realOutputVsModelOutput.putColumn(0, this.realOutput);
+			this.realOutputVsModelOutput.putColumn(1, this.modelOutput);
+		}
 		KrigingInterpolator.writeINDArray(this.realOutputVsModelOutput, fileLoc);
 	}
 	
