@@ -27,6 +27,7 @@ public class KrigingModelReader extends DefaultHandler {
 	
 	private INDArray theta;
 	private INDArray beta;
+	private INDArray nugget;
 	private INDArray Cn;
 	private INDArray Ct;
 	private Map<Integer,Data> trainingDataSet;
@@ -43,6 +44,10 @@ public class KrigingModelReader extends DefaultHandler {
 		
 		if(qName.equalsIgnoreCase("theta")) {
 			theta=Nd4j.readTxt(attributes.getValue("Filelocation"));
+		}
+		
+		if(qName.equalsIgnoreCase("nugget")) {
+			nugget=Nd4j.readTxt(attributes.getValue("Filelocation"));
 		}
 		
 		if(qName.equalsIgnoreCase("beta")) {
@@ -115,7 +120,7 @@ public class KrigingModelReader extends DefaultHandler {
 			e.printStackTrace();
 		}
 		
-		Variogram v=new Variogram(trainingDataSet,this.l2ls,this.theta,this.Cn,this.Ct,this.n_tSpecificTrainingIndices);
+		Variogram v=new Variogram(trainingDataSet,this.l2ls,this.theta,this.nugget,this.Cn,this.Ct,this.n_tSpecificTrainingIndices);
 		
 		KrigingInterpolator kriging=new KrigingInterpolator(v,beta,this.bf,Cn,Ct);
 		kriging.setTrainingTime(trainingTime);

@@ -1,5 +1,6 @@
 package training;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +29,7 @@ public class TrainingController {
 	private Map<String,INDArray> fullDistanceMatrixMapY=new HashMap<>();
 	private final int N;
 	private final int T;
+	public final String defaultWriteLoc="distanceMatrix.csv";
 	
 	public TrainingController(LinkToLinks l2ls,Map<Integer,Data> trainingData) {
 		this.l2ls=l2ls;
@@ -36,10 +38,25 @@ public class TrainingController {
 		this.T=Math.toIntExact(trainingData.get(0).getX().size(1));
 		this.calculateDistanceMatrix();
 		//this.calculateDistanceMatrixY();
+		this.writeDistanceMatrix(defaultWriteLoc);
 	}
 	
+	public TrainingController(LinkToLinks l2ls,Map<Integer,Data> trainingData,boolean realOld) {
+		this.l2ls=l2ls;
+		this.trainingData=trainingData;
+		this.N=Math.toIntExact(trainingData.get(0).getX().size(0));
+		this.T=Math.toIntExact(trainingData.get(0).getX().size(1));
+		if(realOld==true && new File(this.defaultWriteLoc).exists()) {
+			this.fullDistanceMatrixMap=readDistanceMatrix(defaultWriteLoc, N, T, trainingData.size());
+		}else {
+			this.calculateDistanceMatrix();
+			//this.calculateDistanceMatrixY();
+			this.writeDistanceMatrix(defaultWriteLoc);
+		}
+	}
 
 	private void calculateDistanceMatrix() {
+		long starttime=System.currentTimeMillis();
 		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
 			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
@@ -59,9 +76,11 @@ public class TrainingController {
 				
 			});
 		});
+		System.out.println("total time to create distance matrix = " + Long.toString(System.currentTimeMillis()-starttime));
 	}
 	
 	private void calculateDistanceMatrixY() {
+		long starttime=System.currentTimeMillis();
 		IntStream.rangeClosed(0,N-1).parallel().forEach((n)->
 		{
 			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
@@ -80,7 +99,42 @@ public class TrainingController {
 				this.fullDistanceMatrixMapY.put(Integer.toString(n)+"_"+Integer.toString(t), Nd4j.create(distanceMatrix));
 			});
 		});
+		System.out.println("total time to write distance matrix = " + Long.toString(System.currentTimeMillis()-starttime));
 	}
+	
+	
+	public void writeDistanceMatrix(String fileLoc) {
+		long starttime=System.currentTimeMillis();
+		int k=0;
+		INDArray bigArray=Nd4j.create(this.N*this.T,this.trainingData.size()*this.trainingData.size());
+		for(int n=0;n<this.N;n++) {
+			for(int t=0;t<this.T;t++) {
+				INDArray distanceMatrix=this.fullDistanceMatrixMap.get(Integer.toString(n)+"_"+Integer.toString(t));
+				bigArray.putRow(k, distanceMatrix.reshape(distanceMatrix.length()));
+				k++;
+			}
+		}
+		DataIO.writeINDArray(bigArray, fileLoc);
+		System.out.println("total time to write distance matrix = " + Long.toString(System.currentTimeMillis()-starttime));
+	}
+	
+	public static Map<String,INDArray> readDistanceMatrix(String fileLoc, int N, int T, int I) {
+		long starttime=System.currentTimeMillis();
+		Map<String,INDArray> distances= new HashMap<>();
+		INDArray bigArray=DataIO.readINDArray(fileLoc);
+		int k=0;
+		for(int n=0;n<N;n++) {
+			for(int t=0;t<T;t++) {
+				INDArray distanceMatrix=bigArray.getRow(k);
+				distanceMatrix=distanceMatrix.reshape(I,I);
+				distances.put(Integer.toString(n)+"_"+Integer.toString(t), distanceMatrix);
+				k++;
+			}
+		}
+		System.out.println("total time to read distance matrix = " + Long.toString(System.currentTimeMillis()-starttime));
+		return distances;
+	}
+	
 	
 	/**
 	 * Creates a k sized training set indices set for each n and t pair
@@ -149,10 +203,11 @@ public class TrainingController {
 	 * @return
 	 */
 	public Map<String,List<Integer>> createAdditionalN_TSpecificTrainingSetWithErrorWeight(Map<String,List<Integer>> currentIndices, int k, Map<String,Map<Integer,Double>> errorMap){
+		System.out.println();
 		for(int n=0;n<this.N;n++) {
 			for(int t=0;t<this.T;t++) {
 				String key=Integer.toString(n)+"_"+Integer.toString(t);
-				currentIndices.put(key, FarthestPointSampler.pickAdditionalKFurthestPoint(this.fullDistanceMatrixMap.get(key), currentIndices.get(key), k, errorMap.get(key)));
+				currentIndices.put(key, FarthestPointSampler.pickAdditionalKFurthestPointScaled(this.fullDistanceMatrixMap.get(key), currentIndices.get(key), k, errorMap.get(key)));
 			}
 		}
 		return currentIndices;

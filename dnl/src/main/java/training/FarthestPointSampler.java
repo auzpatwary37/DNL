@@ -134,7 +134,52 @@ public class FarthestPointSampler {
 		for(int i=0;i<k;i++) {
 			INDArray minDistances=distance.min(0);
 			for(Entry<Integer, Double> d:errorMultiplier.entrySet()) {
-				minDistances.put(0, d.getKey(),minDistances.getDouble(0,d.getKey())*d.getValue());
+				minDistances.putScalar(d.getKey(),minDistances.getDouble(d.getKey())*d.getValue());
+			}
+			int newInd=minDistances.argMax().toIntVector()[0];
+			outIndex.add(newInd);
+			int index=outIndex.size()-1;
+			distance.putRow(index, distanceMatrix.getRow(newInd));
+			distance.getColumn(newInd).muli(Double.MIN_VALUE);
+		}
+		
+		return outIndex;
+	}
+	
+	public static List<Integer> pickAdditionalKFurthestPointScaled(INDArray distanceMatrix,List<Integer>outIndex,int k,Map<Integer,Double>errorMultiplier){
+		int row=outIndex.size()+k;
+		int col=Math.toIntExact(distanceMatrix.shape()[1]);
+		INDArray distance=null;
+		try {
+			double[][] dis=new double[row][col];
+			for(int i=0;i<row;i++) {
+				for(int j=0;j<col;j++) {
+					dis[i][j]=Double.MAX_VALUE;
+				}
+			}
+			distance=Nd4j.create(dis);
+			//distance.muli(100000000);
+		}catch(Exception e) {
+			System.out.println(e);
+		}
+		for(int i=0;i<outIndex.size();i++) {
+			distance.putRow(i, distanceMatrix.getRow(outIndex.get(i)));
+			//distance.getColumn(outIndex.get(i)).muli(Double.MIN_VALUE);
+		}
+		
+		for(int i=0;i<outIndex.size();i++) {
+			distance.getColumn(outIndex.get(i)).muli(Double.MIN_VALUE);
+		}
+		double max=0;
+		for(double d:errorMultiplier.values()) {
+			if(max<d)max=d;
+		}
+		for(int i=0;i<k;i++) {
+			INDArray minDistances=distance.min(0);
+			minDistances.divi(minDistances.max()).muli(100);
+			double scale=100/max;
+			for(Entry<Integer, Double> d:errorMultiplier.entrySet()) {
+				minDistances.putScalar(d.getKey(),minDistances.getDouble(d.getKey())*d.getValue()*scale);
 			}
 			int newInd=minDistances.argMax().toIntVector()[0];
 			outIndex.add(newInd);

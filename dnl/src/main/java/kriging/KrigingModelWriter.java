@@ -31,6 +31,7 @@ public class KrigingModelWriter {
 	private final Map<Integer,Data> trainingDataSet;
 	private final INDArray theta;
 	private final INDArray beta;
+	private final INDArray nugget;
 	private final BaseFunction baseFunction;
 	private INDArray Cn;
 	private INDArray Ct;
@@ -42,6 +43,7 @@ public class KrigingModelWriter {
 		this.trainingDataSet=model.getTrainingDataSet();
 		this.theta=model.getVariogram().gettheta();
 		this.beta=model.getBeta();
+		this.nugget=model.getVariogram().getNugget();
 		this.l2ls=model.getVariogram().getL2ls();
 		this.baseFunction=model.getBaseFunction();
 		this.Cn=model.getCn();
@@ -96,6 +98,11 @@ public class KrigingModelWriter {
 			Nd4j.writeTxt(this.beta, fileLoc+"/beta.txt");
 			betaEle.setAttribute("Filelocation", fileLoc+"/beta.txt");
 			rootEle.appendChild(betaEle);
+			
+			Element nuggetEle=document.createElement("nugget");
+			Nd4j.writeTxt(this.nugget, fileLoc+"/nugget.txt");
+			nuggetEle.setAttribute("Filelocation", fileLoc+"/nugget.txt");
+			rootEle.appendChild(nuggetEle);
 			
 			Element l2ls=document.createElement("LinkToLinks");
 			new LinkToLinksWriter(this.l2ls).write(fileLoc);

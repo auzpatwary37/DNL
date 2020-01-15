@@ -56,6 +56,7 @@ public class BPRBaseFunction implements BaseFunction{
 					linkFlow+=X.getDouble(nn,t);
 					averageGC+=this.link2LinkInfo.get(nn).getG_cRatio();
 				}
+				averageGC=averageGC/this.link2LinkInfo.get(n).getPrimaryFromLinkProximitySet().size();
 				double tt=this.getLinkToLinkBPRDelay(linkFlow,averageGC, n,this.timeBeanLength.get(t),alpha.getDouble(n,t),beta.getDouble(n,t));
 				Y.putScalar(n, t, tt);
 				if(Y.cond(Conditions.isInfinite()).any()||Y.cond(Conditions.isNan()).any()) {
@@ -67,6 +68,7 @@ public class BPRBaseFunction implements BaseFunction{
 //			});
 //		});
 		
+		//System.out.println();
 		return Y;
 	}
 	
@@ -80,7 +82,7 @@ public class BPRBaseFunction implements BaseFunction{
 	
 	private double getLinkToLinkBPRDelay(double demand,double averageGC, int n,double timeLength,double alpha,double beta) {
 		Link2LinkInfoHolder l2l=this.link2LinkInfo.get(n);
-		Double delay=l2l.getFromLinkFreeFlowTime()*(1+alpha*Math.pow((demand/(l2l.getSaturationFlow()*averageGC*timeLength)),beta));
+		Double delay=l2l.getFromLinkFreeFlowTime()*(1+alpha*Math.pow((demand/(l2l.getSaturationFlow()*averageGC*timeLength/3600)),beta));
 		
 		return delay;
 	}

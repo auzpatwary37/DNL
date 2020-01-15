@@ -2,9 +2,12 @@ package training;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -222,5 +225,55 @@ public class DataIO {
 		
 		return variance;
 	}
+	public static void writeINDArray(INDArray array,String fileLoc) {
+		try {
+			System.out.println(Arrays.toString(array.shape()));
+			FileWriter fw=new FileWriter(new File(fileLoc));
+			for(int i=0;i<array.size(0);i++) {
+				String seperator="";
+				for(int j=0;j<array.size(1);j++) {
+					fw.append(seperator+array.getDouble(i,j));
+					seperator=",";
+				}
+				fw.append("\n");
+				fw.flush();
+			}
+			
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
+	public static INDArray readINDArray(String fileLoc) {
+		Map<Integer,double[]> rows=new HashMap<>();
+		INDArray outArray=null;
+		try {
+			BufferedReader bf=new BufferedReader(new FileReader(new File(fileLoc)));
+			String line=null;
+			int rowNum=0;
+			while((line=bf.readLine())!=null) {
+				double[] row=new double[line.split(",").length];
+				int i=0;
+				for(String s:line.split(",")) {
+					row[i]=Double.parseDouble(s);
+					i++;
+				}
+				rows.put(rowNum, row);
+				rowNum++;
+			}
+			outArray=Nd4j.create(rows.size(),rows.get(0).length);
+			for(Entry<Integer, double[]> r:rows.entrySet()) {
+				outArray.putRow(r.getKey(), Nd4j.create(r.getValue()));
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return outArray;
+	}
 }

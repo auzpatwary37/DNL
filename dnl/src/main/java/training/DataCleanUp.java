@@ -43,7 +43,7 @@ public class DataCleanUp {
 		DataIO.writeData(datasetFull, baseloc+"DataSetFull.txt",baseloc+"KeySetFull.csv");
 		//for(double i=.30;i<=.90;i=i+.10) {
 		
-		TestAndTrainData testAndTrain=DataCleanUp.DevideDataInTestAndTrain(datasetFull, (int)750);
+		TestAndTrainData testAndTrain=DataCleanUp.DevideDataInTestAndTrain(datasetFull, (int)800);
 		DataIO.writeData(testAndTrain.getTestData(), baseloc+"DataSetTest"+800+".txt",baseloc+"KeySetTest"+800+".csv");
 		DataIO.writeData(testAndTrain.getTrainData(), baseloc+"DataSetTrain"+800+".txt", baseloc+"KeySetTrain"+800+".csv");
 		//}
