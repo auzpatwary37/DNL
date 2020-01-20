@@ -51,7 +51,7 @@ public class trainingAndTiming {
 
 
 		String modelFolderName="newLargeDataSet";
-		String modelName="MeanModel_Implicit_Nugget_forTesting";
+		String modelName="MeanModel_Implicit_WithNugget_forTesting";
 		String modelOtherFolderName="largeDataset";
 		int N=33;
 		int T=9;
@@ -120,6 +120,7 @@ public class trainingAndTiming {
 				//kriging.trainKrigingWithoutbeta();
 				//kriging.trainKrigingWithNugget();
 				kriging.trainKrigingImplicitWithNugget();
+				//kriging.trainKrigingImplicit();
 				//kriging.trainKriging();
 				new KrigingModelWriter(kriging).writeModel(file.getPath());
 			}

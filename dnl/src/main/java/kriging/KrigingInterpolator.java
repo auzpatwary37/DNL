@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.linear.CholeskyDecomposition;
+import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
@@ -299,8 +300,12 @@ public class KrigingInterpolator{
 				for(int i=0;i<z_mb.size(0);i++) {
 					z_mb.putScalar(i, 0,Z_MB.getDouble(n,t,this.variogram.getNtSpecificOriginalIndices().get(key).get(i)));
 				}
+				
+				INDArray weights=varianceVectorAll.get(key).transpose().mmul(KInverse);
+				//weights=this.postProcessWeight(weights, varianceVectorAll.get(key));
+				
 				double y=Y_b.getDouble(n,t)*beta.getDouble(n,t)+
-						varianceVectorAll.get(key).transpose().mmul(KInverse).mmul(z_mb).getDouble(0,0)/this.variogram.getTtScale().getDouble(n,t);//Fix the Z_MB part!!!
+						weights.mmul(z_mb).getDouble(0,0)/this.variogram.getTtScale().getDouble(n,t);//Fix the Z_MB part!!!
 				if(y<0) {
 					System.out.println("y is negative Stop!!! debug!!!");
 				}
@@ -328,8 +333,10 @@ public class KrigingInterpolator{
 			for(int i=0;i<z_mb.size(0);i++) {
 				z_mb.putScalar(i, 0,Z_MB.getDouble(n,t,this.variogram.getNtSpecificOriginalIndices().get(key).get(i)));
 			}
+			INDArray weights=varianceVector.transpose().mmul(KInverse);
+			//weights=this.postProcessWeight(weights, varianceVector);
 			double y=Y_b.getDouble(n,t)*beta.getDouble(n,t)+
-					varianceVector.transpose().mmul(KInverse).mmul(z_mb).getDouble(0,0)/this.variogram.getTtScale().getDouble(n,t);//Fix the Z_MB part!!!
+					weights.mmul(z_mb).getDouble(0,0)/this.variogram.getTtScale().getDouble(n,t);//Fix the Z_MB part!!!
 			return y;
 		}
 		
@@ -522,17 +529,21 @@ public class KrigingInterpolator{
 			//double sigma=this.variogram.getSigmaMatrix().getDouble(n,t);
 			this.preProcessNtSpecificDataImplicit(n,t, theta, nugget, info);
 		}catch(Exception e) {
-			System.out.println(n);
-			System.out.println(t);
-			INDArray weight=CheckUtil.convertFromApacheMatrix(this.variogram.getL2ls().getWeightMatrix(n, t),DataType.DOUBLE);
-			INDArray variance=info.getVarianceMatrixAll().get(Integer.toString(n)+"_"+Integer.toString(t));
-			this.writeINDArray(variance, "varianceWithoutSigmafor"+n+"_"+t+".csv");
-			this.writeINDArray(weight, "weightfor"+n+"_"+t+".csv");
-			this.writeINDArray(this.variogram.getDistances().get(Integer.toString(n)+"_"+Integer.toString(t)), "distancefor"+n+"_"+t+".csv");
-			System.out.println(theta);
-			System.out.println(this.variogram.getSigmaMatrix().getDouble(n,t));
-			System.out.println(this.variogram.getNugget().getDouble(n,t));
-			throw e;
+			INDArray varianceMatrix=this.variogram.calcVarianceMatrixWithoutSigma(n, t, theta, nugget);
+			EigenDecomposition decomp=new EigenDecomposition(MatrixUtils.createRealMatrix(varianceMatrix.toDoubleMatrix()));
+			double[] eigenValues=decomp.getRealEigenvalues();
+			double minEigen=0;
+			for(double d:eigenValues) {
+				if(d<minEigen)minEigen=d;
+			}
+			if(minEigen<=0) {
+				this.variogram.getNugget().putScalar(n, t,-1*minEigen+.0001);
+				this.preProcessNtSpecificDataImplicit(n,t, theta, this.variogram.getNugget().getDouble(n,t), info);
+			}else {
+				throw new IllegalArgumentException("Matrix is already positive definite!!!");
+			}
+			
+			
 		}
 		double logLiklihood=0;
 		String key=Integer.toString(n)+"_"+Integer.toString(t);
@@ -748,6 +759,7 @@ public class KrigingInterpolator{
 				//continue;
 				return;
 			}
+			//System.out.println("loglikelihood before Training = "+n+"_"+t+" = "+this.calcCombinedLogLikelihood());
 //			double initialBeta=this.beta.getDouble(n,t);
 			if(this.variogram.getDistances().get(key).maxNumber().doubleValue()==0) {
 				KrigingInterpolator.writeINDArray(this.variogram.getDistances().get(key),key+"distance.csv");
@@ -767,7 +779,7 @@ public class KrigingInterpolator{
 						}else {
 							obj=KrigingInterpolator.this.calcNtSpecificLogLikelihoodImplicit(n, t, theta, nugget, info);
 						}
-						con[0]=10000*(theta-0.000001);
+						con[0]=100000*(theta-0.000000001);
 						con[1]=1000*(KrigingInterpolator.this.getBeta().getDouble(n,t)-.5);
 						it++;
 
@@ -780,8 +792,13 @@ public class KrigingInterpolator{
  			CobylaExitStatus result = Cobyla.findMinimum(calcfc, 1, 2, x, .5, .00001, 1, 350);
 			this.variogram.gettheta().putScalar(n,t,initialTheta+initialTheta*x[0]/100);
 			this.preProcessNtSpecificDataImplicit(n, t, initialTheta+initialTheta*x[0]/100, this.getVariogram().getNugget().getDouble(n,t), info);
-			info.getVarianceMatrixInverseAll().get(key).muli(this.variogram.getSigmaMatrix().getDouble(n,t));
+			info.getVarianceMatrixInverseAll().get(key).divi(this.variogram.getSigmaMatrix().getDouble(n,t));
+			info.getLogDeterminant().put(key, info.getLogDeterminant().get(key)+Math.log(this.variogram.getSigmaMatrix().getDouble(n,t))*this.variogram.getNtSpecificOriginalIndices().get(key).size());
+			this.variogram.getNugget().put(n,t,this.variogram.getNugget().getDouble(n,t)*this.variogram.getSigmaMatrix().getDouble(n,t));
 			this.numDone++;
+			
+			//System.out.println(this.calcNtSpecificLogLikelihood(n, t, initialTheta+initialTheta*x[0]/100, beta.getDouble(n,t), this.variogram.getNugget().getDouble(n,t), info));
+			//System.out.println(this.calcCombinedLogLikelihood());
 			System.out.println("Finished training "+this.numDone+" out of "+n_tlist.size());
 
 		});
@@ -854,6 +871,35 @@ public class KrigingInterpolator{
 		info.getLogDeterminant().put(key, logdet);
 		this.variogram.getNugget().put(n,t,nugget*sigma);
 	}
+	
+	public INDArray postProcessWeight(INDArray weights, INDArray varianceVector) {
+		int j=0;
+		double absNegWeight=0;
+		double absNegCov=0;
+		for(int i=0;i<weights.length();i++) {
+			if(weights.getDouble(i)<0) {
+				j++;
+				absNegWeight+=Math.abs(weights.getDouble(i));
+				absNegCov+=varianceVector.getDouble(i);
+			}
+		}
+		absNegWeight=absNegWeight/j;
+		absNegCov=absNegCov/j;
+		INDArray newWeights=Nd4j.create(weights.shape());
+		double sumNewWeights=0;
+		for(int i=0;i<weights.length();i++) {
+			double w=weights.getDouble(i);
+			if(w<0) {
+				w=0;
+			}else if(w>0 && varianceVector.getDouble(i)<absNegCov) {
+				w=0;
+			}
+			sumNewWeights+=w;
+			newWeights.putScalar(i, w);
+		}
+		return newWeights.div(sumNewWeights);
+	}
+	
 	public void trainKrigingImplicitWithNugget() {
 		long startTime=System.currentTimeMillis();
 

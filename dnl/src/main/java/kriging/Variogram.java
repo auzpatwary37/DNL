@@ -36,7 +36,7 @@ import linktolinkBPR.LinkToLinks;
 public class Variogram {
 	
 	private final Map<Integer,Data> trainingDataSet;
-	private final INDArray sigmaMatrix;
+	private INDArray sigmaMatrix;
 	private final Map<String,RealMatrix> weights;
 	private INDArray theta;
 	private Map<String,INDArray> varianceMapAll;
@@ -154,6 +154,10 @@ public class Variogram {
 	
 	
 	
+	public void setSigmaMatrix(INDArray sigmaMatrix) {
+		this.sigmaMatrix = sigmaMatrix;
+	}
+
 	public boolean isScaleData() {
 		return scaleData;
 	}
@@ -307,6 +311,7 @@ public class Variogram {
 			});
 		});
 	}
+	
 	private INDArray calcDistanceMatrix(int n, int t) {
 		if(this.ntSpecificOriginalIndices==null) {
 			this.ntSpecificOriginalIndices=new HashMap<>();
