@@ -1,0 +1,274 @@
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,maxError
+BPRModelErScWithoutBeta_100_9,ND,100,100,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_100_9,-647467.819,-30105.45526,10029,10.06921296,187.0665054,64.96829824,
+BPRModelErScWithoutBeta_150_9,ND,150,150,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_150_9,-360297.0116,-49214.8584,26911,8.977226156,331.0579151,33.90798486,
+BPRModelErScWithoutBeta_200_9,ND,200,200,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_200_9,-418864.4865,-64933.46258,60943,7.394950925,459.2723521,25.30326319,
+BPRModelErScWithoutBeta_250_9,ND,250,250,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_250_9,-452560.6163,-79769.12356,108887,6.327434154,572.8124077,19.53635784,
+BPRModelErScWithoutBeta_300_9,ND,300,300,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_300_9,-561470.3676,-93328.77723,194990,5.246656541,708.0988836,17.62464085,
+BPRModelErScWithoutBeta_350_9,ND,350,350,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_350_9,-665928.9516,-106068.3842,366553,4.266433307,847.4367418,12.43949076,
+BPRModelErScWithoutBeta_400_9,ND,400,400,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_400_9,-760823.3513,-116957.088,647365,3.623463267,955.3510436,10.89707367,
+BPRModelErScWithoutBeta_450_9,ND,450,450,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_450_9,-875558.9869,-126838.9542,1028353,2.971783431,1071.853249,9.163054844,
+BPRModelErScWithoutBeta_500_9,ND,500,500,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_500_9,-977678.4133,-135817.148,1501592,2.261474223,1141.056206,5.920288851,
+BPRModelErScWithoutBeta_550_9,ND,550,550,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_550_9,-1081439.736,-143023.8846,2214171,1.743127671,1429.64191,5.061088114,
+BPRModelErScWithoutBeta_600_9,ND,600,600,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_600_9,-1193569.865,-149680.3601,3050210,1.318489419,1402.899083,3.179017564,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+BPRModelErScWithoutBeta_100_9,ND,100,100,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_100_9,-647467.819,-30105.45526,10029,10.06921296,182.7533253,64.96829824,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+BPRModelErScWithoutBeta_100_9,ND,100,100,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_100_9,-647467.819,-30105.45526,10029,10.06921296,182.1692866,64.96829824,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+BPRModelErScWithoutBeta_100_9,ND,100,100,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_100_9,-647467.819,-30105.45526,10029,10.06921296,185.9383313,64.96829824,
+BPRModelErScWithoutBeta_150_9,ND,150,150,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_150_9,-360297.0116,-49214.8584,26911,8.977226156,342.1415701,33.90798486,
+BPRModelErScWithoutBeta_200_9,ND,200,200,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_200_9,-418864.4865,-64933.46258,60943,7.394950925,484.7221458,25.30326319,
+BPRModelErScWithoutBeta_250_9,ND,250,250,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_250_9,-452560.6163,-79769.12356,108887,6.327434154,627.1920236,19.53635784,
+BPRModelErScWithoutBeta_300_9,ND,300,300,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_300_9,-561470.3676,-93328.77723,194990,5.246656541,756.7894737,17.62464085,
+BPRModelErScWithoutBeta_350_9,ND,350,350,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_350_9,-665928.9516,-106068.3842,366553,4.266433307,884.1473137,12.43949076,
+BPRModelErScWithoutBeta_400_9,ND,400,400,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_400_9,-760823.3513,-116957.088,647365,3.623463267,1056.588235,10.89707367,
+BPRModelErScWithoutBeta_450_9,ND,450,450,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_450_9,-875558.9869,-126838.9542,1028353,2.971783431,1126.18239,9.163054844,
+BPRModelErScWithoutBeta_500_9,ND,500,500,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_500_9,-977678.4133,-135817.148,1501592,2.261474223,1291.653396,5.920288851,
+BPRModelErScWithoutBeta_550_9,ND,550,550,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_550_9,-1081439.736,-143023.8846,2214171,1.743127671,1349.689655,5.061088114,
+BPRModelErScWithoutBeta_600_9,ND,600,600,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_600_9,-1193569.865,-149680.3601,3050210,1.318489419,1445.544343,3.179017564,
+BPRModelErScWithoutBeta_650_9,ND,650,650,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_650_9,-1178836.063,-156913.5044,3953407,0.973373847,1457.765343,2.480945305,
+BPRModelErScWithoutBeta_700_9,ND,700,700,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_700_9,-1276377.998,-158363.9294,5063905,0.677756426,1524.621145,1.679377445,
+BPRModelErScWithoutBeta_750_9,ND,750,750,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_750_9,-1357804.396,-161516.3103,6095256,0.531458459,1635.711864,1.19602538,
+BPRModelErScWithoutBeta_800_9,ND,800,800,9,Network\ND\newLargeDataSet\BPRModelErScWithoutBeta_800_9,-1431214.178,-159773.8303,7518774,0.438111718,1733.031496,0.575364353,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+BPRModelErSc_aug_100_9,ND,100,100,9,Network\ND\newLargeDataSet\BPRModelErSc_aug_100_9,-700741.5036,-253725.6951,53009,12.4581273,185.471584,62.30684495,
+BPRModelErSc_aug_150_9,ND,150,150,9,Network\ND\newLargeDataSet\BPRModelErSc_aug_150_9,-422604.7626,-615601.5779,143175,13.50734771,331.6344916,82.54735722,
+BPRModelErSc_aug_200_9,ND,200,200,9,Network\ND\newLargeDataSet\BPRModelErSc_aug_200_9,-343475.6024,-1157822.458,362732,17.2666852,443.2448418,58.36043128,
+BPRModelErSc_aug_250_9,ND,250,250,9,Network\ND\newLargeDataSet\BPRModelErSc_aug_250_9,-444717.934,-2141549.023,679190,25.6437309,578.4711965,86.31445062,
+BPRModelErSc_aug_300_9,ND,300,300,9,Network\ND\newLargeDataSet\BPRModelErSc_aug_300_9,-548246.9411,-3452059.38,1188694,35.60942832,676.5917065,59.04809106,
+BPRModelErSc_aug_350_9,ND,350,350,9,Network\ND\newLargeDataSet\BPRModelErSc_aug_350_9,-632844.1217,-1.04E+07,2045146,51.50922063,796.7521664,92.73294118,
+BPRModelErSc_aug_400_9,ND,400,400,9,Network\ND\newLargeDataSet\BPRModelErSc_aug_400_9,-748013.1226,-1.39E+07,3716910,55.70508031,877.9791271,88.66084961,
+BPRModelErSc_aug_450_9,ND,450,450,9,Network\ND\newLargeDataSet\BPRModelErSc_aug_450_9,-868716.5538,-2.71E+07,5718961,61.81594881,954.5471698,92.32851297,
+BPRModelErSc_aug_500_9,ND,500,500,9,Network\ND\newLargeDataSet\BPRModelErSc_aug_500_9,-974864.0197,-3.48E+07,8136336,167.4712641,1049.754098,404.6961598,
+BPRModelErSc_aug_550_9,ND,550,550,9,Network\ND\newLargeDataSet\BPRModelErSc_aug_550_9,-1095902.678,-3.89E+07,1.19E+07,165.5502456,1155.6313,430.6542258,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,750,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104195.3486,-90992.82269,171924,16.33191922,289.7062147,53.42426992,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,750,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104195.3486,-90992.82269,171924,16.33191922,219.2429379,53.42426992,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,750,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104195.3486,-90992.82269,171924,16.33191922,220.8644068,53.42426992,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,750,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104195.3486,-90992.82269,127335,16.33191922,233.5762712,53.42426992,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,750,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104195.3486,-90992.82269,127335,16.33191922,211.6610169,53.42426992,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104292.902,-90992.82269,127335,13.97656153,201.023622,44.59825069,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104292.902,-90992.82269,127335,13.97656153,208.8503937,44.59825069,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104292.902,-90992.82269,127335,13.97656153,212.8425197,44.59825069,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104292.902,-90992.82269,127335,13.97656153,211.1102362,44.59825069,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104292.902,-90886.3198,136603,15.22180754,237.8031496,48.70484811,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104292.902,-90886.3198,136603,15.22180754,214.7086614,48.70484811,
+MeanModelFS_Dec_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_150_9,-104521.1788,-91109.4082,229350,15.8112823,367.5511811,52.36566245,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104292.902,-90833.50595,90984,14.85514965,226.4251969,45.95810252,
+MeanModelFS_Dec_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_150_9,-104521.1788,-91011.96955,149527,14.84453974,450.6456693,45.9581026,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104292.902,-90833.50595,117240,14.85514965,775.5433071,45.95810252,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_100_9,-104292.902,-90833.50595,96341,14.85514965,225.0551181,45.95810252,
+MeanModelFS_Dec_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_150_9,-104521.1788,-91011.96955,105996,14.84453974,330.3543307,45.9581026,
+MeanModelFS_Dec_200_9,ND,200,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_200_9,-104521.1788,-91011.96955,172717,14.84453974,343.1417323,45.9581026,
+MeanModelFS_Dec_250_9,ND,250,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_250_9,-104521.1788,-91011.96955,116424,14.84453974,328.2519685,45.9581026,
+MeanModelFS_Dec_300_9,ND,300,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_300_9,-104521.1788,-91011.96955,208709,14.84453974,343.0944882,45.9581026,
+MeanModelFS_Dec_350_9,ND,350,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_350_9,-104521.1788,-91011.96955,166461,14.84453974,349.2677165,45.9581026,
+MeanModelFS_Dec_400_9,ND,400,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_400_9,-104521.1788,-91011.96955,168546,14.84453974,389.1653543,45.9581026,
+MeanModelFS_Dec_450_9,ND,450,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_450_9,-104521.1788,-91011.96955,178744,14.84453974,347.4015748,45.9581026,
+MeanModelFS_Dec_500_9,ND,500,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_500_9,-104521.1788,-91011.96955,190880,14.84453974,431.7716535,45.9581026,
+MeanModelFS_Dec_550_9,ND,550,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_550_9,-104521.1788,-91011.96955,183422,14.84453974,390.5669291,45.9581026,
+MeanModelFS_Dec_600_9,ND,600,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_600_9,-104521.1788,-91011.96955,243146,14.84453974,360.1968504,45.9581026,
+MeanModelFS_Dec_650_9,ND,650,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_650_9,-104521.1788,-91011.96955,236121,14.84453974,353.5905512,45.9581026,
+MeanModelFS_Dec_700_9,ND,700,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_700_9,-104521.1788,-91011.96955,277810,14.84453974,418.6456693,45.9581026,
+MeanModelFS_Dec_750_9,ND,750,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_750_9,-104521.1788,-91011.96955,299483,14.84453974,323.5433071,45.9581026,
+MeanModelFS_Dec_800_9,ND,800,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_800_9,-104521.1788,-91011.96955,308856,14.84453974,407.1417323,45.9581026,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_100_9,-104294.9334,-104294.9334,25937,38.0212055,231.0314961,103.1838492,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_100_9,-104292.902,-47209.48758,107103,13.81146984,209.6535433,35.99538114,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_100_9,-104292.902,-5362.610367,96365,13.69203708,215.976378,35.76154603,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_100_9,0,-74535.40216,115443,13.51726725,241.2598425,35.14906241,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_100_9,0,-87350.14856,109328,13.53761689,235.5275591,35.14868322,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_fixednugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_fixednugget_100_9,0,-92840.14511,95690,59.7454213,222.7637795,81.82662499,
+MeanModelFS_Dec_fixednugget_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_fixednugget_150_9,0,-93034.30693,106351,60.10621274,253.8976378,82.39454279,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_100_9,-104292.902,-87350.14856,107009,13.53761689,214.7244094,35.14868322,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_100_9,-104292.902,-86524.07817,171355,14.74936669,222.3307087,34.60917128,
+MeanModelFS_Dec_nugget_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_150_9,-104521.1788,-86833.82662,121202,14.67265533,261.3385827,34.588304,
+MeanModelFS_Dec_nugget_200_9,ND,200,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_200_9,-104521.1788,-86833.82662,122524,14.67265533,267.3543307,34.588304,
+MeanModelFS_Dec_nugget_250_9,ND,250,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_250_9,-104521.1788,-86833.82662,119953,14.67265533,257.6062992,34.588304,
+MeanModelFS_Dec_nugget_300_9,ND,300,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_300_9,-104521.1788,-86833.82662,119897,14.67265533,261.1338583,34.588304,
+MeanModelFS_Dec_nugget_350_9,ND,350,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_350_9,-104521.1788,-86833.82662,119163,14.67265533,257.4330709,34.588304,
+MeanModelFS_Dec_nugget_400_9,ND,400,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_400_9,-104521.1788,-86833.82662,120399,14.67265533,271.1338583,34.588304,
+MeanModelFS_Dec_nugget_450_9,ND,450,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_450_9,-104521.1788,-86833.82662,121705,14.67265533,281.0708661,34.588304,
+MeanModelFS_Dec_nugget_500_9,ND,500,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_500_9,-104521.1788,-86833.82662,120709,14.67265533,274.7165354,34.588304,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_100_9,-104292.902,-86524.01275,171355,14.73269422,206.7716535,34.61181544,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_100_9,-104292.902,-86524.01275,171355,14.73269422,214,34.61181544,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_100_9,-104292.902,-86524.01275,171355,14.73269422,212.6220472,34.61181544,
+MeanModelFS_Dec_nugget_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_150_9,-159079.3596,-127346.5068,285264,13.8147695,365.4409449,34.12218134,
+MeanModelFS_Dec_nugget_200_9,ND,200,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_200_9,-213711.0664,-168893.481,577868,15.54806949,477.6771654,32.23440614,
+MeanModelFS_Dec_nugget_250_9,ND,250,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_250_9,-267335.1542,-210036.1929,1010662,17.91429274,605.0551181,32.28174545,
+MeanModelFS_Dec_nugget_300_9,ND,300,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_300_9,-319209.1818,-250117.3669,1856236,19.58524388,669.7559055,32.86459077,
+MeanModelFS_Dec_nugget_350_9,ND,350,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_nugget_350_9,-369052.5643,-287958.8329,3466909,21.3335755,763.4251969,33.69677804,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_100_9,-84810.37474,-1.64E+10,42661,5.75E+08,223.8188976,9.48E+08,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-56868.50793,75250,13.74117057,257.1181102,34.99282788,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-56868.50714,75250,13.74113112,211.7795276,34.99356162,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-56868.50714,75250,13.74113112,211.519685,34.99356162,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-56868.50714,75250,13.74113112,207.3937008,34.99356162,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-2.01E+10,63410,8.57E+08,224.7322835,1.59E+09,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-36426.42032,63410,15.04728482,213.7637795,33.88527096,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-2.00E+10,93318,8.55E+08,215.5354331,1.58E+09,
+MeanModelFS_Dec_Implicit_nugget_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_150_9,-66494.22972,-2.30E+10,193923,6.80E+08,357.3464567,1.17E+09,
+MeanModelFS_Dec_Implicit_nugget_200_9,ND,200,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_200_9,-85224.97075,-1.99E+10,403756,3.93E+08,384.3622047,6.04E+08,
+MeanModelFS_Dec_Implicit_nugget_250_9,ND,250,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_250_9,-102745.6,-1.70E+10,758339,2.65E+08,465.2283465,3.90E+08,
+MeanModelFS_Dec_Implicit_nugget_300_9,ND,300,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_300_9,-118869.9517,-1.66E+10,1422877,2.64E+08,502.8661417,3.70E+08,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-36418.29129,93318,15.04933593,210.3307087,33.82033481,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-36418.29129,93318,15.04933593,207.9055118,33.82033481,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-1.54E+08,0,9259072.466,211.7086614,1.21E+07,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-2.00E+10,7.07E+07,8.55E+08,221.5275591,1.58E+09,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-2.00E+10,458210,8.55E+08,219.1181102,1.58E+09,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-6483757.282,464376,159088.9658,209.3464567,264703.2069,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-34608.13578,489020,15.03514967,214.496063,33.62905331,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-6483757.282,485875,159088.9658,217.5433071,264703.2069,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-36418.29129,485875,15.04933593,214.984252,33.82033481,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-6483757.282,475122,159088.9658,215.0551181,264703.2069,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-2.00E+10,68238,8.55E+08,231.7244094,1.58E+09,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-36418.29129,68238,15.04933593,231.6220472,33.82033481,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-34608.13578,2188225,15.03514967,217.8110236,33.62905331,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-34608.13578,67526,15.03514967,225.8503937,33.62905331,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-2.00E+10,68366,8.55E+08,232.7322835,1.58E+09,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-36418.29129,68366,15.04933593,211.7952756,33.82033481,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-34608.13578,69659,15.03514967,220.9448819,33.62905331,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-34608.13578,69766,15.03514967,213.6299213,33.62905331,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-34608.13578,68728,15.03514967,223.2755906,33.62905331,
+ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError,
+MeanModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_100_9,-84810.37474,-36418.29129,68728,15.04933593,208.7007874,33.82033481,
+MeanModelFS_Dec_Implicit_nugget_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_150_9,-67495.15801,-55105.4637,200856,10.69087619,329.9606299,32.46898694,
+MeanModelFS_Dec_Implicit_nugget_200_9,ND,200,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_200_9,-86967.90469,-69008.72591,445209,11.34545968,416.7244094,32.95661026,
+MeanModelFS_Dec_Implicit_nugget_250_9,ND,250,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_250_9,-105048.9255,-79698.29167,818555,9.356008707,511.496063,33.56365092,
+MeanModelFS_Dec_Implicit_nugget_300_9,ND,300,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_300_9,-122441.1798,-88504.09797,1464918,9.033848303,529.3700787,33.40330331,
+MeanModelFS_Dec_Implicit_nugget_350_9,ND,350,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_350_9,-139333.8639,-95492.42448,2902587,8.580155837,665.7244094,33.28006878,
+MeanModelFS_Dec_Implicit_nugget_400_9,ND,400,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_400_9,-155680.2913,-100702.6199,5347131,8.265799024,695.9606299,33.25165947,
+MeanModelFS_Dec_Implicit_nugget_450_9,ND,450,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_450_9,-171658.4535,-104311.6607,8748158,8.034560497,754.5984252,33.44266546,
+MeanModelFS_Dec_Implicit_nugget_500_9,ND,500,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_500_9,-187263.8957,-106411.9263,1.34E+07,7.932222296,862.8346457,33.4741399,
+MeanModelFS_Dec_Implicit_nugget_550_9,ND,550,800,9,Network\ND\newLargeDataSet\MeanModelFS_Dec_Implicit_nugget_550_9,-202660.8839,-107133.2649,1.94E+07,7.683526356,897.984252,33.53781444,
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+6/1/2020 17:18,BPRModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\BPRModelFS_Dec_Implicit_nugget_100_9,-1.30E+07,-34608.35293,73440,15.04081271,242.7795276,33.63040701
+6/1/2020 17:33,BPRModelFS_Dec_Implicit_nugget_150_9,ND,150,800,9,Network\ND\newLargeDataSet\BPRModelFS_Dec_Implicit_nugget_150_9,-314873.5086,-55441.15026,239688,10.99007484,369.984252,32.34977405
+6/1/2020 17:54,BPRModelFS_Dec_Implicit_nugget_200_9,ND,200,800,9,Network\ND\newLargeDataSet\BPRModelFS_Dec_Implicit_nugget_200_9,-402671.0462,-69092.9362,471264,11.36927209,511.015748,33.04645534
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+6/1/2020 18:33,BPRModelFS_Dec_Implicit_nugget_100_9,ND,100,800,9,Network\ND\newLargeDataSet\BPRModelFS_Dec_Implicit_nugget_100_9,-1.30E+07,-34608.35293,71604,15.04081271,220.4173228,33.63040701
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+15/01/2020 01:39:55,MeanModel_Implicit_Nugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_Nugget_forTesting_100_9,-84810.37474,-2.00E+10,71201,8.55E+08,227.2992126,1.58E+09
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+15/01/2020 03:07:16,MeanModel_Implicit_Nugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_Nugget_forTesting_100_9,-84810.37474,-83527.02846,0,15.44984309,202.8503937,60.67100233
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+15/01/2020 03:12:12,MeanModel_Implicit_Nugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_Nugget_forTesting_100_9,-84810.37474,-15067.65383,98948,15.02867337,217.9606299,33.56200046
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+15/01/2020 03:43:56,MeanModel_Implicit_Nugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_Nugget_forTesting_100_9,-84810.37474,-34504.78232,1015716,15.02867337,1521.645669,33.56200046
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+15/01/2020 04:02:14,MeanModel_Implicit_Nugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_Nugget_forTesting_100_9,-84810.3747391251,-36298.832460020145,106340.0,15.048950801599545,209.78740157480314,33.762206865947796
+15/01/2020 04:15:35,MeanModel_Implicit_Nugget_forTesting_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_Nugget_forTesting_150_9,-67571.38713262652,-54860.79210209054,339896.0,10.673233713247333,321.84251968503935,32.4828763468256
+15/01/2020 04:37:29,MeanModel_Implicit_Nugget_forTesting_200_9,ND,200,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_Nugget_forTesting_200_9,-87015.46918110641,-68654.77830146166,716370.0,11.330886152555724,377.496062992126,32.958708749675885
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+15/01/2020 19:56:41,MeanModel_Implicit_Nugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_Nugget_forTesting_100_9,-84810.3747391251,-36298.832460020145,106340.0,16.218257807374222,209.0,36.92070461509776
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+15/01/2020 21:45:44,MeanModel_Implicit_WithoutNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithoutNugget_forTesting_100_9,-84810.3747391251,-5669236.426182006,68255.0,13.602419097333298,460.8976377952756,36.26674973073183
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+15/01/2020 22:04:32,MeanModel_Implicit_WithoutNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithoutNugget_forTesting_100_9,-84810.3747391251,-35827.70079431654,53740.0,13.602419097333305,222.6771653543307,36.26674973073183
+15/01/2020 22:14:15,MeanModel_Implicit_WithoutNugget_forTesting_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithoutNugget_forTesting_150_9,-68491.71196775473,-65472.88752178264,161160.0,10.775945231152884,340.748031496063,37.133029442400264
+15/01/2020 22:28:14,MeanModel_Implicit_WithoutNugget_forTesting_200_9,ND,200,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithoutNugget_forTesting_200_9,-87730.5453872123,-81836.19143137799,357105.0,12.021204287154974,457.1417322834646,36.858234231278026
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+15/01/2020 22:43:30,MeanModel_Implicit_WithoutNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithoutNugget_forTesting_100_9,-84810.3747391251,-35827.70079431654,56037.0,14.066189649477872,220.0551181102362,34.592851999640686
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+16/01/2020 12:53:34,MeanModel_Implicit_WithoutNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithoutNugget_forTesting_100_9,-84810.3747391251,-35827.70079431654,55024.0,14.066189649477872,212.15748031496062,34.592851999640686
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+16/01/2020 13:02:51,MeanModel_Implicit_WithoutNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithoutNugget_forTesting_100_9,-84810.3747391251,-35827.70079515118,55024.0,14.066189649477849,204.04724409448818,34.59285199964023
+16/01/2020 13:12:55,MeanModel_Implicit_WithoutNugget_forTesting_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithoutNugget_forTesting_150_9,-67504.50007141459,-63960.39740777484,158691.0,46.19713560355183,315.13385826771656,237.22409177893365
+16/01/2020 13:29:07,MeanModel_Implicit_WithoutNugget_forTesting_200_9,ND,200,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithoutNugget_forTesting_200_9,-85999.0854417904,-84045.02134251257,391333.0,18.120968437686322,370.8897637795276,68.63155494847734
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+16/01/2020 14:28:10,MeanModel_Implicit_WithNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_100_9,-84810.3747391251,-34504.78232498761,103414.0,15.028673374607882,216.35433070866142,33.56200045992912
+16/01/2020 14:42:25,MeanModel_Implicit_WithNugget_forTesting_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_150_9,-67575.94715711442,-55148.724187061816,386822.0,10.967785200629134,337.0866141732283,32.33480202589663
+16/01/2020 15:02:12,MeanModel_Implicit_WithNugget_forTesting_200_9,ND,200,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_200_9,-86970.34468614928,-68762.10049210998,687533.0,11.306250667471161,391.0472440944882,33.002867465190405
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+16/01/2020 17:26:43,MeanModel_Implicit_WithNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_100_9,-84810.3747391251,-34504.78232498761,103414.0,15.028673374607862,204.03149606299212,33.56200045992917
+16/01/2020 17:34:47,MeanModel_Implicit_WithNugget_forTesting_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_150_9,-67575.94715711442,-55148.724187061816,386822.0,10.967785200629175,286.8897637795276,32.3348020258966
+16/01/2020 17:43:57,MeanModel_Implicit_WithNugget_forTesting_200_9,ND,200,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_200_9,-86970.34468614928,-68762.10049210995,687533.0,11.306250667471184,362.2283464566929,33.002867465190356
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+16/01/2020 18:25:48,MeanModel_Implicit_WithNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_100_9,-84810.3747391251,-34504.78232498761,103414.0,15.028673374607862,218.23622047244095,33.56200045992917
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+16/01/2020 18:44:22,MeanModel_Implicit_WithNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_100_9,-84810.3747391251,-34504.78232498761,103414.0,15.028673374607862,212.93700787401573,33.56200045992917
+16/01/2020 18:52:22,MeanModel_Implicit_WithNugget_forTesting_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_150_9,-67575.94715711442,-55148.724187061816,386822.0,10.967785200629175,300.5590551181102,32.3348020258966
+16/01/2020 19:01:53,MeanModel_Implicit_WithNugget_forTesting_200_9,ND,200,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_200_9,-86970.34468614928,-68762.10049210995,687533.0,11.306250667471184,374.15748031496065,33.002867465190356
+16/01/2020 19:33:28,MeanModel_Implicit_WithNugget_forTesting_250_9,ND,250,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_250_9,-105006.63806654997,-79308.27302903926,1340022.0,9.180595257342258,521.3070866141733,33.44301273173967
+16/01/2020 20:22:07,MeanModel_Implicit_WithNugget_forTesting_300_9,ND,300,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_300_9,-122441.83690022575,-87993.09781179507,2285059.0,9.19530707207579,572.3307086614174,33.47890391224526
+16/01/2020 21:46:02,MeanModel_Implicit_WithNugget_forTesting_350_9,ND,350,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_350_9,-139299.16622878285,-94811.20781483946,4404107.0,8.61373901344417,640.7637795275591,33.303332340393176
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+17/01/2020 02:01:19,MeanModel_Implicit_WithNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_100_9,-84810.3747391251,-34504.78232498761,103414.0,15.028673374607862,209.96062992125985,33.56200045992917
+17/01/2020 02:09:33,MeanModel_Implicit_WithNugget_forTesting_150_9,ND,150,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_150_9,-67575.94715711442,-55148.724187061816,386822.0,10.967785200629175,300.3937007874016,32.3348020258966
+17/01/2020 02:19:02,MeanModel_Implicit_WithNugget_forTesting_200_9,ND,200,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_200_9,-86970.34468614928,-68762.10049210995,687533.0,11.306250667471184,376.9527559055118,33.002867465190356
+17/01/2020 02:29:33,MeanModel_Implicit_WithNugget_forTesting_250_9,ND,250,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_250_9,-105006.63806654997,-79308.27302903926,1340022.0,9.180595257342246,455.1102362204724,33.44301273173961
+17/01/2020 02:41:58,MeanModel_Implicit_WithNugget_forTesting_300_9,ND,300,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_300_9,-122441.83690022575,-87993.09781179506,2285059.0,9.19530707207586,526.4094488188977,33.478903912245244
+17/01/2020 02:56:16,MeanModel_Implicit_WithNugget_forTesting_350_9,ND,350,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_350_9,-139299.16622878285,-94811.20781483944,4404107.0,8.613739013444189,617.5590551181102,33.303332340393276
+17/01/2020 03:12:13,MeanModel_Implicit_WithNugget_forTesting_400_9,ND,400,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_400_9,-155631.47580896108,-99693.60543728527,7930294.0,8.225764007682704,665.2204724409448,33.363470078288316
+17/01/2020 07:08:53,MeanModel_Implicit_WithNugget_forTesting_450_9,ND,450,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_450_9,-171689.44407429284,-102927.32169420966,1.3385669E7,8.014721419744095,780.7401574803149,33.55782766980006
+17/01/2020 13:20:04,MeanModel_Implicit_WithNugget_forTesting_500_9,ND,500,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_500_9,-187267.3282980749,-104565.79413589582,2.1356242E7,7.760015733093452,804.3228346456693,33.61455552891448
+17/01/2020 22:39:43,MeanModel_Implicit_WithNugget_forTesting_550_9,ND,550,800,9,Network\ND\newLargeDataSet\MeanModel_Implicit_WithNugget_forTesting_550_9,-202677.6486581805,-104353.63046756439,3.2607488E7,7.3810671214108226,988.3700787401575,33.86677960813476
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+20/01/2020 13:06:11,MeanModel_WithNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_WithNugget_forTesting_100_9,-84810.3747391251,-47310.12702372902,165462.0,28.861138981461522,212.7244094488189,51.685310981533995
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+20/01/2020 14:37:08,BPRModel_WithNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\BPRModel_WithNugget_forTesting_100_9,-3.5909611747700775E10,-240440.5723346462,229426.0,23.735294867846516,230.85826771653544,57.857692269384074
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+20/01/2020 14:52:42,BPRModel_WithNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\BPRModel_WithNugget_forTesting_100_9,-3.5909611747700775E10,-41043.57224519183,49297.0,24.160543770695202,235.51181102362204,57.50305882422102
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+20/01/2020 14:58:27,BPRModel_implicit_withoutNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\BPRModel_implicit_withoutNugget_forTesting_100_9,-3.5909611747700775E10,-41043.57224519183,54492.0,24.160543770695202,240.91338582677164,57.50305882422102
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+20/01/2020 15:58:08,BPRModel_implicit_withoutNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\BPRModel_implicit_withoutNugget_forTesting_100_9,-3.5909611747700775E10,-40938.528163559095,153847.0,24.095174432633176,265.244094488189,57.58803640157583
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+20/01/2020 17:19:10,BPRModel_implicit_withoutNugget_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\BPRModel_implicit_withoutNugget_forTesting_100_9,-3.5909611747700775E10,-40938.528163559095,50769.0,24.095174432633176,248.9448818897638,57.58803640157583
+20/01/2020 17:46:25,BPRModel_implicit_withoutNugget_forTesting_150_9,ND,150,800,9,Network\ND\newLargeDataSet\BPRModel_implicit_withoutNugget_forTesting_150_9,-7.329930889117454E7,-65820.87929007527,1012018.0,38.6711450035242,1857.3622047244094,183.5629831988818
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+20/01/2020 18:10:44,BPRModel_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\BPRModel_forTesting_100_9,-3.5909611747700775E10,-240440.5723346462,93465.0,23.735294867846516,254.16535433070865,57.857692269384074
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+23/01/2020 12:12:03,BPRModel_forTesting_100_9,ND,100,800,9,Network\ND\newLargeDataSet\BPRModel_forTesting_100_9,-3.5909611747700775E10,-240440.5723346462,94393.0,23.735294867846516,641.511811023622,57.857692269384074
+23/01/2020 12:26:56,BPRModel_forTesting_150_9,ND,150,800,9,Network\ND\newLargeDataSet\BPRModel_forTesting_150_9,-8.249036512906523E7,-8.624883433367816E7,204987.0,54.12094863701233,392.18897637795277,241.19746655048922
+TimeStamp,ModelName,Network,Proportion of trainingData,I,T,ModelLocation,InitialLogLiklihood,FinalLogLiklihood,TrainingTime,AverageError,averagePredictiontime,maxError
+11/02/2020 02:02:36,MeanModel_WithoutWeight_100_9,ND,100,800,9,Network\ND\newLargeDataSet\MeanModel_WithoutWeight_100_9,-84810.3747391251,-225211.89755677033,82038.0,14.155050744148358,230.1259842519685,36.33934514683782

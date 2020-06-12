@@ -17,7 +17,7 @@ import kriging.KrigingInterpolator;
 public class DataCleanUp {
 	public static void main(String[] args) {
 		List<Data> datasetFull=new ArrayList<>();
-		String baseloc="Network/ND/newLargeDataSet/";
+		String baseloc="DataSet/";
 		for(int i=0;i<27;i++) {
 			Map<Integer,Data> dset=DataIO.readDataSet(baseloc+"DataSet"+i+".txt",baseloc+"KeySet"+i+".csv");
 			for(Data data:dset.values()) {
