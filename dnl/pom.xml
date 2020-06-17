@@ -76,24 +76,18 @@
     <version>3.6.1</version>
 </dependency>
 
- <dependency>
+<dependency>
       <groupId>org.deeplearning4j</groupId>
       <artifactId>deeplearning4j-core</artifactId>
-      <version>1.0.0-beta4</version>
+      <version>1.0.0-beta7</version>
   </dependency>
 <!-- https://mvnrepository.com/artifact/org.nd4j/nd4j-native-platform -->
-<dependency>
-    <groupId>org.nd4j</groupId>
-    <artifactId>nd4j-native-platform</artifactId>
-    <version>1.0.0-beta4</version>
-</dependency>
+  <dependency>
+      <groupId>org.nd4j</groupId>
+      <artifactId>nd4j-native-platform</artifactId>
+      <version>1.0.0-beta7</version>
+  </dependency>
 
-
-<dependency>
-       <groupId>org.slf4j</groupId>
-       <artifactId>slf4j-api</artifactId>
-       <version>1.7.5</version>
-   </dependency>
 
   <!-- https://mvnrepository.com/artifact/org.matsim.contrib/signals -->
 <!-- https://mvnrepository.com/artifact/org.matsim.contrib/signals -->
@@ -117,21 +111,7 @@
 <!-- </dependency> -->
   <!-- https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api -->
 
-<dependency>
-  <groupId>javax.xml.bind</groupId>
-  <artifactId>jaxb-api</artifactId>
-  <version>2.3.0</version>
-</dependency>
-<dependency>
-  <groupId>com.sun.xml.bind</groupId>
-  <artifactId>jaxb-core</artifactId>
-  <version>2.3.0</version>
-</dependency>
-<dependency>
-  <groupId>com.sun.xml.bind</groupId>
-  <artifactId>jaxb-impl</artifactId>
-  <version>2.3.0</version>
-</dependency>
+
 
 <!-- https://mvnrepository.com/artifact/de.xypron.jcobyla/jcobyla -->
 <dependency>
