@@ -21,6 +21,7 @@ import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
+import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -183,9 +184,21 @@ public class KrigingInterpolator{
 			return info;
 		}
 		//This is the Z-MB
-		INDArray Z_MB=info.getZ_MB();
-		INDArray varianceMatrix=this.variogram.calcVarianceMatrix(n, t, theta, nugget);
 		String key=Integer.toString(n)+"_"+Integer.toString(t);
+		INDArray Z_MB=info.getZ_MB();
+		double[] zminusmb=new double[this.variogram.getNtSpecificTrainingSet().get(key).size()];
+		int j=0;
+		for(Integer dataIndex:this.variogram.getNtSpecificOriginalIndices().get(key)) {
+			Data dataPoint=this.trainingDataSet.get(dataIndex);
+			Z_MB.putScalar(new int[] {n,t,dataIndex},(dataPoint.getY().getDouble(n,t)-this.baseFunction.getntSpecificY(dataPoint.getX(),n,t)*beta)*this.variogram.getTtScale().getDouble(n,t));// the Y scale is directly applied on Z-MB
+			zminusmb[j]=Z_MB.getDouble(new int[] {n,t,dataIndex});
+			j++;
+		}
+		double sd=new StandardDeviation().evaluate(zminusmb);
+		double mean=calcMean(zminusmb);
+		this.variogram.getSigmaMatrix().put(n, t, sd);
+		INDArray varianceMatrix=this.variogram.calcVarianceMatrix(n, t, theta, nugget);
+		
 		info.getVarianceMatrixAll().put(key, varianceMatrix);
 		if(info.getVarianceMatrixAll().get(key)==null) {
 			System.out.println();
@@ -205,6 +218,18 @@ public class KrigingInterpolator{
 		return info;
 	}
 	
+	public static double calcMean(double[] a) {
+		if(a.length==0) {
+			return 0;
+		}
+		double mean=0;
+		for(double d:a) {
+			mean+=d;
+		}
+		mean=mean/a.length;
+		return mean;
+	}
+	
 	public VarianceInfoHolder preProcessNtSpecificDataImplicit(int n, int t,double theta,double nugget, VarianceInfoHolder info) {
 		if(Double.isNaN(theta)) {
 			throw new IllegalArgumentException("theta is null");
@@ -221,11 +246,9 @@ public class KrigingInterpolator{
 			System.out.println();
 		}
 		CholeskyDecomposition cd=null;
-		try {
+		
 		cd= new CholeskyDecomposition(MatrixUtils.createRealMatrix(info.getVarianceMatrixAll().get(key).toDoubleMatrix()));
-		}catch(Exception e) {
-			DataIO.writeINDArray(info.getVarianceMatrixAll().get(key), "trailVar.csv");
-		}
+		
 		
 		RealMatrix inv=cd.getSolver().getInverse();
 		
@@ -306,9 +329,12 @@ public class KrigingInterpolator{
 				
 				double y=Y_b.getDouble(n,t)*beta.getDouble(n,t)+
 						weights.mmul(z_mb).getDouble(0,0)/this.variogram.getTtScale().getDouble(n,t);//Fix the Z_MB part!!!
-				if(y<0) {
-					System.out.println("y is negative Stop!!! debug!!!");
-				}
+//				if(y<0) {
+//					weights=this.postProcessWeight(weights, varianceVectorAll.get(key));
+//					
+//					y=Y_b.getDouble(n,t)*beta.getDouble(n,t)+
+//							weights.mmul(z_mb).getDouble(0,0)/this.variogram.getTtScale().getDouble(n,t);//Fix the Z_MB part!!!
+//				}
 				Y.putScalar(n,t,y);
 			}
 
@@ -485,16 +511,19 @@ public class KrigingInterpolator{
 			//theta=theta*100;
 			this.preProcessNtSpecificData(n,t,beta, theta, nugget, info);
 		}catch(Exception e) {
-			System.out.println(n);
-			System.out.println(t);
-			INDArray weight=CheckUtil.convertFromApacheMatrix(this.variogram.getL2ls().getWeightMatrix(n, t),DataType.DOUBLE);
-			INDArray variance=info.getVarianceMatrixAll().get(Integer.toString(n)+"_"+Integer.toString(t));
-			this.writeINDArray(variance, "variancefor"+n+"_"+t+".csv");
-			this.writeINDArray(weight, "weightfor"+n+"_"+t+".csv");
-			this.writeINDArray(this.variogram.getDistances().get(Integer.toString(n)+"_"+Integer.toString(t)), "distancefor"+n+"_"+t+".csv");
-			System.out.println(theta);
-			System.out.println(this.variogram.getSigmaMatrix().getDouble(n,t));
-			System.out.println(this.variogram.getNugget().getDouble(n,t));
+			INDArray varianceMatrix=this.variogram.calcVarianceMatrixWithoutSigma(n, t, theta, nugget);
+			EigenDecomposition decomp=new EigenDecomposition(MatrixUtils.createRealMatrix(varianceMatrix.toDoubleMatrix()));
+			double[] eigenValues=decomp.getRealEigenvalues();
+			double minEigen=0;
+			for(double d:eigenValues) {
+				if(d<minEigen)minEigen=d;
+			}
+			if(minEigen<=0) {
+				this.variogram.getNugget().putScalar(n, t,-1*minEigen+.0001);
+				this.preProcessNtSpecificDataImplicit(n,t, theta, this.variogram.getNugget().getDouble(n,t), info);
+			}else {
+				throw new IllegalArgumentException("Matrix is already positive definite!!!");
+			}
 		}
 		double logLiklihood=0;
 		String key=Integer.toString(n)+"_"+Integer.toString(t);
@@ -676,10 +705,10 @@ public class KrigingInterpolator{
 						double nugget=KrigingInterpolator.this.getVariogram().getNugget().getDouble(n,t);
 						//double beta=1;
 						double obj=KrigingInterpolator.this.calcNtSpecificLogLikelihood(n, t, theta, beta,nugget, info);
-						if(theta==0) {
+						if(theta<=0) {
 							obj=-10000000000000.;
 						}
-						con[0]=100*(theta-0.00001);
+						//con[0]=100*(theta-0.00001);
 						//con[1]=nugget*100;
 
 						it++;
@@ -774,12 +803,12 @@ public class KrigingInterpolator{
   						double theta=initialTheta+initialTheta*x[0]/100;
 						double nugget=KrigingInterpolator.this.getVariogram().getNugget().getDouble(n,t);
 						double obj=0;
-						if(theta==0) {
+						if(theta<=0) {
 							obj=-10000000000000.;
 						}else {
 							obj=KrigingInterpolator.this.calcNtSpecificLogLikelihoodImplicit(n, t, theta, nugget, info);
 						}
-						con[0]=100000*(theta-0.000000001);
+						con[0]=4;
 						con[1]=1000*(KrigingInterpolator.this.getBeta().getDouble(n,t)-.5);
 						it++;
 
@@ -789,7 +818,7 @@ public class KrigingInterpolator{
 				
 
 			double[] x = {1};
- 			CobylaExitStatus result = Cobyla.findMinimum(calcfc, 1, 2, x, .5, .00001, 1, 350);
+ 			CobylaExitStatus result = Cobyla.findMinimum(calcfc, 1, 2, x, 1, .00001, 1, 550);
 			this.variogram.gettheta().putScalar(n,t,initialTheta+initialTheta*x[0]/100);
 			this.preProcessNtSpecificDataImplicit(n, t, initialTheta+initialTheta*x[0]/100, this.getVariogram().getNugget().getDouble(n,t), info);
 			info.getVarianceMatrixInverseAll().get(key).divi(this.variogram.getSigmaMatrix().getDouble(n,t));
@@ -1058,7 +1087,7 @@ public class KrigingInterpolator{
 			double[] x = {1,1,1};
 //			double[] xlb = {-99.999,-5};
 //			double[] xup = {300,5};
- 			CobylaExitStatus result = Cobyla.findMinimum(calcfc, 3, 2, x, .5, .00001, 1, 350);
+ 			CobylaExitStatus result = Cobyla.findMinimum(calcfc, 3, 2, x, 2, .00001, 1, 350);
 			//MatlabResult result=new MatlabOptimizer(obj, x, xlb, xup).performOptimization();
 //			x[0]=result.getX()[0];
 //			x[1]=result.getX()[1];
