@@ -31,21 +31,26 @@ public class KrigingModelWriter {
 	private final Map<Integer,Data> trainingDataSet;
 	private final INDArray theta;
 	private final INDArray beta;
+	private final INDArray nugget;
+	private final INDArray sigma;
 	private final BaseFunction baseFunction;
 	private INDArray Cn;
 	private INDArray Ct;
 	private LinkToLinks l2ls;
+	private final String n_tSpecificIndices;
 	
 	public KrigingModelWriter(KrigingInterpolator model) {
 		this.krigingModel=model;
 		this.trainingDataSet=model.getTrainingDataSet();
 		this.theta=model.getVariogram().gettheta();
 		this.beta=model.getBeta();
+		this.nugget=model.getVariogram().getNugget();
+		this.sigma=model.getVariogram().getSigmaMatrix();
 		this.l2ls=model.getVariogram().getL2ls();
 		this.baseFunction=model.getBaseFunction();
 		this.Cn=model.getCn();
 		this.Ct=model.getCt();
-		
+		this.n_tSpecificIndices=model.getVariogram().writeN_T_SpecificIndices();
 	}
 	
 	/**
@@ -67,6 +72,7 @@ public class KrigingModelWriter {
 			metaData.setAttribute("T", Long.toString(this.trainingDataSet.get(0).getX().size(1)));
 			metaData.setAttribute("I", Integer.toString(this.trainingDataSet.size()));
 			metaData.setAttribute("TrainingTime", Double.toString(this.krigingModel.getTrainingTime()));
+			metaData.setAttribute("n_tSpecificTraningIndices", this.n_tSpecificIndices);
 			rootEle.appendChild(metaData);
 			
 			Element trainingDataSet=document.createElement("trainingDataSet");	
@@ -94,6 +100,16 @@ public class KrigingModelWriter {
 			Nd4j.writeTxt(this.beta, fileLoc+"/beta.txt");
 			betaEle.setAttribute("Filelocation", fileLoc+"/beta.txt");
 			rootEle.appendChild(betaEle);
+			
+			Element nuggetEle=document.createElement("nugget");
+			Nd4j.writeTxt(this.nugget, fileLoc+"/nugget.txt");
+			nuggetEle.setAttribute("Filelocation", fileLoc+"/nugget.txt");
+			rootEle.appendChild(nuggetEle);
+			
+			Element sigmaEle=document.createElement("sigma");
+			Nd4j.writeTxt(this.sigma, fileLoc+"/sigma.txt");
+			sigmaEle.setAttribute("Filelocation", fileLoc+"/sigma.txt");
+			rootEle.appendChild(sigmaEle);
 			
 			Element l2ls=document.createElement("LinkToLinks");
 			new LinkToLinksWriter(this.l2ls).write(fileLoc);

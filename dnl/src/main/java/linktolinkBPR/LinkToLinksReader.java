@@ -63,7 +63,9 @@ public class LinkToLinksReader extends DefaultHandler{
 			Link toLink=this.network.getLinks().get(Id.createLinkId(attributes.getValue("toLink")));
 			LinkToLink l2l=new LinkToLink(fromLink, toLink, timeBean);
 			Map<Integer,Set<Integer>> proximityMap=LinkToLink.parseProximityMatrix(attributes.getValue("proximityMap"));
+			Set<Integer> primaryFromLinkProximitySet=LinkToLink.parsePrimaryFromLinkProximitySet(attributes.getValue("pflps"));
 			l2l.setProximityMap(proximityMap);
+			l2l.setPrimaryFromLinkProximitySet(primaryFromLinkProximitySet);
 			l2l.setG_cRatio(Double.parseDouble(attributes.getValue("g_cRatio")));
 			l2l.setCycleTime(Double.parseDouble(attributes.getValue("cycleTime")));
 			l2l.setSupply(Double.parseDouble(attributes.getValue("Supply")));

@@ -65,6 +65,7 @@ public class LinkToLinks {
 				this.linkToLinks.get(n).setCycleTime(sg.getGCratio(fromLink, toLink.getId())[1]);
 			}
 			this.linkToLinks.get(n).setProximityMap(this.generateProximityMap(this.linkToLinks.get(n)));
+			this.linkToLinks.get(n).setPrimaryFromLinkProximitySet(this.generatePrimaryFromLinkProximityMap(this.linkToLinks.get(n)));
 		}
 		this.fromLinkToLinkMap.clear();
 		this.ToLinkToLinkMap.clear();
@@ -246,6 +247,23 @@ public class LinkToLinks {
 			}
 		}
 		
+		return l2lMap;
+	}
+	
+	public Set<Integer> generatePrimaryFromLinkProximityMap(LinkToLink l2l){
+		//LinkToLink l2l=this.linkToLinks.get(n);
+		INDArray we=Nd4j.create(this.linkToLinks.size(), this.timeBean.size());
+		//double weight[][]=new double[this.linkToLinks.size()][this.timeBean.size()];
+		Map<Integer,Set<LinkToLink>>linkToLinkMap=new HashMap<>();
+		linkToLinkMap.put(0, new HashSet<>());
+		linkToLinkMap.get(0).add(l2l);
+		
+		linkToLinkMap.get(0).addAll(this.fromLinkToLinkMap.get(l2l.getFromLink().getId()));
+		
+		Set<Integer> l2lMap=new HashSet<>();
+		for(LinkToLink l2l2:linkToLinkMap.get(0)) {
+			l2lMap.add(this.getNumToLinkToLink().inverse().get(l2l2.getLinkToLinkId()));
+		}
 		return l2lMap;
 	}
 	

@@ -1,5 +1,8 @@
 package linktolinkBPR;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.matsim.api.core.v01.Id;
@@ -14,7 +17,9 @@ import org.matsim.contrib.signals.data.signalgroups.v20.SignalGroupsData;
 import org.matsim.contrib.signals.data.signalgroups.v20.SignalPlanData;
 import org.matsim.contrib.signals.data.signalsystems.v20.SignalSystemData;
 import org.matsim.contrib.signals.data.signalsystems.v20.SignalSystemsData;
+import org.matsim.contrib.signals.model.Signal;
 import org.matsim.contrib.signals.model.SignalGroup;
+import org.matsim.contrib.signals.model.SignalPlan;
 import org.matsim.contrib.signals.model.SignalSystem;
 import org.matsim.lanes.Lane;
 
@@ -25,6 +30,50 @@ public class SignalFlowReductionGenerator {
 	
 	public SignalFlowReductionGenerator(Scenario scenario){
 		this.scenario = scenario;
+	}
+	
+	public double[] getGCratio(Link link) {
+		SignalsData sd = (SignalsData) scenario.getScenarioElement("signalsData");
+		SignalControlData signalControlData = sd.getSignalControlData();
+		SignalGroupsData signalsGroupsData = sd.getSignalGroupsData();
+		SignalSystemsData signalsSystemsData = sd.getSignalSystemsData();
+		
+		Id<SignalSystem> sigSysId = Id.create(link.getToNode().getId().toString(), SignalSystem.class);
+		SignalSystemData ssd = signalsSystemsData.getSignalSystemData().get(sigSysId); 
+		
+		//take all the sig of the same link
+		HashMap<Id<Signal>, Id<SignalGroup>> sigIds = new HashMap<Id<Signal>, Id<SignalGroup>>();
+		for(Entry<Id<Signal>, SignalData> entry: ssd.getSignalData().entrySet()) {
+			if(entry.getValue().getLinkId().equals(link.getId())) {
+				sigIds.put(entry.getKey(), null);
+			}
+		}
+		
+		//If there is no lane with a signal, return a 1.0 means no signal.
+		if(sigIds.size() == 0) {
+			return new double[] {1,60}; 
+		}
+		
+		//take the sig group id for each sig
+		for(Entry<Id<SignalGroup>, SignalGroupData> entry: signalsGroupsData.getSignalGroupDataBySystemId(sigSysId).entrySet()) {
+			for(Entry<Id<Signal>, Id<SignalGroup>> entry2 : sigIds.entrySet())
+				if(entry.getValue().getSignalIds().contains(entry2.getKey()))
+					entry2.setValue(entry.getKey());
+		}
+		
+		//aggregate the timings
+		SignalPlanData planData = signalControlData.getSignalSystemControllerDataBySystemId().get(sigSysId).getSignalPlanData().get(Id.create("1", SignalPlan.class));
+		double cycleTime = planData.getCycleTime();
+		double out = 0;
+		for(Id<SignalGroup> entry : sigIds.values()) {
+			SignalGroupSettingsData thing = planData.getSignalGroupSettingsDataByGroupId().get(entry);
+			int onSet = thing.getOnset();
+			int dropping = thing.getDropping();
+			//add this gc ratio into out
+			out += ((onSet>=dropping ? dropping+cycleTime : dropping) - onSet) / cycleTime;
+		}
+
+		return new double[] {out/sigIds.size(), cycleTime};
 	}
 	
 	public double[] getGCratio(Link link, Id<Link> toLinkId) {

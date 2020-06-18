@@ -41,7 +41,7 @@ class zmbtest {
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		this.kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData));
+		this.kriging=new KrigingInterpolator(trainingData, l2ls, new MeanBaseFunction(trainingData),null);
 	
 	}
 
@@ -50,14 +50,14 @@ class zmbtest {
 		int n=2;
 		int t=1;
 		String key=Integer.toString(n)+"_"+Integer.toString(t);
-		VarianceInfoHolder infoAll=kriging.preProcessData(kriging.getBeta(), kriging.getVariogram().gettheta());
+		VarianceInfoHolder infoAll=kriging.preProcessData(kriging.getBeta(), kriging.getVariogram().gettheta(),kriging.getVariogram().getNugget());
 		INDArray Z_MBall=Nd4j.create(kriging.getVariogram().getNtSpecificOriginalIndices().get(key).size(),1);
 		for(int j=0;j<Z_MBall.size(0);j++) {
 			Z_MBall.putScalar(j,0,infoAll.getZ_MB().getDouble(n,t,kriging.getVariogram().getNtSpecificOriginalIndices().get(key).get(j)));
 		}
 		
 		INDArray Z_MBnt=Nd4j.create(Z_MBall.shape());
-		VarianceInfoHolder infont=kriging.preProcessNtSpecificData(n, t, kriging.getBeta().getDouble(n,t), kriging.getVariogram().gettheta().getDouble(n,t), infoAll);
+		VarianceInfoHolder infont=kriging.preProcessNtSpecificData(n, t, kriging.getBeta().getDouble(n,t), kriging.getVariogram().gettheta().getDouble(n,t), kriging.getVariogram().getNugget().getDouble(n,t), infoAll);
 		for(int j=0;j<Z_MBnt.size(0);j++) {
 			Z_MBnt.putScalar(j,0,infont.getZ_MB().getDouble(n,t,kriging.getVariogram().getNtSpecificOriginalIndices().get(key).get(j)));
 		}

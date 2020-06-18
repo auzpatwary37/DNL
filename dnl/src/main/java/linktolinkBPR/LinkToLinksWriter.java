@@ -69,6 +69,7 @@ public class LinkToLinksWriter {
 			for(LinkToLink l2l:this.l2ls.getLinkToLinks()) {
 				Element l2lelement=document.createElement("LinkToLink");
 				l2lelement.setAttribute("proximityMap", l2l.writeProximityMap());
+				l2lelement.setAttribute("pflps", l2l.writePrimaryFromLinkProximitySet());
 				l2lelement.setAttribute("fromLink", l2l.getFromLink().getId().toString());
 				l2lelement.setAttribute("toLink", l2l.getToLink().getId().toString());
 				l2lelement.setAttribute("Supply",Double.toString(l2l.getSupply()));

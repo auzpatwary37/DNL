@@ -27,7 +27,8 @@ public class LinkToLink {
 	private final Id<LinkToLink> linkToLinkId;
 	private double g_cRatio=1;
 	private double cycleTime=60;
-	private Map<Integer,Set<Integer>> proximityMap;
+	private Map<Integer,Set<Integer>> proximityMap=null;
+	private Set<Integer> primaryFromLinkProximitySet=null;
 	
 	public LinkToLink(Link fromLink, Link toLink,Map<Integer, Tuple<Double, Double>> timeBean2) {
 		this.fromLink=fromLink;
@@ -89,6 +90,14 @@ public class LinkToLink {
 	public Link getFromLink() {
 		return fromLink;
 	}
+	
+	public void setPrimaryFromLinkProximitySet(Set<Integer>ppm) {
+		this.primaryFromLinkProximitySet=ppm;
+	}
+	
+	public Set<Integer> getPrimaryFromLinkProximitySet(){
+		return this.primaryFromLinkProximitySet;
+	}
 
 	public Link getToLink() {
 		return toLink;
@@ -136,6 +145,27 @@ public class LinkToLink {
 		return p;
 	}
 	
+	
+	
+	//static variant of the same code
+	public static String writeProximityMap(Map<Integer, Set<Integer>> proximityMap) {
+		String p="";
+		String entrySeperator="";
+		for(Entry<Integer, Set<Integer>> e:proximityMap.entrySet()) {
+			if(e.getValue().size()!=0) {
+				p=p+entrySeperator+e.getKey();
+				p=p+"_";
+				String elementSeperator="";
+				for(Integer n:e.getValue()) {
+					p=p+elementSeperator+n;
+					elementSeperator=" ";
+				}
+				entrySeperator=",";
+		}
+		}
+		return p;
+	}
+	
 	public static Map<Integer,Set<Integer>> parseProximityMatrix(String p){
 		Map<Integer,Set<Integer>> proximityMatrix =new HashMap<>();
 		String[] entries=p.split(",");
@@ -152,6 +182,34 @@ public class LinkToLink {
 		
 		
 		return proximityMatrix;
+	}
+	
+	public String writePrimaryFromLinkProximitySet() {
+		String p="";
+		String elementSeperator="";
+		for(Integer n:this.primaryFromLinkProximitySet) {
+			p=p+elementSeperator+n;
+			elementSeperator=" ";
+		}
+		return p;
+	}
+	
+	public static String writePrimaryFromLinkProximitySet(Set<Integer>primaryFromLinkProximitySet ) {
+		String p="";
+		String elementSeperator="";
+		for(Integer n:primaryFromLinkProximitySet) {
+			p=p+elementSeperator+n;
+			elementSeperator=" ";
+		}
+		return p;
+	}
+	
+	public static Set<Integer> parsePrimaryFromLinkProximitySet(String s){
+		Set<Integer> set=new HashSet<>();
+		for(String ss:s.split(" ")) {
+			set.add(Integer.parseInt(ss));
+		}
+		return set;
 	}
 	
 }

@@ -3,6 +3,7 @@ package kriging;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,6 +27,8 @@ public class KrigingModelReader extends DefaultHandler {
 	
 	private INDArray theta;
 	private INDArray beta;
+	private INDArray nugget;
+	private INDArray sigma;
 	private INDArray Cn;
 	private INDArray Ct;
 	private Map<Integer,Data> trainingDataSet;
@@ -35,12 +38,21 @@ public class KrigingModelReader extends DefaultHandler {
 	private int I;
 	private BaseFunction bf;
 	private double trainingTime=0;
+	private Map<String,List<Integer>> n_tSpecificTrainingIndices;
 
 	@Override 
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		
 		if(qName.equalsIgnoreCase("theta")) {
 			theta=Nd4j.readTxt(attributes.getValue("Filelocation"));
+		}
+		
+		if(qName.equalsIgnoreCase("nugget")) {
+			nugget=Nd4j.readTxt(attributes.getValue("Filelocation"));
+		}
+		
+		if(qName.equalsIgnoreCase("sigma")) {
+			sigma=Nd4j.readTxt(attributes.getValue("Filelocation"));
 		}
 		
 		if(qName.equalsIgnoreCase("beta")) {
@@ -52,6 +64,7 @@ public class KrigingModelReader extends DefaultHandler {
 			T=Integer.parseInt(attributes.getValue("T"));
 			I=Integer.parseInt(attributes.getValue("I"));
 			this.trainingTime=Double.parseDouble(attributes.getValue("TrainingTime"));
+			this.n_tSpecificTrainingIndices=Variogram.parseN_T_SpecificIndicies(attributes.getValue("n_tSpecificTraningIndices"));
 		}
 		
 		if(qName.equalsIgnoreCase("Cn")) {
@@ -112,8 +125,8 @@ public class KrigingModelReader extends DefaultHandler {
 			e.printStackTrace();
 		}
 		
-		Variogram v=new Variogram(trainingDataSet,this.l2ls,this.theta,this.Cn,this.Ct);
-		
+		Variogram v=new Variogram(trainingDataSet,this.l2ls,this.theta,this.nugget,this.Cn,this.Ct,this.n_tSpecificTrainingIndices);
+		v.setSigmaMatrix(sigma);
 		KrigingInterpolator kriging=new KrigingInterpolator(v,beta,this.bf,Cn,Ct);
 		kriging.setTrainingTime(trainingTime);
 		

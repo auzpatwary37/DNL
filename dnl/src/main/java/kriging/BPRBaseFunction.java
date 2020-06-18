@@ -50,7 +50,14 @@ public class BPRBaseFunction implements BaseFunction{
 		
 		for(int n=0;n<X.size(0);n++) {
 			for(int t=0;t<X.size(1);t++) {
-				double tt=this.getLinkToLinkBPRDelay(X.getDouble(n, t), n,this.timeBeanLength.get(t),alpha.getDouble(n,t),beta.getDouble(n,t));
+				double linkFlow=0;
+				double averageGC=0;
+				for(int nn:this.link2LinkInfo.get(n).getPrimaryFromLinkProximitySet()) {
+					linkFlow+=X.getDouble(nn,t);
+					averageGC+=this.link2LinkInfo.get(nn).getG_cRatio();
+				}
+				averageGC=averageGC/this.link2LinkInfo.get(n).getPrimaryFromLinkProximitySet().size();
+				double tt=this.getLinkToLinkBPRDelay(linkFlow,averageGC, n,this.timeBeanLength.get(t),alpha.getDouble(n,t),beta.getDouble(n,t));
 				Y.putScalar(n, t, tt);
 				if(Y.cond(Conditions.isInfinite()).any()||Y.cond(Conditions.isNan()).any()) {
 					System.out.println("Z is nan or inf!!!");
@@ -61,6 +68,7 @@ public class BPRBaseFunction implements BaseFunction{
 //			});
 //		});
 		
+		//System.out.println();
 		return Y;
 	}
 	
@@ -72,9 +80,9 @@ public class BPRBaseFunction implements BaseFunction{
 		return delay;
 	}
 	
-	private double getLinkToLinkBPRDelay(double demand, int n,double timeLength,double alpha,double beta) {
+	private double getLinkToLinkBPRDelay(double demand,double averageGC, int n,double timeLength,double alpha,double beta) {
 		Link2LinkInfoHolder l2l=this.link2LinkInfo.get(n);
-		Double delay=l2l.getFromLinkFreeFlowTime()*(1+alpha*Math.pow((demand/(l2l.getSaturationFlow()*l2l.getG_cRatio()*timeLength)),beta));
+		Double delay=l2l.getFromLinkFreeFlowTime()*(1+alpha*Math.pow((demand/(l2l.getSaturationFlow()*averageGC*timeLength/3600)),beta));
 		
 		return delay;
 	}
@@ -135,7 +143,14 @@ public class BPRBaseFunction implements BaseFunction{
 
 	@Override
 	public double getntSpecificY(INDArray X, int n, int t) {
-		double tt=this.getLinkToLinkBPRDelay(X.getDouble(n, t), n,this.timeBeanLength.get(t),alpha.getDouble(n,t),beta.getDouble(n,t));
+		double linkFlow=0;
+		double averageGC=0;
+		for(int nn:this.link2LinkInfo.get(n).getPrimaryFromLinkProximitySet()) {
+			linkFlow+=X.getDouble(nn,t);
+			averageGC+=this.link2LinkInfo.get(nn).getG_cRatio();
+		}
+		averageGC=averageGC/this.link2LinkInfo.get(n).getPrimaryFromLinkProximitySet().size();
+		double tt=this.getLinkToLinkBPRDelay(linkFlow,averageGC, n,this.timeBeanLength.get(t),alpha.getDouble(n,t),beta.getDouble(n,t));
 		return tt;
 	}
 

@@ -30,5 +30,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
+	<classpathentry kind="lib" path="C:/Program Files/MATLAB/MATLAB Runtime/v96/toolbox/javabuilder/jar/javabuilder.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Ashraf/git/DNL/dnl/src/test/resources/CalcInverse.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Ashraf/git/DNL/dnl/src/test/resources/OptimDemo2.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
