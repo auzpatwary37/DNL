@@ -20,6 +20,7 @@ import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 
 import kriging.Data;
+import linktolinkBPR.LinkToLinks;
 
 public class DataIO {
 	private final Map<Integer,Tuple<INDArray,INDArray>> dataSet;
@@ -276,4 +277,86 @@ public class DataIO {
 		}
 		return outArray;
 	}
+	
+	/**
+	 * Creates a 
+	 * @param data
+	 * @param l2ls
+	 * @param writeLoc
+	 *
+	 */
+	public static void createMatlabData(Map<Integer,Data> data,Map<Integer,Data> testdata, LinkToLinks l2ls, String writeLoc) {
+		INDArray x = Nd4j.create(data.size(),Math.toIntExact((data.get(0).getX().shape()[0]*data.get(0).getX().shape()[1])));
+		INDArray y = Nd4j.create(x.shape());
+		INDArray w = Nd4j.create(x.shape()[1],x.shape()[1]);
+		
+		INDArray x_1 = Nd4j.create(testdata.size(),Math.toIntExact((testdata.get(0).getX().shape()[0]*testdata.get(0).getX().shape()[1])));
+		INDArray y_1 = Nd4j.create(x_1.shape());
+		
+		
+		try {
+			FileWriter fw = new FileWriter(new File(writeLoc+"/datakeys.csv"));
+			FileWriter fw1 = new FileWriter(new File(writeLoc+"/testdatakeys.csv"));
+		
+		
+		//create the x and y matrix 
+		for(int i=0;i<data.size();i++) {
+			fw.append(data.get(i).getKey()+"\n");
+			INDArray X = data.get(i).getX().reshape('f',1,data.get(i).getX().length());
+			x.putRow(i, X);
+			INDArray Y = data.get(i).getY().reshape('f',1,data.get(i).getY().length());
+			y.putRow(i, Y);
+			fw.flush();
+		}
+		
+		fw.close();
+		
+		writeINDArray(x,writeLoc+"/x.csv");
+		writeINDArray(y,writeLoc+"/y.csv");
+		
+		
+		//create xtest and ytest
+		for(int i=0;i<testdata.size();i++) {
+			fw1.append(testdata.get(i).getKey()+"\n");
+			INDArray X = testdata.get(i).getX().reshape('f',1,testdata.get(i).getX().length());
+			x_1.putRow(i, X);
+			INDArray Y = testdata.get(i).getY().reshape('f',1,testdata.get(i).getY().length());
+			y_1.putRow(i, Y);
+			fw1.flush();
+		}
+		
+		fw1.close();
+		
+		writeINDArray(x_1,writeLoc+"/xtst.csv");
+		writeINDArray(y_1,writeLoc+"/ytst.csv");
+		
+		
+		//create and write weight matrix 
+		
+		int N = l2ls.getLinkToLinks().size();
+		int T = l2ls.getTimeBean().size();
+		
+		int j=0;
+		for(int t=0;t<T;t++) {
+			for(int n=0;n<N;n++) {
+				INDArray ow=Nd4j.create(l2ls.getWeightMatrix(n, t).getData());
+				INDArray W = ow.reshape('f',1,N*T);
+				w.putRow(j, W);
+				j++;
+			}
+		}
+		
+		writeINDArray(w,writeLoc+"/weights.csv");
+		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+//	public static void main(String[] args) {
+//		INDArray a= Nd4j.rand(2,3);
+//		System.out.println(a);
+//		System.out.println(a.reshape('f',1,a.length()));
+//	}
 }

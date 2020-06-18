@@ -1,5 +1,8 @@
 package kriging;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -113,6 +116,21 @@ public class BPRBaseFunction implements BaseFunction{
 		
 		Nd4j.writeTxt(this.beta,  fileLoc+"/bprBeta.txt");
 		baseFunction.setAttribute("betaLocation", fileLoc+"/bprBeta.txt");
+	}
+	
+	
+	public void writecsvLinktoLinkinfo(String fileLoc) {
+		try {
+			FileWriter fw = new FileWriter(new File(fileLoc));
+			for(Link2LinkInfoHolder l2l2:this.link2LinkInfo.values()) {
+				fw.append(l2l2.toString()+"\n");
+				fw.flush();
+			}
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public static BaseFunction parseBaseFunction(Attributes a) {

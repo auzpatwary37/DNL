@@ -51,6 +51,7 @@ public class Variogram {
 	private LinkToLinks l2ls;
 	private INDArray nugget;
 	private boolean useNugget=false;
+	private boolean useFlatWeightMatrix=true;
 	
 	//TODO: Add a writer to save the trained model
 	
@@ -399,8 +400,8 @@ public class Variogram {
 	}
 
 	public void calcDistanceMatrix(int n, int t,double cn, double ct) {
-		RealMatrix weightss=this.l2ls.generateWeightMatrix(n, t, cn, ct);
-		INDArray weights=CheckUtil.convertFromApacheMatrix(this.l2ls.generateWeightMatrix(n, t, cn, ct),DataType.DOUBLE);//The only difference
+		RealMatrix weightss=this.l2ls.generateWeightMatrix(n, t, cn, ct,this.useFlatWeightMatrix);
+		INDArray weights=CheckUtil.convertFromApacheMatrix(this.l2ls.generateWeightMatrix(n, t, cn, ct,this.useFlatWeightMatrix),DataType.DOUBLE);//The only difference
 		this.weights.put(Integer.toString(n)+"_"+Integer.toString(t), weightss);
 		this.ntSpecificTrainingSet.put(Integer.toString(n)+"_"+Integer.toString(t), new HashMap<>());
 		int i=0;

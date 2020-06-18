@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.OpenMapRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.matsim.api.core.v01.Id;
@@ -182,21 +183,26 @@ public class LinkToLinks {
 	 * @param ct
 	 * @return
 	 */
-	public RealMatrix generateWeightMatrix(int n,int t, double cn, double ct) {
-		return this.generateWeightMatrix(n, t, this.kn,this.kt, cn, ct);
+	public RealMatrix generateWeightMatrix(int n,int t, double cn, double ct, boolean isFlat) {
+		return this.generateWeightMatrix(n, t, this.kn,this.kt, cn, ct, isFlat);
 	}
 	/**
 	 * 
 	 * More efficient.
 	 * @param n
 	 * @param t
-	 * @param kn
-	 * @param kt
-	 * @param cn
+	 * @param kn farthest link-to-link to consider
+	 * @param kt farthest time step to consider
+	 * @param cn multiplier
 	 * @param ct
 	 * @return
 	 */
-	private RealMatrix generateWeightMatrix(int n,int t,int kn,int kt,double cn, double ct){
+	private RealMatrix generateWeightMatrix(int n,int t,int kn,int kt,double cn, double ct, boolean isFlat){
+		
+		if(isFlat) {
+			return MatrixUtils.createRealMatrix(Nd4j.ones(this.linkToLinks.size(), this.timeBean.size()).toDoubleMatrix());
+		}
+		
 		LinkToLink l2l=this.linkToLinks.get(n);
 		RealMatrix we=new OpenMapRealMatrix(this.linkToLinks.size(), this.timeBean.size());
 		for(Entry<Integer,Set<Integer>> linkToLinks:l2l.getProximityMap().entrySet()) {
@@ -330,7 +336,7 @@ public class LinkToLinks {
 	 * @return
 	 */
 	public RealMatrix getWeightMatrix(int n, int t){
-		return this.generateWeightMatrix(n, t,1,1);
+		return this.generateWeightMatrix(n, t,1,1,false);
 	}
 	
 	@Deprecated
@@ -343,7 +349,7 @@ public class LinkToLinks {
 		Map<String,RealMatrix> weights=new HashMap<>(); 
 		for(int n=0;n<this.linkToLinks.size();n++) { 
 			for(int t=0;t<timeBean.size();t++) {
-				weights.put(Integer.toString(n)+"_"+Integer.toString(t),this.generateWeightMatrix(n, t,1,1));
+				weights.put(Integer.toString(n)+"_"+Integer.toString(t),this.generateWeightMatrix(n, t,1,1,false));
 			}
 		}
 		return weights;
@@ -361,7 +367,7 @@ public class LinkToLinks {
 		Map<String,RealMatrix> weights=new HashMap<>(); 
 		for(int n=0;n<this.linkToLinks.size();n++) { 
 			for(int t=0;t<timeBean.size();t++) {
-				weights.put(Integer.toString(n)+"_"+Integer.toString(t),this.generateWeightMatrix(n, t,Cn.getDouble(n,t),Ct.getDouble(n,t)));
+				weights.put(Integer.toString(n)+"_"+Integer.toString(t),this.generateWeightMatrix(n, t,Cn.getDouble(n,t),Ct.getDouble(n,t),false));
 			}
 		}
 		return weights;

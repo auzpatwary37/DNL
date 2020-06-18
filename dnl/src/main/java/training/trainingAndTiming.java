@@ -51,7 +51,7 @@ public class trainingAndTiming {
 
 
 		String modelFolderName="newLargeDataSet";
-		String modelName="MeanModel_Implicit_WithNugget_forTesting";
+		String modelName="MeanModel_WithoutWeight";
 		String modelOtherFolderName="largeDataset";
 		int N=33;
 		int T=9;
@@ -80,6 +80,11 @@ public class trainingAndTiming {
 		}
 		long time=System.currentTimeMillis();
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
+		
+		System.out.println(l2ls.getWeightMatrix(14, 2));
+		System.out.println(l2ls.getNumToLinkToLink().get(14));
+		
+		
 
 		System.out.println(System.currentTimeMillis()-time);
 
@@ -90,6 +95,10 @@ public class trainingAndTiming {
 		Map<Integer,Data> testingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetTest"+800+".txt","Network/ND/"+modelFolderName+"/KeySetTest"+800+".csv");
 		//	Map<Integer,Data> testingDataConst=DataIO.readDataSet("Network/ND/"+modelOtherFolderName+"/DataSetTest"+800+".txt","Network/ND/"+modelOtherFolderName+"/KeySetTest"+800+".csv");
 
+		new BPRBaseFunction(l2ls).writecsvLinktoLinkinfo("ForMatlab/linkInfo.csv");
+		DataIO.createMatlabData(trainingData, testingData, l2ls, "ForMatlab");
+		
+		
 		TrainingController tc=new TrainingController(l2ls, trainingData,true);
 		Map<String,List<Integer>> n_tindex=null;
 		Map<String,Map<Integer,Double>> errorMap=new HashMap<>();
@@ -119,9 +128,9 @@ public class trainingAndTiming {
 				initialLL=kriging.calcCombinedLogLikelihood();
 				//kriging.trainKrigingWithoutbeta();
 				//kriging.trainKrigingWithNugget();
-				kriging.trainKrigingImplicitWithNugget();
+				//kriging.trainKrigingImplicitWithNugget();
 				//kriging.trainKrigingImplicit();
-				//kriging.trainKriging();
+				kriging.trainKriging();
 				new KrigingModelWriter(kriging).writeModel(file.getPath());
 			}
 
