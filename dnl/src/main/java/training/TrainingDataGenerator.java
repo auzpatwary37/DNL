@@ -51,17 +51,17 @@ import matsimIntegration.DNLDataCollectionModule;
 public class TrainingDataGenerator {
 	public static void main(String[] args) throws IOException {
 		Config config =ConfigUtils.createConfig();
-		GenerateNDNetwork("Network/ND/ndNodes.csv","Network/ND/ndLinks.csv","Network/ND/ndNetwork.xml");
+		//GenerateNDNetwork("Network/ND/ndNodes.csv","Network/ND/ndLinks.csv","Network/ND/ndNetwork.xml");
 		//GenerateSiouxFallNetwork("Network/SiouxFalls/siouxfallsNodes.csv","Network/SiouxFalls/links.csv","Network/SiouxFalls/siouxfallsNetwork.xml");
-//		ConfigUtils.loadConfig(config, "Network/SiouxFalls/config.xml");
-		//config.network().setInputFile("Network/SiouxFalls/siouxfallsNetwork.xml");
-		config.network().setInputFile("Network/ND/ndNetwork.xml");
+		ConfigUtils.loadConfig(config, "Network/SiouxFalls/config.xml");
+		config.network().setInputFile("Network/SiouxFalls/siouxfallsNetwork.xml");
+		//config.network().setInputFile("Network/ND/ndNetwork.xml");
 		ArrayList<String> modes=new ArrayList<>();
 		modes.add("car");
 		config.plansCalcRoute().setNetworkModes(modes);
 //		//config.travelTimeCalculator().setCalculateLinkToLinkTravelTimes(true);
 //		config.travelTimeCalculator().setSeparateModes(false);
-		config.plansCalcRoute().setInsertingAccessEgressWalk(false);
+		config.plansCalcRoute().setInsertingAccessEgressWalk(true);
 		config.qsim().setUsePersonIdForMissingVehicleId(true);
 		config.qsim().setStartTime(15*3600);
 		config.qsim().setEndTime(24*3600);
@@ -80,9 +80,9 @@ public class TrainingDataGenerator {
 		config.strategy().addParam("Module_1", "ChangeExpBeta");
 		config.strategy().addParam("ModuleProbability_2", "0.2");
 		config.strategy().addParam("Module_2", "ReRoute");
-//		config.strategy().addParam("ModuleProbability_2", "0.1");
-//		config.strategy().addParam("Module_2", "TimeAllocationMutator");
-//		config.controler().setRoutingAlgorithmType(RoutingAlgorithmType.AStarLandmarks);
+		config.strategy().addParam("ModuleProbability_3", "0.1");
+		config.strategy().addParam("Module_3", "TimeAllocationMutator");
+		config.controler().setRoutingAlgorithmType(RoutingAlgorithmType.AStarLandmarks);
 //		config.planCalcScore().getOrCreateModeParams("car").setMarginalUtilityOfTraveling(-200);
 //		config.planCalcScore().setPerforming_utils_hr(100);
 //		config.qsim().setFlowCapFactor(0.5);
@@ -98,21 +98,22 @@ public class TrainingDataGenerator {
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		new ConfigWriter(config).write("Network/ND/final_config.xml");
-		//new ConfigWriter(config).write("Network/SiouxFalls/final_config.xml");
-//		
-		double[] ratio=new double[] {0.5,.625,.75,.875,1,1.125,1.25,1.375,1.5};
+//		new ConfigWriter(config).write("Network/ND/final_config.xml");
+		new ConfigWriter(config).write("Network/SiouxFalls/final_config.xml");
 		
-		//String baseLoc="Network/SiouxFalls/largeDataset/";
-		String baseLoc="Network/ND/newLargeDataSet/";
+		double[] ratio=new double[] {.875,1,1.125,1.25,1.375,1.5};
+		
+		String baseLoc="Network/SiouxFalls/dataset_June2020/";
+		//String baseLoc="Network/ND/dataset_June2020/";
 		
 		int k=0;
 		for(int i=0;i<ratio.length*3;i++) {
+			if(i<26)continue;
 			Config configcurrent=ConfigUtils.createConfig();
-			//ConfigUtils.loadConfig(configcurrent, "Network/SiouxFalls/final_config.xml");
-			ConfigUtils.loadConfig(configcurrent, "Network/ND/final_config.xml");
-			GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, baseLoc,ratio[k]);
-			//GenerateRandomPopulation(i,configcurrent,"Network/SiouxFalls/SiouxFallDemand.csv", 5, "Network/SiouxFalls",ratio[k],network);
+			ConfigUtils.loadConfig(configcurrent, "Network/SiouxFalls/final_config.xml");
+			//ConfigUtils.loadConfig(configcurrent, "Network/ND/final_config.xml");
+			//GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, baseLoc,ratio[k]);
+			GenerateRandomPopulation(i,configcurrent,"Network/SiouxFalls/SiouxFallDemand.csv", 5, "Network/SiouxFalls",ratio[k],network);
 			
 			//configcurrent.plans().setInputFile("Network/SiouxFalls/population"+i+".xml");
 			configcurrent.plans().setInputFile(baseLoc+"population"+i+".xml");
@@ -121,7 +122,7 @@ public class TrainingDataGenerator {
 			
 			configcurrent.vehicles().setVehiclesFile(baseLoc+"vehicles"+i+".xml");
 			
-			configcurrent.controler().setOutputDirectory(baseLoc+"output"+i);
+			configcurrent.controler().setOutputDirectory(baseLoc+"output");
 			configcurrent.controler().setWritePlansInterval(1);
 			configcurrent.controler().setWriteEventsInterval(1);
 			configcurrent.travelTimeCalculator().setCalculateLinkToLinkTravelTimes(true);
