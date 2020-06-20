@@ -170,9 +170,9 @@ class routeDemandAndTTInfo{
 					Leg leg=(Leg)pe;
 					Id<Route> routeid= Id.create(leg.getRoute().getRouteDescription(),Route.class);
 					int routeNo=this.numToRoute.inverse().get(routeid);
-					int timeId=this.getTimeId(leg.getDepartureTime());
+					int timeId=this.getTimeId(leg.getDepartureTime().seconds());
 					this.demand.putScalar(routeNo, timeId,this.demand.getDouble(routeNo,timeId)+1);
-					this.averageTT.putScalar(routeNo, timeId,this.averageTT.getDouble(routeNo,timeId)+leg.getTravelTime());
+					this.averageTT.putScalar(routeNo, timeId,this.averageTT.getDouble(routeNo,timeId)+leg.getTravelTime().seconds());
 				}
 			}
 		}

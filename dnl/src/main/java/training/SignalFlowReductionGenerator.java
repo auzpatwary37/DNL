@@ -1,7 +1,6 @@
-package linktolinkBPR;
+package training;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -27,12 +26,18 @@ import com.google.common.collect.Sets;
 
 public class SignalFlowReductionGenerator {
 	private final Scenario scenario;
-	
+	public int activeGc=0;
 	public SignalFlowReductionGenerator(Scenario scenario){
 		this.scenario = scenario;
 	}
 	
 	public double[] getGCratio(Link link) {
+//		if(link!=null) {
+//			return new double[] {1,60};
+//		}
+		if((SignalsData) scenario.getScenarioElement("signalsData")==null) {
+			return new double[] {1,60};
+		}
 		SignalsData sd = (SignalsData) scenario.getScenarioElement("signalsData");
 		SignalControlData signalControlData = sd.getSignalControlData();
 		SignalGroupsData signalsGroupsData = sd.getSignalGroupsData();
@@ -40,7 +45,9 @@ public class SignalFlowReductionGenerator {
 		
 		Id<SignalSystem> sigSysId = Id.create(link.getToNode().getId().toString(), SignalSystem.class);
 		SignalSystemData ssd = signalsSystemsData.getSignalSystemData().get(sigSysId); 
-		
+		if(ssd==null) {
+			return new double[] {1,60};
+		}
 		//take all the sig of the same link
 		HashMap<Id<Signal>, Id<SignalGroup>> sigIds = new HashMap<Id<Signal>, Id<SignalGroup>>();
 		for(Entry<Id<Signal>, SignalData> entry: ssd.getSignalData().entrySet()) {
@@ -66,14 +73,22 @@ public class SignalFlowReductionGenerator {
 		double cycleTime = planData.getCycleTime();
 		double out = 0;
 		for(Id<SignalGroup> entry : sigIds.values()) {
+			if(entry == null)
+				continue;
 			SignalGroupSettingsData thing = planData.getSignalGroupSettingsDataByGroupId().get(entry);
 			int onSet = thing.getOnset();
 			int dropping = thing.getDropping();
 			//add this gc ratio into out
 			out += ((onSet>=dropping ? dropping+cycleTime : dropping) - onSet) / cycleTime;
 		}
-
-		return new double[] {out/sigIds.size(), cycleTime};
+		if(out/sigIds.size()!=1) {
+			this.activeGc++;
+		}
+		double gc=out/sigIds.size();
+		if(gc==0) {
+			gc=1;
+		}
+		return new double[] {gc, cycleTime};
 	}
 	
 	public double[] getGCratio(Link link, Id<Link> toLinkId) {

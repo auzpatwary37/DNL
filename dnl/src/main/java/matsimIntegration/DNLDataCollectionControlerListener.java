@@ -75,7 +75,7 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 			IntStream.rangeClosed(0,T-1).parallel().forEach((t)->{
 				LinkToLink l2l=this.l2ls.getLinkToLinks().get(n);
 				Tuple<Double,Double> timeBean=l2ls.getTimeBean().get(l2ls.getNumToTimeBean().get(t));
-				double tt=this.ttCalculator.getLinkToLinkTravelTimes().getLinkToLinkTravelTime(l2l.getFromLink(), l2l.getToLink(), (timeBean.getFirst()+timeBean.getSecond())*.5);
+				double tt=this.ttCalculator.getLinkToLinkTravelTimes().getLinkToLinkTravelTime(l2l.getFromLink(), l2l.getToLink(), (timeBean.getFirst()+timeBean.getSecond())*.5, null, null);
 				if(tt==Double.NaN) {
 					System.out.println();
 				}
@@ -106,7 +106,7 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 					for(String s:part) {
 						links.add(Id.createLinkId(s.trim()));
 					}
-					double time=l.getDepartureTime();
+					double time=l.getDepartureTime().seconds();
 					for(int i=1;i<links.size();i++) {
 						Id<LinkToLink> l2lId=Id.create(links.get(i-1)+"_"+links.get(i), LinkToLink.class);
 						int n=this.l2ls.getNumToLinkToLink().inverse().get(l2lId);
