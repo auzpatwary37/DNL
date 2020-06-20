@@ -394,7 +394,7 @@ public class trainingAndTiming {
 					for(String s:part) {
 						links.add(Id.createLinkId(s.trim()));
 					}
-					double time=l.getDepartureTime();
+					double time=l.getDepartureTime().seconds();
 					for(int i=1;i<links.size();i++) {
 						Id<LinkToLink> l2lId=Id.create(links.get(i-1)+"_"+links.get(i), LinkToLink.class);
 						int n=l2ls.getNumToLinkToLink().inverse().get(l2lId);
