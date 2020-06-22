@@ -49,13 +49,13 @@ import linktolinkBPR.SignalFlowReductionGenerator;
 public class trainingAndTiming {
 	public static void main(String[] args) {
 
-
-		String modelFolderName="newLargeDataSet";
+		String baseLoc = "Network/ND/";
+		String modelFolderName="dataset_June2020/";
 		String modelName="MeanModel_WithoutWeight";
 		String modelOtherFolderName="largeDataset";
 		int N=33;
 		int T=9;
-		String logfileloc="Network/ND/"+modelFolderName+"/ExperimentLog.csv";
+		String logfileloc=baseLoc+modelFolderName+"/ExperimentLog.csv";
 		FileWriter logfw=null;
 		try {
 			logfw = new FileWriter(new File(logfileloc),true);
@@ -91,12 +91,12 @@ public class trainingAndTiming {
 		DataTypeUtil.setDTypeForContext(DataType.DOUBLE);
 		Nd4j.setDefaultDataTypes(DataType.DOUBLE, DataType.DOUBLE);
 
-		Map<Integer,Data> trainingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetTrain"+800+".txt","Network/ND/"+modelFolderName+"/KeySetTrain"+800+".csv");
-		Map<Integer,Data> testingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetTest"+800+".txt","Network/ND/"+modelFolderName+"/KeySetTest"+800+".csv");
-		//	Map<Integer,Data> testingDataConst=DataIO.readDataSet("Network/ND/"+modelOtherFolderName+"/DataSetTest"+800+".txt","Network/ND/"+modelOtherFolderName+"/KeySetTest"+800+".csv");
+		Map<Integer,Data> trainingData=DataIO.readDataSet(baseLoc+modelFolderName+"/DataSetTrain"+800+".txt",baseLoc+modelFolderName+"/KeySetTrain"+800+".csv");
+		Map<Integer,Data> testingData=DataIO.readDataSet(baseLoc+modelFolderName+"/DataSetTest"+800+".txt",baseLoc+modelFolderName+"/KeySetTest"+800+".csv");
+		//	Map<Integer,Data> testingDataConst=DataIO.readDataSet(baseLoc+modelOtherFolderName+"/DataSetTest"+800+".txt",baseLoc+modelOtherFolderName+"/KeySetTest"+800+".csv");
 
-		new BPRBaseFunction(l2ls).writecsvLinktoLinkinfo("ForMatlab/linkInfo.csv");
-		DataIO.createMatlabData(trainingData, testingData, l2ls, "ForMatlab");
+		new BPRBaseFunction(l2ls).writecsvLinktoLinkinfo("Network/ND/dataset_June2020/ForMatlab/linkInfo.csv");
+		DataIO.createMatlabData(trainingData, testingData, l2ls, "Network/ND/dataset_June2020/ForMatlab");
 		
 		
 		TrainingController tc=new TrainingController(l2ls, trainingData,true);
@@ -105,7 +105,7 @@ public class trainingAndTiming {
 
 		for(int i=100;i<=800;i=i+50) {
 			String fullModelName=modelName+"_"+i+"_"+T;
-			File file =new File("Network/ND/"+modelFolderName+"/"+fullModelName);
+			File file =new File(baseLoc+modelFolderName+"/"+fullModelName);
 			KrigingInterpolator kriging=null;
 			double initialLL=0;
 
@@ -292,10 +292,10 @@ public class trainingAndTiming {
 			e.printStackTrace();
 		}
 		//		for(double d=0.3;d<=.9;d=d+.1) {
-		//			Map<Integer,Data> trainingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetNDTrain"+d+".txt","Network/ND/"+modelFolderName+"/KeySetNDTrain"+d+".csv");
-		//			Map<Integer,Data> testingData=DataIO.readDataSet("Network/ND/"+modelFolderName+"/DataSetNDTest"+d+".txt","Network/ND/"+modelFolderName+"/KeySetNDTest"+d+".csv");
+		//			Map<Integer,Data> trainingData=DataIO.readDataSet(baseLoc+modelFolderName+"/DataSetNDTrain"+d+".txt",baseLoc+modelFolderName+"/KeySetNDTrain"+d+".csv");
+		//			Map<Integer,Data> testingData=DataIO.readDataSet(baseLoc+modelFolderName+"/DataSetNDTest"+d+".txt",baseLoc+modelFolderName+"/KeySetNDTest"+d+".csv");
 		//			String fullModelName=modelName+"_"+d+"_"+T;
-		//			File file =new File("Network/ND/"+modelFolderName+"/"+fullModelName);
+		//			File file =new File(baseLoc+modelFolderName+"/"+fullModelName);
 		//			KrigingInterpolator kriging=null;
 		//			double initialLL=0;
 		//			if(file.exists() && file.list().length!=0) {
@@ -338,7 +338,7 @@ public class trainingAndTiming {
 		//			for(Data testData:testingData.values()) {
 		//				INDArray Yreal=testData.getY();
 		//				long startTime=System.currentTimeMillis();
-		//				Population population=getPopulation(testData.getKey(),"Network/ND/"+modelFolderName,configcurrent,ratios);
+		//				Population population=getPopulation(testData.getKey(),baseLoc+modelFolderName,configcurrent,ratios);
 		//				
 		//				Tuple<INDArray,INDArray> xy=kriging.getXYIterative(population);
 		//				totalTime+=System.currentTimeMillis()-startTime;

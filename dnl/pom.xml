@@ -82,11 +82,18 @@
       <version>1.0.0-beta7</version>
   </dependency>
 <!-- https://mvnrepository.com/artifact/org.nd4j/nd4j-native-platform -->
-  <dependency>
-      <groupId>org.nd4j</groupId>
-      <artifactId>nd4j-native-platform</artifactId>
-      <version>1.0.0-beta7</version>
-  </dependency>
+<dependency>
+    <groupId>org.nd4j</groupId>
+    <artifactId>nd4j-native</artifactId>
+    <version>1.0.0-beta7</version>
+</dependency>
+
+<dependency>
+    <groupId>org.nd4j</groupId>
+    <artifactId>nd4j-native</artifactId>
+    <version>1.0.0-beta7</version>
+    <classifier>linux-x86_64-avx2</classifier>
+</dependency>
 <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
 <dependency>
     <groupId>org.slf4j</groupId>
@@ -98,7 +105,6 @@
     <groupId>org.slf4j</groupId>
     <artifactId>slf4j-simple</artifactId>
     <version>1.7.30</version>
-    <scope>test</scope>
 </dependency>
 
 	  <dependency>
