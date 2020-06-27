@@ -49,7 +49,7 @@ import linktolinkBPR.SignalFlowReductionGenerator;
 public class trainingAndTiming {
 	public static void main(String[] args) {
 
-		String baseLoc = "Network/SiouxFalls/";
+		String baseLoc = "Network/ND/";
 		String modelFolderName="dataset_June2020/";
 		String modelName="MeanModel_WithoutWeight";
 		String modelOtherFolderName="largeDataset";
@@ -70,8 +70,8 @@ public class trainingAndTiming {
 			e.printStackTrace();
 		}//header
 
-		//Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
-		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
+		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
+		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
 		SignalFlowReductionGenerator sg = null;
 		Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
 
@@ -91,8 +91,8 @@ public class trainingAndTiming {
 		DataTypeUtil.setDTypeForContext(DataType.DOUBLE);
 		Nd4j.setDefaultDataTypes(DataType.DOUBLE, DataType.DOUBLE);
 
-		Map<Integer,Data> trainingData=DataIO.readDataSet(baseLoc+modelFolderName+"/DataSetTrain"+800+".txt",baseLoc+modelFolderName+"/KeySetTrain"+800+".csv");
-		Map<Integer,Data> testingData=DataIO.readDataSet(baseLoc+modelFolderName+"/DataSetTest"+800+".txt",baseLoc+modelFolderName+"/KeySetTest"+800+".csv");
+		Map<Integer,Data> trainingData=DataIO.readDataSet(baseLoc+modelFolderName+"/DataSetTrain"+800+".txt",baseLoc+modelFolderName+"/KeySetTrain"+800+".csv",baseLoc+modelFolderName+"/RouteSetTrain"+800+".txt");
+		Map<Integer,Data> testingData=DataIO.readDataSet(baseLoc+modelFolderName+"/DataSetTest"+800+".txt",baseLoc+modelFolderName+"/KeySetTest"+800+".csv",baseLoc+modelFolderName+"/RouteSetTest"+800+".txt");
 		//	Map<Integer,Data> testingDataConst=DataIO.readDataSet(baseLoc+modelOtherFolderName+"/DataSetTest"+800+".txt",baseLoc+modelOtherFolderName+"/KeySetTest"+800+".csv");
 		
 		RouteData routeData = DataIO.readRouteData(baseLoc+modelFolderName, 26);//specific to nd change if necessary. Should look for better solution

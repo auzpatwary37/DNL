@@ -1,5 +1,8 @@
 package training;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +40,20 @@ public class DataCleanUp {
 					
 					for(int r =0;r<routeData.R;r++) {
 						for(int t =0;t<T;t++) {
-							routeDemand.putScalar(r, t,routeData.routeDemand.get(data.getKey()).get(t).get(routeData.routeList.get(r)));
+							double demand = 0.;
+							try {
+								 demand = routeData.routeDemand.get(data.getKey()).get(t).get(routeData.routeList.get(r));
+							}catch(Exception e) {
+								if(routeData.routeDemand.get(data.getKey()).get(t)==null) {
+									
+								}else if(routeData.routeDemand.get(data.getKey()).get(t).get(routeData.routeList.get(r))==null) {
+									
+								}
+								else {
+									System.out.println("DEbug");
+								}
+							}
+							routeDemand.putScalar(r, t, demand);
 						}
 					}
 					data.setR(routeDemand);

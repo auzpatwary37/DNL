@@ -412,7 +412,7 @@ public class DataIO {
 		
 		writeINDArray(x,writeLoc+"/x.csv");
 		writeINDArray(y,writeLoc+"/y.csv");
-		writeINDArray(y,writeLoc+"/r.csv");
+		writeINDArray(r,writeLoc+"/r.csv");
 		
 		//create xtest and ytest
 		for(int i=0;i<testdata.size();i++) {
@@ -482,7 +482,7 @@ public class DataIO {
 					}
 					
 					if (t>T) T = t;
- 					if(routes.containsKey(routeId)) {
+ 					if(!routes.containsKey(routeId)) {
  						routes.put(routeId, linkList);
  					}
  					if(!routeDemand.containsKey(key))routeDemand.put(key, new HashMap<>());
