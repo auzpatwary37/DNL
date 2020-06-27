@@ -196,7 +196,7 @@ public class TraninigDataGeneratorHKI {
 				e.printStackTrace();
 			}
 			Signals.configure(controler);
-			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,baseFileLoc+"DataSet"+i+".txt",Double.toString(ratio[k]),baseFileLoc+"KeySet"+i+".csv", false));
+			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,baseFileLoc+"DataSet"+i+".txt",Double.toString(ratio[k]),baseFileLoc+"KeySet"+i+".csv",baseFileLoc+"routeDemand"+i+".csv", false));
 			controler.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 			controler.run();
 			if((i+1)%1==0) {

@@ -1,7 +1,13 @@
 package matsimIntegration;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 
@@ -49,6 +55,8 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 	@Inject
 	private @Named("fileLoc") String fileLoc;
 	@Inject
+	private @Named("routeDemandFileloc") String routeFileLoc;
+	@Inject
 	private @Named("keyPrefix") String keyPrefix;
 	@Inject
 	private @Named("keyFileloc") String keyFileloc;
@@ -57,6 +65,8 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 	private INDArray X;
 	@Inject
 	private @Named("instantenious") boolean instantenious; 
+	private Map<String,List<Integer>> routes = new HashMap<>();// save the routes in here
+	private Map<Integer,Map<String,Double>> routeDemand  = new HashMap<>();//save the route demand here
 	
 	@Inject
 	public DNLDataCollectionControlerListener(LinkToLinks l2ls) {
@@ -92,6 +102,7 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 	@Override
 	public void notifyBeforeMobsim(BeforeMobsimEvent event) {
 		this.X=Nd4j.create(N,T);
+		this.routeDemand.clear();
 		Population population=event.getServices().getScenario().getPopulation();
 		Map<String,Double> linkToLinksDemand=new ConcurrentHashMap<>();
 		population.getPersons().entrySet().forEach((e)->{
@@ -102,6 +113,12 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 				
 				if(pl instanceof Leg) {
 					l=(Leg)pl;
+					boolean newRoute = false;
+					String routeKey = l.getRoute().getRouteDescription();
+					if(!this.routes.containsKey(routeKey)) {
+						this.routes.put(routeKey, new ArrayList<>());
+						newRoute = true;
+					}
 					String[] part=l.getRoute().getRouteDescription().split(" ");
 					for(String s:part) {
 						links.add(Id.createLinkId(s.trim()));
@@ -111,6 +128,11 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 						Id<LinkToLink> l2lId=Id.create(links.get(i-1)+"_"+links.get(i), LinkToLink.class);
 						int n=this.l2ls.getNumToLinkToLink().inverse().get(l2lId);
 						int t=this.TTRecorder.getTimeId(time);
+						if(i==1) {
+							if(!this.routeDemand.containsKey(t))this.routeDemand.put(t, new HashMap<>());
+							this.routeDemand.get(t).compute(routeKey, (k,v)->v==null?1:v+1);
+						}
+						if(newRoute)this.routes.get(routeKey).add(n);
 						String key=Integer.toString(n)+"_"+Integer.toString(t);
 						if(linkToLinksDemand.containsKey(key)) {
 							linkToLinksDemand.put(key, linkToLinksDemand.get(key)+1);
@@ -140,6 +162,23 @@ public class DNLDataCollectionControlerListener implements BeforeMobsimListener,
 				}
 			});
 		});
+		try {
+			FileWriter fw = new FileWriter(new File(routeFileLoc),true);
+			for(Entry<Integer, Map<String, Double>> demand:this.routeDemand.entrySet()) {
+				for(Entry<String, Double> routeDemand:demand.getValue().entrySet()) {
+ 					fw.append(this.keyPrefix+"_"+event.getIteration()+","+routeDemand.getKey()+","+demand.getKey()+","+routeDemand.getValue());
+					for(Integer i:this.routes.get(routeDemand.getKey())) {
+						fw.append(","+i);
+					}
+					fw.append("\n");
+				}
+			}
+			fw.flush();
+			fw.close();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 	}
 
 	@Override

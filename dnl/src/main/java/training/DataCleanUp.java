@@ -10,6 +10,7 @@ import java.util.Random;
 import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.factory.Nd4j;
 
 import kriging.Data;
 import kriging.KrigingInterpolator;
@@ -18,7 +19,8 @@ public class DataCleanUp {
 	public static void main(String[] args) {
 		List<Data> datasetFull=new ArrayList<>();
 		String baseloc="Network/ND/dataset_June2020/";
-		for(int i=0;i<27;i++) {
+		RouteData routeData = DataIO.readRouteData(baseloc, 26);
+		for(int i=0;i<26;i++) {
 			Map<Integer,Data> dset=DataIO.readDataSet(baseloc+"DataSet"+i+".txt",baseloc+"KeySet"+i+".csv");
 			for(Data data:dset.values()) {
 				boolean isDuplicate=false;
@@ -29,6 +31,16 @@ public class DataCleanUp {
 					}
 				}
 				if(isDuplicate==false) {
+					//add the routeData to the data
+					long T =data.getX().shape()[1];
+					INDArray routeDemand = Nd4j.create(routeData.R,T);
+					
+					for(int r =0;r<routeData.R;r++) {
+						for(int t =0;t<T;t++) {
+							routeDemand.putScalar(r, t,routeData.routeDemand.get(data.getKey()).get(t).get(routeData.routeList.get(r)));
+						}
+					}
+					data.setR(routeDemand);
 					datasetFull.add(data);
 				}
 			}
@@ -40,12 +52,12 @@ public class DataCleanUp {
 //		for(Tuple<INDArray,INDArray> data:datasetFull) {
 //			
 //		}
-		DataIO.writeData(datasetFull, baseloc+"DataSetFull.txt",baseloc+"KeySetFull.csv");
+		DataIO.writeData(datasetFull, baseloc+"DataSetFull.txt",baseloc+"KeySetFull.csv",baseloc+"RouteSetFull.txt");
 		//for(double i=.30;i<=.90;i=i+.10) {
-		
+		routeData.writeRouteDetails(baseloc+"routeInfo.csv");
 		TestAndTrainData testAndTrain=DataCleanUp.DevideDataInTestAndTrain(datasetFull, (int)800);
-		DataIO.writeData(testAndTrain.getTestData(), baseloc+"DataSetTest"+800+".txt",baseloc+"KeySetTest"+800+".csv");
-		DataIO.writeData(testAndTrain.getTrainData(), baseloc+"DataSetTrain"+800+".txt", baseloc+"KeySetTrain"+800+".csv");
+		DataIO.writeData(testAndTrain.getTestData(), baseloc+"DataSetTest"+800+".txt",baseloc+"KeySetTest"+800+".csv",baseloc+"RouteSetTest"+800+".txt");
+		DataIO.writeData(testAndTrain.getTrainData(), baseloc+"DataSetTrain"+800+".txt", baseloc+"KeySetTrain"+800+".csv",baseloc+"RouteSetTrain"+800+".txt");
 		//}
 		
 		

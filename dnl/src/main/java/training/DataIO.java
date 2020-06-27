@@ -6,8 +6,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -54,9 +56,41 @@ public class DataIO {
 		Nd4j.writeTxt(rawArray,fileLoc);
 	}
 	
+	public static void writeData(Map<Integer,Data> dataSet,String fileLoc,String keyFileloc,String routeFileLoc) {
+		int N=Math.toIntExact(dataSet.get(0).getX().size(0));
+		int T=Math.toIntExact(dataSet.get(0).getX().size(1));
+		int R = Math.toIntExact(dataSet.get(0).getR().size(0));
+		int I=dataSet.size();
+		INDArray rawArray=Nd4j.create(new int[] {N,2*T,I});
+		INDArray routeArray = Nd4j.create(new int[] {R,T,I});
+		int i=0;
+		try {
+			FileWriter fw =new FileWriter(new File(keyFileloc));
+			fw.append("NumberId,dataKey\n");
+			
+		for(Entry<Integer,Data>dataPoint:dataSet.entrySet()) {
+			INDArray joinedArray=Nd4j.concat(1, dataPoint.getValue().getX(),dataPoint.getValue().getY());
+			rawArray.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(i)},joinedArray);
+			routeArray.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(i)},dataPoint.getValue().getR());
+			fw.append(dataPoint.getKey()+","+dataPoint.getValue().getKey()+"\n");
+			i++;
+		}
+		
+		Nd4j.writeTxt(rawArray,fileLoc);
+		Nd4j.writeTxt(routeArray,routeFileLoc);
+		fw.flush();
+		fw.close();
+		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public static void writeData(Map<Integer,Data> dataSet,String fileLoc,String keyFileloc) {
 		int N=Math.toIntExact(dataSet.get(0).getX().size(0));
 		int T=Math.toIntExact(dataSet.get(0).getX().size(1));
+		
 		int I=dataSet.size();
 		INDArray rawArray=Nd4j.create(new int[] {N,2*T,I});
 		int i=0;
@@ -72,6 +106,7 @@ public class DataIO {
 		}
 		
 		Nd4j.writeTxt(rawArray,fileLoc);
+		
 		fw.flush();
 		fw.close();
 		
@@ -98,6 +133,36 @@ public class DataIO {
 			i++;
 		}
 		Nd4j.writeTxt(rawArray,fileLoc);
+		fw.flush();
+		fw.close();
+		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void writeData(List<Data> dataSet,String fileLoc,String keyfileloc,String routeFileLoc) {
+		int N=Math.toIntExact(dataSet.get(0).getX().size(0));
+		int T=Math.toIntExact(dataSet.get(0).getX().size(1));
+		int R = 0;
+		if(dataSet.get(0).getR()!=null)R = Math.toIntExact(dataSet.get(0).getR().size(0)); 
+		int I=dataSet.size();
+		INDArray rawArray=Nd4j.create(new int[] {N,2*T,I});
+		INDArray routeArray = Nd4j.create(new int[] {R,T,I});
+		int i=0;
+		try {
+			FileWriter fw =new FileWriter(new File(keyfileloc));
+			fw.append("NumberId,dataKey\n");
+		for(Data dataPoint:dataSet) {
+			INDArray joinedArray=Nd4j.concat(1, dataPoint.getX(),dataPoint.getY());
+			rawArray.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(i)},joinedArray);
+			routeArray.put(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(i)},dataPoint.getR());
+			fw.append(i+","+dataPoint.getKey()+"\n");
+			i++;
+		}
+		Nd4j.writeTxt(rawArray,fileLoc);
+		Nd4j.writeTxt(routeArray,routeFileLoc);
 		fw.flush();
 		fw.close();
 		
@@ -149,7 +214,7 @@ public class DataIO {
 			INDArray X=rawArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.interval(0, T),NDArrayIndex.point(i)});
 			INDArray Y=rawArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.interval(T, 2*T),NDArrayIndex.point(i)});
 			if(!(X.size(0)==33 && X.size(1)==9 && Y.size(0)==33 && Y.size(1)==9)) {
-				System.out.println();
+				//System.out.println();
 			}
 			dataSet.put(i,new Data(X, Y, line.split(",")[1]));
 			
@@ -160,6 +225,36 @@ public class DataIO {
 		}
 		return dataSet;
 	}
+	
+	public static Map<Integer,Data> readDataSet(String fileLoc,String keyFileloc,String routeFileLoc){
+		Map<Integer,Data> dataSet=new ConcurrentHashMap<>();
+			INDArray rawArray=Nd4j.readTxt(fileLoc);
+			INDArray routeArray = Nd4j.readTxt(routeFileLoc);
+			int T=Math.toIntExact(rawArray.size(1))/2;
+			int I=Math.toIntExact(rawArray.size(2));
+			int R = Math.toIntExact(routeArray.size(1));
+			try {
+				BufferedReader bf=new BufferedReader(new FileReader(new File(keyFileloc)));
+				bf.readLine();//get rid of the header
+			
+			
+			for(int i=0;i<I;i++) {
+				String line= bf.readLine();
+				INDArray X=rawArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.interval(0, T),NDArrayIndex.point(i)});
+				INDArray Y=rawArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.interval(T, 2*T),NDArrayIndex.point(i)});
+				INDArray RD = routeArray.get(new INDArrayIndex[] {NDArrayIndex.all(),NDArrayIndex.all(),NDArrayIndex.point(i)});
+				if(!(X.size(0)==33 && X.size(1)==9 && Y.size(0)==33 && Y.size(1)==9)) {
+					//System.out.println();
+				}
+				dataSet.put(i,new Data(X, Y, line.split(",")[1]));
+				dataSet.get(i).setR(RD);
+			}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				System.out.println("the key file and the dataset file is not consistant.");
+			}
+			return dataSet;
+		}
 	
 	public int getN() {
 		return N;
@@ -285,12 +380,14 @@ public class DataIO {
 	 * @param writeLoc
 	 *
 	 */
-	public static void createMatlabData(Map<Integer,Data> data,Map<Integer,Data> testdata, LinkToLinks l2ls, String writeLoc) {
+	public static void createMatlabData(Map<Integer,Data> data,Map<Integer,Data> testdata, LinkToLinks l2ls,String writeLoc) {
 		INDArray x = Nd4j.create(data.size(),Math.toIntExact((data.get(0).getX().shape()[0]*data.get(0).getX().shape()[1])));
 		INDArray y = Nd4j.create(x.shape());
+		INDArray r = Nd4j.create(data.size(),Math.toIntExact((data.get(0).getR().shape()[0]*data.get(0).getR().shape()[1])));
 		INDArray w = Nd4j.create(x.shape()[1],x.shape()[1]);
 		
 		INDArray x_1 = Nd4j.create(testdata.size(),Math.toIntExact((testdata.get(0).getX().shape()[0]*testdata.get(0).getX().shape()[1])));
+		INDArray r_1 = Nd4j.create(testdata.size(),Math.toIntExact((testdata.get(0).getR().shape()[0]*testdata.get(0).getR().shape()[1])));
 		INDArray y_1 = Nd4j.create(x_1.shape());
 		
 		
@@ -306,6 +403,8 @@ public class DataIO {
 			x.putRow(i, X);
 			INDArray Y = data.get(i).getY().reshape('f',1,data.get(i).getY().length());
 			y.putRow(i, Y);
+			INDArray R = data.get(i).getR().reshape('f',1,data.get(i).getR().length());
+			r.putRow(i, R);
 			fw.flush();
 		}
 		
@@ -313,7 +412,7 @@ public class DataIO {
 		
 		writeINDArray(x,writeLoc+"/x.csv");
 		writeINDArray(y,writeLoc+"/y.csv");
-		
+		writeINDArray(y,writeLoc+"/r.csv");
 		
 		//create xtest and ytest
 		for(int i=0;i<testdata.size();i++) {
@@ -322,6 +421,8 @@ public class DataIO {
 			x_1.putRow(i, X);
 			INDArray Y = testdata.get(i).getY().reshape('f',1,testdata.get(i).getY().length());
 			y_1.putRow(i, Y);
+			INDArray R = testdata.get(i).getR().reshape('f',1,testdata.get(i).getR().length());
+			r_1.putRow(i, R);
 			fw1.flush();
 		}
 		
@@ -329,7 +430,7 @@ public class DataIO {
 		
 		writeINDArray(x_1,writeLoc+"/xtst.csv");
 		writeINDArray(y_1,writeLoc+"/ytst.csv");
-		
+		writeINDArray(r_1,writeLoc+"/rtst.csv");
 		
 		//create and write weight matrix 
 		
@@ -347,7 +448,6 @@ public class DataIO {
 		}
 		
 		writeINDArray(w,writeLoc+"/weights.csv");
-		
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -359,4 +459,79 @@ public class DataIO {
 //		System.out.println(a);
 //		System.out.println(a.reshape('f',1,a.length()));
 //	}
+	
+	
+	public static RouteData readRouteData(String fileLoc, int maxIterNo) {
+		LinkedHashMap<String,List<Integer>> routes = new LinkedHashMap<>();
+		int T = 0;
+		Map<String,Map<Integer,Map<String,Double>>> routeDemand = new HashMap<>();
+
+		try {
+			for(int i = 0; i<=maxIterNo;i++) {
+				BufferedReader bf = new BufferedReader(new FileReader(new File(fileLoc+"routeDemand"+i+".csv")));
+				String line;
+				while((line=bf.readLine())!=null) {
+					String[] part = line.split(",");
+					String key = part[0];
+					String routeId = part[1];
+					int t = Integer.parseInt(part[2]);
+					double demand = Double.parseDouble(part[3]);
+					List<Integer> linkList = new ArrayList<>();
+					for(int j = 4;j<part.length;j++) {
+						linkList.add(Integer.parseInt(part[j]));
+					}
+					
+					if (t>T) T = t;
+ 					if(routes.containsKey(routeId)) {
+ 						routes.put(routeId, linkList);
+ 					}
+ 					if(!routeDemand.containsKey(key))routeDemand.put(key, new HashMap<>());
+ 					if(!routeDemand.get(key).containsKey(t))routeDemand.get(key).put(t, new HashMap<>());
+ 					routeDemand.get(key).get(t).compute(routeId, (k,v)->v==null?demand:v+demand);
+				}
+			}
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		int R = routes.size();
+		return new RouteData(routes,routeDemand,T);
+	}
+}
+
+class RouteData{
+	public final LinkedHashMap<String,List<Integer>> routes;
+	public final List<String> routeList;
+	public final int T;
+	public final Map<String,Map<Integer,Map<String,Double>>> routeDemand;
+	public final int R;
+	public RouteData(LinkedHashMap<String,List<Integer>> routes,Map<String,Map<Integer,Map<String,Double>>> routeDemand, int T) {
+		this.R = routes.size();
+		this.routeDemand = routeDemand;
+		this.routes = routes;
+		this.T = T;
+		this.routeList = new ArrayList<>(this.routes.keySet());
+	}
+	public void writeRouteDetails(String fileLoc) {
+		try {
+			FileWriter fw = new FileWriter(new File(fileLoc));
+			fw.append("RouteNo, RouteId, L2ls\n");
+			for(int i=0;i<this.routeList.size();i++) {
+				fw.append(i+","+this.routeList.get(i));
+				for(int j:this.routes.get(this.routeList.get(i))) {
+					fw.append(","+j);
+				}
+				fw.append("\n");
+			}
+			fw.flush();
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }

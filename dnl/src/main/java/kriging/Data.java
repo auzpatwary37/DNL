@@ -10,6 +10,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 public class Data {
 	private final INDArray X;
 	private final INDArray Y;
+	private INDArray R;
 	private final String key;
 	
 	public Data(INDArray X,INDArray Y,String key) {
@@ -29,5 +30,14 @@ public class Data {
 	public String getKey() {
 		return key;
 	}
+
+	public INDArray getR() {
+		return R;
+	}
+
+	public void setR(INDArray r) {
+		R = r;
+	}
+	
 	
 }
