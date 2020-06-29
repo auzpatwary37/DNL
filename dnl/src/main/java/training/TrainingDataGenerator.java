@@ -55,8 +55,8 @@ public class TrainingDataGenerator {
 		//GenerateSiouxFallNetwork("Network/SiouxFalls/siouxfallsNodes.csv","Network/SiouxFalls/links.csv","Network/SiouxFalls/siouxfallsNetwork.xml");
 		//config.global().setInsistingOnDeprecatedConfigVersion(true);
 		//ConfigUtils.loadConfig(config, "Network/SiouxFalls/config.xml");
-		//config.network().setInputFile("Network/SiouxFalls/siouxfallsNetwork.xml");
-		config.network().setInputFile("Network/ND/ndNetwork.xml");
+		config.network().setInputFile("Network/SiouxFalls/siouxfallsNetwork.xml");
+		//config.network().setInputFile("Network/ND/ndNetwork.xml");
 		ArrayList<String> modes=new ArrayList<>();
 		modes.add("car");
 		config.plansCalcRoute().setNetworkModes(modes);
@@ -90,8 +90,8 @@ public class TrainingDataGenerator {
 //
 		
 		//Generate the linkToLink
-		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
-		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
+		//Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
+		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
 		SignalFlowReductionGenerator sg = null;
 		//config.network().setInputFile("Network/SiouxFalls/network.xml");
 		Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
@@ -101,20 +101,20 @@ public class TrainingDataGenerator {
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
 		new ConfigWriter(config).write("Network/ND/final_config.xml");
 //		new ConfigWriter(config).write("Network/SiouxFalls/final_config.xml");
-		double[] ratio=new double[] {0.5,.625,.75,.875,1,1.125,1.25,1.375,1.5};
-		//double[] ratio=new double[] {.875,1,1.125,1.25,1.375,1.5};
+		//double[] ratio=new double[] {0.5,.625,.75,.875,1,1.125,1.25,1.375,1.5};
+		double[] ratio=new double[] {.875,1,1.125,1.25,1.375,1.5};
 		
-		//String baseLoc="Network/SiouxFalls/dataset_June2020/";
-		String baseLoc="Network/ND/dataset_June2020/";
+		String baseLoc="Network/SiouxFalls/dataset_June2020/";
+		//String baseLoc="Network/ND/dataset_June2020/";
 		
 		int k=0;
 		for(int i=0;i<ratio.length*3;i++) {
 			//if(i<0)continue;
 			Config configcurrent=ConfigUtils.createConfig();
-			//ConfigUtils.loadConfig(configcurrent, "Network/SiouxFalls/final_config.xml");
-			ConfigUtils.loadConfig(configcurrent, "Network/ND/final_config.xml");
-			GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, baseLoc,ratio[k]);
-			//GenerateRandomPopulation(i,configcurrent,"Network/SiouxFalls/SiouxFallDemand.csv", 5, "Network/SiouxFalls/dataset_June2020",ratio[k],network);
+			ConfigUtils.loadConfig(configcurrent, "Network/SiouxFalls/final_config.xml");
+			//ConfigUtils.loadConfig(configcurrent, "Network/ND/final_config.xml");
+			//GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, baseLoc,ratio[k]);
+			GenerateRandomPopulation(i,configcurrent,"Network/SiouxFalls/SiouxFallDemand.csv", 5, "Network/SiouxFalls/dataset_June2020",ratio[k],network);
 			
 			//configcurrent.plans().setInputFile("Network/SiouxFalls/population"+i+".xml");
 			configcurrent.plans().setInputFile(baseLoc+"population"+i+".xml");

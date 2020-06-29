@@ -21,9 +21,9 @@ import kriging.KrigingInterpolator;
 public class DataCleanUp {
 	public static void main(String[] args) {
 		List<Data> datasetFull=new ArrayList<>();
-		String baseloc="Network/ND/dataset_June2020/";
-		RouteData routeData = DataIO.readRouteData(baseloc, 26);
-		for(int i=0;i<26;i++) {
+		String baseloc="Network/SiouxFalls/dataset_June2020/";
+		RouteData routeData = DataIO.readRouteData(baseloc, 17);
+		for(int i=0;i<18;i++) {
 			Map<Integer,Data> dset=DataIO.readDataSet(baseloc+"DataSet"+i+".txt",baseloc+"KeySet"+i+".csv");
 			for(Data data:dset.values()) {
 				boolean isDuplicate=false;

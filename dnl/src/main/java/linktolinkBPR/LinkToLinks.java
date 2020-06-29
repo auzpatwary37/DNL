@@ -68,8 +68,8 @@ public class LinkToLinks {
 			this.linkToLinks.get(n).setProximityMap(this.generateProximityMap(this.linkToLinks.get(n)));
 			this.linkToLinks.get(n).setPrimaryFromLinkProximitySet(this.generatePrimaryFromLinkProximityMap(this.linkToLinks.get(n)));
 		}
-		this.fromLinkToLinkMap.clear();
-		this.ToLinkToLinkMap.clear();
+		//this.fromLinkToLinkMap.clear();
+		//this.ToLinkToLinkMap.clear();
 	}
 	
 	/**
@@ -186,6 +186,10 @@ public class LinkToLinks {
 	public RealMatrix generateWeightMatrix(int n,int t, double cn, double ct, boolean isFlat) {
 		return this.generateWeightMatrix(n, t, this.kn,this.kt, cn, ct, isFlat);
 	}
+	
+	public RealMatrix generateUSDSWeightMatrix(int n,int t, double cn, double ct, boolean isFlat) {
+		return this.generateUSDSWeightMatrix(n, t, this.kn,this.kt, cn, ct, isFlat);
+	}
 	/**
 	 * 
 	 * More efficient.
@@ -230,6 +234,40 @@ public class LinkToLinks {
 		return we;
 	}
 	
+	private RealMatrix generateUSDSWeightMatrix(int n,int t,int kn,int kt,double cn, double ct, boolean isFlat){
+		
+		if(isFlat) {
+			return MatrixUtils.createRealMatrix(Nd4j.ones(this.linkToLinks.size(), this.timeBean.size()).toDoubleMatrix());
+		}
+		
+		LinkToLink l2l=this.linkToLinks.get(n);
+		RealMatrix we=new OpenMapRealMatrix(this.linkToLinks.size(), this.timeBean.size());
+		for(Entry<Integer,Set<Integer>> linkToLinks:this.generateUSDSProximityMap(l2l).entrySet()) {
+			
+			for(int l2lIndex:linkToLinks.getValue()) {
+				for(int tt=Math.max(t-kt,0);tt<=Math.min(this.timeBean.size()-1,t+kt);tt++) {
+					double wk = 0;
+					float wt=0;
+					if(linkToLinks.getKey()==0 && tt-t==0) {//the main link at main time step
+						wk = 1;
+						wt = 1;
+					}else if(linkToLinks.getKey()<=0 && (tt-t)>=0){//l->[-kn,0];t->[0,kt] l=0,t=0 will be already caught on the previous if and will not come here
+						wk = 0;
+						wt = 0;
+					}else {
+						wk = 1f/(1+(float)cn*Math.abs(linkToLinks.getKey()));
+						wt = 1f/(1+(float)ct*Math.abs(tt-t));
+					}
+					//weight[l2lIndex][tt]=wk*wt;
+					we.setEntry(l2lIndex, tt, wk*wt);
+					//we.putScalar(l2lIndex, tt, wk*wt);
+				}
+			}
+		}
+		//double[][] a =we.getData();
+		return we;
+	}
+	
 	private Map<Integer,Set<Integer>> generateProximityMap(LinkToLink l2l){
 		//LinkToLink l2l=this.linkToLinks.get(n);
 		INDArray we=Nd4j.create(this.linkToLinks.size(), this.timeBean.size());
@@ -242,11 +280,48 @@ public class LinkToLinks {
 		this.fetchLinkToLinkWithToLink(l2l.getFromLink(), 0, kn, linkToLinkMap);
 		
 		linkToLinkMap.get(0).addAll(this.fromLinkToLinkMap.get(l2l.getFromLink().getId()));
-		linkToLinkMap.get(0).addAll(this.ToLinkToLinkMap.get(l2l.getToLink().getId()));
+		linkToLinkMap.get(0).addAll(this.ToLinkToLinkMap.get(l2l.getToLink().getId()));//Maybe this should go to 1 instead of 0 as the from link volume does not belong here. 
 		
 		Map<Integer,Set<Integer>> l2lMap=new HashMap<>();
 		
 		for(Entry<Integer,Set<LinkToLink>>e:linkToLinkMap.entrySet()) {
+			l2lMap.put(e.getKey(), new HashSet<>());
+			for(LinkToLink l2l2:e.getValue()) {
+				l2lMap.get(e.getKey()).add(this.getNumToLinkToLink().inverse().get(l2l2.getLinkToLinkId()));
+			}
+		}
+		
+		return l2lMap;
+	}
+	
+	private Map<Integer,Set<Integer>> generateUSDSProximityMap(LinkToLink l2l){
+		//LinkToLink l2l=this.linkToLinks.get(n);
+		INDArray we=Nd4j.create(this.linkToLinks.size(), this.timeBean.size());
+		//double weight[][]=new double[this.linkToLinks.size()][this.timeBean.size()];
+		Map<Integer,Set<LinkToLink>>dslinkToLinkMap=new HashMap<>();
+		Map<Integer,Set<LinkToLink>>uslinkToLinkMap=new HashMap<>();
+		uslinkToLinkMap.put(0, new HashSet<>());
+		dslinkToLinkMap.put(0, new HashSet<>());
+		uslinkToLinkMap.get(0).add(l2l);
+		dslinkToLinkMap.get(0).add(l2l);
+		uslinkToLinkMap.put(1, new HashSet<>());
+		dslinkToLinkMap.put(1, new HashSet<>());
+		this.fetchLinkToLinkWithFromLink(l2l.getToLink(), 0, kn, dslinkToLinkMap);
+		this.fetchLinkToLinkWithToLink(l2l.getFromLink(), 0, kn, uslinkToLinkMap);
+		
+		uslinkToLinkMap.get(0).addAll(this.fromLinkToLinkMap.get(l2l.getFromLink().getId()));
+		dslinkToLinkMap.get(0).addAll(this.fromLinkToLinkMap.get(l2l.getFromLink().getId()));
+		dslinkToLinkMap.get(1).addAll(this.ToLinkToLinkMap.get(l2l.getToLink().getId()));//Maybe this should go to 1 instead of 0 as the from link volume does not belong here. 
+		
+		Map<Integer,Set<Integer>> l2lMap=new HashMap<>();
+		
+		for(Entry<Integer,Set<LinkToLink>>e:uslinkToLinkMap.entrySet()) {
+			l2lMap.put(e.getKey()*(-1), new HashSet<>());
+			for(LinkToLink l2l2:e.getValue()) {
+				l2lMap.get(e.getKey()*(-1)).add(this.getNumToLinkToLink().inverse().get(l2l2.getLinkToLinkId()));
+			}
+		}
+		for(Entry<Integer,Set<LinkToLink>>e:dslinkToLinkMap.entrySet()) {
 			l2lMap.put(e.getKey(), new HashSet<>());
 			for(LinkToLink l2l2:e.getValue()) {
 				l2lMap.get(e.getKey()).add(this.getNumToLinkToLink().inverse().get(l2l2.getLinkToLinkId()));
@@ -338,6 +413,15 @@ public class LinkToLinks {
 	public RealMatrix getWeightMatrix(int n, int t){
 		return this.generateWeightMatrix(n, t,1,1,false);
 	}
+	/**
+	 * Assuming cn and ct are 1
+	 * @param n
+	 * @param t
+	 * @return
+	 */
+	public RealMatrix getUSDSWeightMatrix(int n, int t){
+		return this.generateUSDSWeightMatrix(n, t,1,1,false);
+	}
 	
 	@Deprecated
 	/**
@@ -383,6 +467,7 @@ public class LinkToLinks {
 	}
 
 	public static void main(String[] args) {
+		
 		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
 		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
 		Config config =ConfigUtils.createConfig();
@@ -401,9 +486,9 @@ public class LinkToLinks {
 	public void writeLinkToLinkDetails(String fileloc) {
 		try {
 			FileWriter fw=new FileWriter(new File(fileloc));
-			fw.append("LinkToLinkNo,FromLink,ToLink,CycleTime,Capacity,g_cratio\n");
+			fw.append("LinkToLinkNo,FromLink,ToLink,CycleTime,capacity,FreeFlowTT,g_cratio\n");
 			for(LinkToLink l2l:this.linkToLinks) {
-				fw.append(this.numToLinkToLink.inverse().get(l2l.getLinkToLinkId())+","+l2l.getFromLink().getId()+","+l2l.getToLink().getId()+","+l2l.getCycleTime()+","+l2l.getFreeFlowTT()+","+l2l.getG_cRatio()+"\n");
+				fw.append(this.numToLinkToLink.inverse().get(l2l.getLinkToLinkId())+","+l2l.getFromLink().getId()+","+l2l.getToLink().getId()+","+l2l.getCycleTime()+","+l2l.getFromLink().getCapacity()+","+l2l.getFreeFlowTT()+","+l2l.getG_cRatio()+"\n");
 			}
 			fw.flush();
 			fw.close();

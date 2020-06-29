@@ -440,7 +440,7 @@ public class DataIO {
 		int j=0;
 		for(int t=0;t<T;t++) {
 			for(int n=0;n<N;n++) {
-				INDArray ow=Nd4j.create(l2ls.getWeightMatrix(n, t).getData());
+				INDArray ow=Nd4j.create(l2ls.getUSDSWeightMatrix(n, t).getData());
 				INDArray W = ow.reshape('f',1,N*T);
 				w.putRow(j, W);
 				j++;
@@ -522,10 +522,11 @@ class RouteData{
 			fw.append("RouteNo, RouteId, L2ls\n");
 			for(int i=0;i<this.routeList.size();i++) {
 				fw.append(i+","+this.routeList.get(i));
+				fw.append("\"[");
 				for(int j:this.routes.get(this.routeList.get(i))) {
 					fw.append(","+j);
 				}
-				fw.append("\n");
+				fw.append("]\"\n");
 			}
 			fw.flush();
 			fw.close();

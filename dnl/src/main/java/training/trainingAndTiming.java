@@ -95,9 +95,9 @@ public class trainingAndTiming {
 		Map<Integer,Data> testingData=DataIO.readDataSet(baseLoc+modelFolderName+"/DataSetTest"+800+".txt",baseLoc+modelFolderName+"/KeySetTest"+800+".csv",baseLoc+modelFolderName+"/RouteSetTest"+800+".txt");
 		//	Map<Integer,Data> testingDataConst=DataIO.readDataSet(baseLoc+modelOtherFolderName+"/DataSetTest"+800+".txt",baseLoc+modelOtherFolderName+"/KeySetTest"+800+".csv");
 		
-		RouteData routeData = DataIO.readRouteData(baseLoc+modelFolderName, 26);//specific to nd change if necessary. Should look for better solution
-
-		new BPRBaseFunction(l2ls).writecsvLinktoLinkinfo(baseLoc+modelFolderName+"ForMatlab/linkInfo.csv");
+		//RouteData routeData = DataIO.readRouteData(baseLoc+modelFolderName, 26);//specific to nd change if necessary. Should look for better solution
+		l2ls.writeLinkToLinkDetails(baseLoc+modelFolderName+"ForMatlab/linkInfo.csv");
+		//new BPRBaseFunction(l2ls).writecsvLinktoLinkinfo(baseLoc+modelFolderName+"ForMatlab/linkInfo.csv");
 		DataIO.createMatlabData(trainingData, testingData, l2ls,baseLoc+modelFolderName+"ForMatlab");
 		
 		
