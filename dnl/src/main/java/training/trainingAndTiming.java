@@ -49,7 +49,7 @@ import linktolinkBPR.SignalFlowReductionGenerator;
 public class trainingAndTiming {
 	public static void main(String[] args) {
 
-		String baseLoc = "Network/ND/";
+		String baseLoc = "Network/SiouxFalls/";
 		String modelFolderName="dataset_June2020/";
 		String modelName="MeanModel_WithoutWeight";
 		String modelOtherFolderName="largeDataset";
@@ -70,8 +70,8 @@ public class trainingAndTiming {
 			e.printStackTrace();
 		}//header
 
-		Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
-		//Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
+		//Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
+		Network network=NetworkUtils.readNetwork("Network/SiouxFalls/siouxfallsNetwork.xml");
 		SignalFlowReductionGenerator sg = null;
 		Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
 

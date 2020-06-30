@@ -243,7 +243,6 @@ public class LinkToLinks {
 		LinkToLink l2l=this.linkToLinks.get(n);
 		RealMatrix we=new OpenMapRealMatrix(this.linkToLinks.size(), this.timeBean.size());
 		for(Entry<Integer,Set<Integer>> linkToLinks:this.generateUSDSProximityMap(l2l).entrySet()) {
-			
 			for(int l2lIndex:linkToLinks.getValue()) {
 				for(int tt=Math.max(t-kt,0);tt<=Math.min(this.timeBean.size()-1,t+kt);tt++) {
 					double wk = 0;
@@ -251,6 +250,7 @@ public class LinkToLinks {
 					if(linkToLinks.getKey()==0 && tt-t==0) {//the main link at main time step
 						wk = 1;
 						wt = 1;
+						
 					}else if(linkToLinks.getKey()<=0 && (tt-t)>=0){//l->[-kn,0];t->[0,kt] l=0,t=0 will be already caught on the previous if and will not come here
 						wk = 0;
 						wt = 0;
@@ -312,19 +312,25 @@ public class LinkToLinks {
 		uslinkToLinkMap.get(0).addAll(this.fromLinkToLinkMap.get(l2l.getFromLink().getId()));
 		dslinkToLinkMap.get(0).addAll(this.fromLinkToLinkMap.get(l2l.getFromLink().getId()));
 		dslinkToLinkMap.get(1).addAll(this.ToLinkToLinkMap.get(l2l.getToLink().getId()));//Maybe this should go to 1 instead of 0 as the from link volume does not belong here. 
-		
+		dslinkToLinkMap.get(1).remove(l2l);
 		Map<Integer,Set<Integer>> l2lMap=new HashMap<>();
+		Set<Integer> DSLinks = new HashSet<>();
 		
-		for(Entry<Integer,Set<LinkToLink>>e:uslinkToLinkMap.entrySet()) {
-			l2lMap.put(e.getKey()*(-1), new HashSet<>());
-			for(LinkToLink l2l2:e.getValue()) {
-				l2lMap.get(e.getKey()*(-1)).add(this.getNumToLinkToLink().inverse().get(l2l2.getLinkToLinkId()));
-			}
-		}
 		for(Entry<Integer,Set<LinkToLink>>e:dslinkToLinkMap.entrySet()) {
 			l2lMap.put(e.getKey(), new HashSet<>());
 			for(LinkToLink l2l2:e.getValue()) {
 				l2lMap.get(e.getKey()).add(this.getNumToLinkToLink().inverse().get(l2l2.getLinkToLinkId()));
+			}
+			DSLinks.addAll(l2lMap.get(e.getKey()));
+		}
+		for(Entry<Integer,Set<LinkToLink>>e:uslinkToLinkMap.entrySet()) {
+			l2lMap.put(e.getKey()*(-1), new HashSet<>());
+			for(LinkToLink l2l2:e.getValue()) {
+				int link = this.getNumToLinkToLink().inverse().get(l2l2.getLinkToLinkId());
+				if(e.getKey()==0 || !DSLinks.contains(link)) {
+					l2lMap.get(e.getKey()*(-1)).add(link);
+				}
+				
 			}
 		}
 		
