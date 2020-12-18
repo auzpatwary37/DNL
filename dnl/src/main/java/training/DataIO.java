@@ -553,12 +553,11 @@ class RouteData{
 			fw.append("RouteNo, RouteId, L2ls\n");
 			for(int i=0;i<this.routeList.size();i++) {
 				fw.append(i+","+this.routeList.get(i));
-				fw.append(",");
-				fw.append("\"[");
-				String s = "";
+				fw.append(",\"[");
+				String seperator = "";
 				for(int j:this.routes.get(this.routeList.get(i))) {
-					fw.append(s+j);
-					s = ",";
+					fw.append(seperator+j);
+					seperator = ",";
 				}
 				fw.append("]\"\n");
 			}
