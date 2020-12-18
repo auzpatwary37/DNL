@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,5 +69,38 @@ class zmbtest {
 	}
 	
 	
-
+public static void main(String[] args) {
+	//Network network=NetworkUtils.readNetwork("Network/ND/ndNetwork.xml");
+	Network network=NetworkUtils.readNetwork("Network/SiouxFalls/network.xml");
+	SignalFlowReductionGenerator sg = null;
+	//config.network().setInputFile("Network/SiouxFalls/network.xml");
+	Map<Integer,Tuple<Double,Double>> timeBean=new HashMap<>();
+	for(int i=15;i<24;i++) {
+		timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
+	}
+	LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
+	//double[][] delta = DataIO.createDeltaMatrix(l2ls,"Network/ND/dataset_dec2020/routeInfo.csv");
+	double[][] delta = DataIO.createDeltaMatrix(l2ls,"Network/SiouxFalls/dataset_dec2020/routeInfo.csv");
+	RealMatrix d = MatrixUtils.createRealMatrix(delta);
+	RealMatrix LbyL = d.transpose().multiply(d);
+	int N = l2ls.getL2lCounter();
+	int T = timeBean.size();
+	int j = 0;
+	//String writeLoc = "Network/ND/dataset_dec2020/ForMatlab";
+	String writeLoc = "Network/SiouxFalls/dataset_dec2020/ForMatlab";
+	INDArray w = Nd4j.create(N*T,N*T);
+	for(int n = 0; n<N;n++) {
+		for(int t = 0; t<T;t++) {
+			RealMatrix w_r = MatrixUtils.createRealMatrix(N, T);
+			for(int tt = 0;tt<=t;tt++) {
+				w_r.setColumn(tt, LbyL.getRow(n));
+			}
+			INDArray ow=Nd4j.create(w_r.getData());
+			INDArray W = ow.reshape('f',1,N*T);
+			w.putRow(j, W);
+			j++;
+		}
+	}
+	DataIO.writeINDArray(w,writeLoc+"/routeWeights.csv");
+}
 }

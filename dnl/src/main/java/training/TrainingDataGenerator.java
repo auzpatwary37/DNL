@@ -3,6 +3,7 @@ package training;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -47,6 +50,9 @@ import org.matsim.vehicles.Vehicles;
 import linktolinkBPR.LinkToLinks;
 import linktolinkBPR.SignalFlowReductionGenerator;
 import matsimIntegration.DNLDataCollectionModule;
+import umontreal.ssj.hups.LatinHypercube;
+import umontreal.ssj.rng.BasicRandomStreamFactory;
+import umontreal.ssj.rng.MRG32k3a;
 
 public class TrainingDataGenerator {
 	public static void main(String[] args) throws IOException {
@@ -99,22 +105,64 @@ public class TrainingDataGenerator {
 			timeBean.put(i,new Tuple<Double,Double>(i*3600.,i*3600.+3600));
 		}
 		LinkToLinks l2ls=new LinkToLinks(network,timeBean,3,3,sg);
-		new ConfigWriter(config).write("Network/ND/final_config.xml");
-//		new ConfigWriter(config).write("Network/SiouxFalls/final_config.xml");
-		//double[] ratio=new double[] {0.5,.625,.75,.875,1,1.125,1.25,1.375,1.5};
-		double[] ratio=new double[] {.875,1,1.125,1.25,1.375,1.5};
+//		new ConfigWriter(config).write("Network/ND/final_config.xml");
+		new ConfigWriter(config).write("Network/SiouxFalls/final_config.xml");
+		double[] ratio=new double[] {0.5,.625,.75,.875,1,1.125,1.25,1.375,1.5};
+		//double[] ratio=new double[] {.875,1,1.125,1.25,1.375,1.5};
 		
-		String baseLoc="Network/SiouxFalls/dataset_June2020/";
-		//String baseLoc="Network/ND/dataset_June2020/";
+		String baseLoc="Network/SiouxFalls/dataset_dec2020/";
+		//String baseLoc="Network/ND/dataset_dec2020/";
 		
-		int k=0;
-		for(int i=0;i<ratio.length*3;i++) {
+//		int k=0;
+//		for(int i=0;i<ratio.length*3;i++) {
+//			//if(i<0)continue;
+//			Config configcurrent=ConfigUtils.createConfig();
+//			//ConfigUtils.loadConfig(configcurrent, "Network/SiouxFalls/final_config.xml");
+//			ConfigUtils.loadConfig(configcurrent, "Network/ND/final_config.xml");
+//			GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, baseLoc,ratio[k]);
+//			//GenerateRandomPopulation(i,configcurrent,"Network/SiouxFalls/SiouxFallDemand.csv", 5, "Network/SiouxFalls/dataset_June2020",ratio[k],network);
+//			
+//			//configcurrent.plans().setInputFile("Network/SiouxFalls/population"+i+".xml");
+//			configcurrent.plans().setInputFile(baseLoc+"population"+i+".xml");
+//			
+//			//configcurrent.vehicles().setVehiclesFile("Network/SiouxFalls/vehicles"+i+".xml");
+//			
+//			configcurrent.vehicles().setVehiclesFile(baseLoc+"vehicles"+i+".xml");
+//			
+//			configcurrent.controler().setOutputDirectory(baseLoc+"output");
+//			configcurrent.controler().setWritePlansInterval(1);
+//			configcurrent.controler().setWriteEventsInterval(1);
+//			configcurrent.travelTimeCalculator().setCalculateLinkToLinkTravelTimes(true);
+//			configcurrent.travelTimeCalculator().setTraveltimeBinSize(3600);
+//			configcurrent.travelTimeCalculator().setSeparateModes(false);
+//			//TravelTimeCalculator.Builder b;
+//			Scenario scenario = ScenarioUtils.loadScenario(configcurrent);
+//			Controler controler = new Controler(scenario);
+//			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,baseLoc+"DataSet"+i+".txt",Double.toString(ratio[k]),baseLoc+"KeySet"+i+".csv",baseLoc+"routeDemand"+i+".csv" ,false));
+//			controler.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
+//			controler.run();
+//			if((i+1)%3==0) {
+//				k=k+1;
+//			}
+//		}
+//		
+//		
+		int numberOfPoints = 20;
+		int ndDemandOds = 4;
+		int siouxFallsDemandOd = 12;
+		Tuple<Double,Double> range = new Tuple<Double,Double>(.875,1.5);
+		//String lhsConfName = "lhs_ND";
+		String lhsConfName = "lhs_SF";
+		//double[][] multipliers = getLHSMultiplier(numberOfPoints, range, ndDemandOds, lhsConfName, baseLoc);
+		double[][] multipliers = getLHSMultiplier(numberOfPoints, range, siouxFallsDemandOd, lhsConfName, baseLoc);
+		
+		for(int i=0;i<numberOfPoints;i++) {
 			//if(i<0)continue;
 			Config configcurrent=ConfigUtils.createConfig();
 			ConfigUtils.loadConfig(configcurrent, "Network/SiouxFalls/final_config.xml");
 			//ConfigUtils.loadConfig(configcurrent, "Network/ND/final_config.xml");
-			//GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, baseLoc,ratio[k]);
-			GenerateRandomPopulation(i,configcurrent,"Network/SiouxFalls/SiouxFallDemand.csv", 5, "Network/SiouxFalls/dataset_June2020",ratio[k],network);
+			//GenerateRandomNDPopulation(i,configcurrent,"Network/ND/ndDemand.csv", 5, baseLoc,multipliers[i]);
+			GenerateRandomPopulation(i,configcurrent,"Network/SiouxFalls/SiouxFallDemand.csv", 5, "Network/SiouxFalls/dataset_dec2020",multipliers[i],network);
 			
 			//configcurrent.plans().setInputFile("Network/SiouxFalls/population"+i+".xml");
 			configcurrent.plans().setInputFile(baseLoc+"population"+i+".xml");
@@ -132,16 +180,10 @@ public class TrainingDataGenerator {
 			//TravelTimeCalculator.Builder b;
 			Scenario scenario = ScenarioUtils.loadScenario(configcurrent);
 			Controler controler = new Controler(scenario);
-			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,baseLoc+"DataSet"+i+".txt",Double.toString(ratio[k]),baseLoc+"KeySet"+i+".csv",baseLoc+"routeDemand"+i+".csv" ,false));
+			controler.addOverridingModule(new DNLDataCollectionModule(l2ls,baseLoc+"DataSet"+i+".txt",lhsConfName+i,baseLoc+"KeySet"+i+".csv",baseLoc+"routeDemand"+i+".csv" ,false));
 			controler.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 			controler.run();
-			if((i+1)%3==0) {
-				k=k+1;
-			}
 		}
-//		
-//		
-		
 	}
 	
 	public static void GenerateSiouxFallNetwork(String nodefile,String linkFile,String netFileWriteLoc) throws IOException{
@@ -272,6 +314,75 @@ public class TrainingDataGenerator {
 		new ConfigWriter(config).write(writeLoc+"/config.xml");
 	}
 	
+	
+	public static void GenerateRandomPopulation(int counter,Config config,String demandFileLocaiton,double sdPercent,String writeLoc,double[] demandPercent,Network network) throws IOException {
+		Population p=PopulationUtils.createPopulation(config);
+		Vehicles vehicles=ScenarioUtils.loadScenario(config).getVehicles();
+		
+		VehicleType vt=vehicles.getFactory().createVehicleType(Id.create("car", VehicleType.class));
+		if(!vehicles.getVehicleTypes().containsKey(vt.getId())) {
+			vehicles.addVehicleType(vt);
+		}
+		PopulationFactory popfac=p.getFactory();
+		BufferedReader bf=new BufferedReader(new FileReader(new File(demandFileLocaiton)));
+		String[] header=bf.readLine().split(",");//get rid of the header
+		String line=null;
+		int k = 0;
+		while((line=bf.readLine())!=null) {
+			HashMap<Integer,Double> demands=new HashMap<>();
+			String[] part=line.split(",");
+			Id<Node> originNodeId=Id.createNodeId(part[0].trim());
+			Id<Node> destinationNodeId=Id.createNodeId(part[1].trim());
+			int i=-1;
+			for(String s:header) {
+				i++;
+				if(s.equalsIgnoreCase("O")||s.equalsIgnoreCase("D")){
+					continue;
+				}
+				demands.put(Integer.parseInt(s),Double.parseDouble(part[i]));
+			}
+			Random random=new Random();
+			for(Entry<Integer,Double> demand:demands.entrySet()) {
+				double hour=demand.getKey()+12;
+				double randomDemand=demand.getValue()*demandPercent[k];
+				for(int j=0;j<=randomDemand;j++) {
+					Person person =popfac.createPerson(Id.createPersonId(originNodeId.toString()+"_"+destinationNodeId.toString()+"_"+hour+"_"+j));
+					Plan plan=popfac.createPlan();
+					Activity act1=popfac.createActivityFromLinkId("Home1", Id.createLinkId("O"+originNodeId.toString()+"_"+originNodeId.toString()));
+					if(network.getLinks().get(act1.getLinkId())==null) {
+						System.out.println();
+					}
+					double tripStartTime=hour*3600+30*60+random.nextGaussian()*30*60;
+					act1.setEndTime(tripStartTime);
+					Leg leg=popfac.createLeg("car");
+					leg.setDepartureTime(tripStartTime);
+					Activity act2=popfac.createActivityFromLinkId("Home2", Id.createLinkId(destinationNodeId.toString()+"_"+destinationNodeId.toString()+"D"));
+					if(network.getLinks().get(act2.getLinkId())==null) {
+						System.out.println();
+					}
+					plan.addActivity(act1);
+					plan.addLeg(leg);
+					plan.addActivity(act2);
+					person.addPlan(plan);
+					p.addPerson(person);
+					Vehicle v=vehicles.getFactory().createVehicle(Id.createVehicleId(person.getId().toString()), vt);
+					vehicles.addVehicle(v);
+				}
+			}
+			k++;
+		}
+		ActivityParams act1 = new ActivityParams("Home1");
+		act1.setTypicalDuration(8*60*60);
+		config.planCalcScore().addActivityParams(act1);
+		ActivityParams act2 = new ActivityParams("Home2");
+		act2.setTypicalDuration(8*60*60);
+		config.planCalcScore().addActivityParams(act2);
+		
+		new PopulationWriter(p).write(writeLoc+"/population"+counter+".xml");
+		new VehicleWriterV1(vehicles).writeFile(writeLoc+"/vehicles"+counter+".xml");
+		new ConfigWriter(config).write(writeLoc+"/config.xml");
+	}
+	
 	public static void GenerateNDNetwork(String nodefile,String linkFile,String netFileWriteLoc) throws IOException{
 		Network network=NetworkUtils.createNetwork();
 		NetworkFactory netfac=network.getFactory();
@@ -333,6 +444,67 @@ public class TrainingDataGenerator {
 		new NetworkWriter(network).write(netFileWriteLoc);
 	}
 	
+	public static void GenerateRandomNDPopulation(int counter,Config config,String demandFileLocaiton,double sdPercent,String writeLoc,double[] demandMultiplier) throws IOException {
+		Population p=PopulationUtils.createPopulation(config);
+		Vehicles vehicles=ScenarioUtils.loadScenario(config).getVehicles();
+		
+		VehicleType vt=vehicles.getFactory().createVehicleType(Id.create("car", VehicleType.class));
+		vehicles.addVehicleType(vt);
+		
+		PopulationFactory popfac=p.getFactory();
+		BufferedReader bf=new BufferedReader(new FileReader(new File(demandFileLocaiton)));
+		String[] header=bf.readLine().split(",");//get rid of the header
+		String line=null;
+		int k = 0;
+		while((line=bf.readLine())!=null) {
+			HashMap<Integer,Double> demands=new HashMap<>();
+			String[] part=line.split(",");
+			Id<Node> originNodeId=Id.createNodeId(part[0].trim());
+			Id<Node> destinationNodeId=Id.createNodeId(part[1].trim());
+			int i=-1;
+			for(String s:header) {
+				i++;
+				if(s.equalsIgnoreCase("O")||s.equalsIgnoreCase("D")){
+					continue;
+				}
+				demands.put(Integer.parseInt(s),Double.parseDouble(part[i]));
+			}
+			Random random=new Random();
+			for(Entry<Integer,Double> demand:demands.entrySet()) {
+				double hour=demand.getKey()+12;
+				double randomDemand=demand.getValue()*demandMultiplier[k];
+				for(int j=0;j<=randomDemand;j++) {
+					Person person =popfac.createPerson(Id.createPersonId(originNodeId.toString()+"_"+destinationNodeId.toString()+"_"+hour+"_"+j));
+					Plan plan=popfac.createPlan();
+					Activity act1=popfac.createActivityFromLinkId("Home1", Id.createLinkId("O"+originNodeId.toString()+"_"+originNodeId.toString()));
+					double tripStartTime=hour*3600+30*60+random.nextGaussian()*30*60;
+					act1.setEndTime(tripStartTime);
+					Leg leg=popfac.createLeg("car");
+					leg.setDepartureTime(tripStartTime);
+					Activity act2=popfac.createActivityFromLinkId("Home2", Id.createLinkId(destinationNodeId.toString()+"_"+destinationNodeId.toString()+"D"));
+					plan.addActivity(act1);
+					plan.addLeg(leg);
+					plan.addActivity(act2);
+					person.addPlan(plan);
+					p.addPerson(person);
+					Vehicle v=vehicles.getFactory().createVehicle(Id.createVehicleId(person.getId().toString()), vt);
+					vehicles.addVehicle(v);
+				}
+			}
+			k++;
+		}
+		ActivityParams act1 = new ActivityParams("Home1");
+		act1.setTypicalDuration(8*60*60);
+		config.planCalcScore().addActivityParams(act1);
+		ActivityParams act2 = new ActivityParams("Home2");
+		act2.setTypicalDuration(8*60*60);
+		config.planCalcScore().addActivityParams(act2);
+		
+		new PopulationWriter(p).write(writeLoc+"/population"+counter+".xml");
+		new VehicleWriterV1(vehicles).writeFile(writeLoc+"/vehicles"+counter+".xml");
+		new ConfigWriter(config).write(writeLoc+"/config.xml");
+	}
+	
 	public static void GenerateRandomNDPopulation(int counter,Config config,String demandFileLocaiton,double sdPercent,String writeLoc,double demandPercent) throws IOException {
 		Population p=PopulationUtils.createPopulation(config);
 		Vehicles vehicles=ScenarioUtils.loadScenario(config).getVehicles();
@@ -392,5 +564,30 @@ public class TrainingDataGenerator {
 		new ConfigWriter(config).write(writeLoc+"/config.xml");
 	}
 	
+	public static double[][] getLHSMultiplier(int numberOfPoints, Tuple<Double,Double> range, int dimension, String lhsConfName, String baseLocForLogging){
+		LatinHypercube lhs = new LatinHypercube(numberOfPoints, dimension);
+		lhs.randomize(new BasicRandomStreamFactory(MRG32k3a.class).newInstance());
+		RealMatrix rm = MatrixUtils.createRealMatrix(lhs.getArray());
+		double r = range.getSecond()-range.getFirst();
+		double min = range.getFirst();
+		double[][] p =rm.scalarMultiply(r).scalarAdd(min).getData();
+		try {
+			FileWriter fw = new FileWriter(new File(baseLocForLogging+"/"+lhsConfName+".csv"));
+			for(int i = 0;i<p.length;i++) {
+				String s = "";
+				for(int j = 0;j<p[i].length;j++) {
+					fw.append(s+p[i][j]);
+					s = ",";
+				}
+				fw.append("\n");
+			}
+			fw.flush();
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return p;
+	}
 	
 }

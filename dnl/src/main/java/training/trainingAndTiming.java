@@ -50,7 +50,7 @@ public class trainingAndTiming {
 	public static void main(String[] args) {
 
 		String baseLoc = "Network/SiouxFalls/";
-		String modelFolderName="dataset_June2020/";
+		String modelFolderName="dataset_dec2020/";
 		String modelName="MeanModel_WithoutWeight";
 		String modelOtherFolderName="largeDataset";
 		int N=33;
@@ -96,7 +96,7 @@ public class trainingAndTiming {
 		//	Map<Integer,Data> testingDataConst=DataIO.readDataSet(baseLoc+modelOtherFolderName+"/DataSetTest"+800+".txt",baseLoc+modelOtherFolderName+"/KeySetTest"+800+".csv");
 		
 		//RouteData routeData = DataIO.readRouteData(baseLoc+modelFolderName, 26);//specific to nd change if necessary. Should look for better solution
-		l2ls.writeLinkToLinkDetails(baseLoc+modelFolderName+"ForMatlab/linkInfo.csv");
+		l2ls.writeLinkToLinkDetails(baseLoc+modelFolderName+"ForMatlab/linkInfo1.csv");
 		//new BPRBaseFunction(l2ls).writecsvLinktoLinkinfo(baseLoc+modelFolderName+"ForMatlab/linkInfo.csv");
 		DataIO.createMatlabData(trainingData, testingData, l2ls,baseLoc+modelFolderName+"ForMatlab");
 		

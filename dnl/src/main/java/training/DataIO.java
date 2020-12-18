@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -460,6 +462,35 @@ public class DataIO {
 //		System.out.println(a.reshape('f',1,a.length()));
 //	}
 	
+	public static double[][] createDeltaMatrix(LinkToLinks l2ls, String routeInfoFileLoc) {
+		List<double[]> routeIncidence = new ArrayList<>();
+		try {
+			BufferedReader bf = new BufferedReader(new FileReader(new File(routeInfoFileLoc)));
+			String line = null;
+			bf.readLine();
+			while((line = bf.readLine())!=null) {
+				String part[] = line.split(",");
+				double[] l2lSet = new double[l2ls.getLinkToLinks().size()];
+				for(int i = 2;i<part.length;i++) {
+					part[i] = part[i].replaceAll("\"", "");
+					part[i] = part[i].replace("[", "");
+					part[i] = part[i].replace("]", "");
+					int n = Integer.parseInt(part[i]);
+					l2lSet[n] = 1;
+				}
+				routeIncidence.add(l2lSet);
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		double[][] delta = new double[routeIncidence.size()][l2ls.getL2lCounter()];
+		for(int i = 0;i<routeIncidence.size();i++)delta[i] = routeIncidence.get(i);
+		return delta;
+	}
 	
 	public static RouteData readRouteData(String fileLoc, int maxIterNo) {
 		LinkedHashMap<String,List<Integer>> routes = new LinkedHashMap<>();
@@ -522,9 +553,12 @@ class RouteData{
 			fw.append("RouteNo, RouteId, L2ls\n");
 			for(int i=0;i<this.routeList.size();i++) {
 				fw.append(i+","+this.routeList.get(i));
+				fw.append(",");
 				fw.append("\"[");
+				String s = "";
 				for(int j:this.routes.get(this.routeList.get(i))) {
-					fw.append(","+j);
+					fw.append(s+j);
+					s = ",";
 				}
 				fw.append("]\"\n");
 			}

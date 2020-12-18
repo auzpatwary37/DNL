@@ -1,6 +1,9 @@
 package training;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import org.apache.commons.math3.linear.RealMatrix;
 import org.matsim.core.utils.collections.Tuple;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
@@ -17,13 +21,14 @@ import org.nd4j.linalg.factory.Nd4j;
 
 import kriging.Data;
 import kriging.KrigingInterpolator;
+import linktolinkBPR.LinkToLinks;
 
 public class DataCleanUp {
 	public static void main(String[] args) {
 		List<Data> datasetFull=new ArrayList<>();
-		String baseloc="Network/SiouxFalls/dataset_June2020/";
-		RouteData routeData = DataIO.readRouteData(baseloc, 17);
-		for(int i=0;i<18;i++) {
+		String baseloc="Network/SiouxFalls/dataset_dec2020/";
+		RouteData routeData = DataIO.readRouteData(baseloc, 19);
+		for(int i=0;i<20;i++) {
 			Map<Integer,Data> dset=DataIO.readDataSet(baseloc+"DataSet"+i+".txt",baseloc+"KeySet"+i+".csv");
 			for(Data data:dset.values()) {
 				boolean isDuplicate=false;
@@ -206,6 +211,8 @@ class TestAndTrainData{
 	public Map<Integer, Data> getTrainData() {
 		return trainData;
 	}
+	
+	
 	
 	//TODO:identify and remove duplicate data
 }
